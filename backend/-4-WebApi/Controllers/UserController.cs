@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
@@ -15,6 +16,7 @@ namespace ERP.WebApi.Controllers;
 /// incluindo autenticação e gerenciamento de perfis.
 /// </remarks>
 //[SwaggerGroupOrder(200)] // Cadastros - user: Primeiro grupo Cadastro (ordem 200)
+[Authorize] // ✅ Requer autenticação
 [ApiController]
 [Route("api/user")]
 [Tags("Cadastros - user")]

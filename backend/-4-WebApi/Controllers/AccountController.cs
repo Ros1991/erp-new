@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
@@ -14,6 +15,7 @@ namespace ERP.WebApi.Controllers;
 /// Este controller fornece endpoints RESTful para operações CRUD em contas,
 /// incluindo gerenciamento de contas bancárias e financeiras da empresa.
 /// </remarks>
+[Authorize]
 [ApiController]
 [Route("api/account")]
 [Tags("Cadastros - Account")]
@@ -49,10 +51,11 @@ public class AccountController : BaseController
     [HttpPost("/account/create/")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> CreateAsync(AccountInputDTO dto)
     {
+        var currentUserId = GetCurrentUserId();
         return await ValidateAndExecuteCreateAsync(
-            () => _accountService.CreateAsync(dto),
+            () => _accountService.CreateAsync(dto, currentUserId),
             nameof(GetOneByIdAsync),
-            result => new { accountId = result.AccountId },
+            result => new { account_id = result.AccountId },
             "Conta criada com sucesso"
         );
     }
@@ -61,7 +64,8 @@ public class AccountController : BaseController
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> UpdateByIdAsync(long accountId, AccountInputDTO dto)
     {
         ValidateId(accountId, nameof(accountId));
-        return await ValidateAndExecuteAsync(() => _accountService.UpdateByIdAsync(accountId, dto), "Conta atualizada com sucesso");
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(() => _accountService.UpdateByIdAsync(accountId, dto, currentUserId), "Conta atualizada com sucesso");
     }
 
     [HttpDelete("/account/{accountId}/deleteById/")]

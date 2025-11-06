@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
@@ -19,6 +20,7 @@ namespace ERP.WebApi.Controllers;
 /// 
 /// </remarks>
 //[SwaggerGroupOrder(200)] // Cadastros - company: Primeiro grupo Cadastro (ordem 200)
+[Authorize] // ✅ Requer autenticação
 [ApiController]
 [Route("api/company")]
 [Tags("Cadastros - company")]
@@ -54,8 +56,9 @@ public class CompanyController : BaseController
     [HttpPost("/company/create/")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> CreateAsync(CompanyInputDTO dto)
     {
+        var currentUserId = GetCurrentUserId();
         return await ValidateAndExecuteCreateAsync(
-            () => _CompanyService.CreateAsync(dto),
+            () => _CompanyService.CreateAsync(dto, currentUserId),
             nameof(GetOneByIdAsync),
             result => new { company_id = result.CompanyId },
             "Empresa criada com sucesso"
@@ -65,8 +68,8 @@ public class CompanyController : BaseController
     [HttpPut("/company/{companyId}/updateById/")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto)
     {
-        //ValidateId(CompanyId, nameof(CompanyId));
-        return await ValidateAndExecuteAsync(() => _CompanyService.UpdateByIdAsync(CompanyId, dto), "Empresa atualizada com sucesso");
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(() => _CompanyService.UpdateByIdAsync(CompanyId, dto, currentUserId), "Empresa atualizada com sucesso");
     }
     
     [HttpDelete("/company/{companyId}/deleteById/")]

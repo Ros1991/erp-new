@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs.Auth;
 using ERP.Application.DTOs.Base;
@@ -13,6 +14,7 @@ namespace ERP.WebApi.Controllers;
 [Route("api/auth")]
 [Tags("Autenticação")]
 [ApiExplorerSettings(GroupName = "Autenticação")]
+[AllowAnonymous] // ✅ Permite acesso público a todos os endpoints de autenticação
 public class AuthController : BaseController
 {
     private readonly IAuthService _authService;

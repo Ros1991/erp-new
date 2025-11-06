@@ -45,15 +45,12 @@ namespace ERP.Application.Services
             return CompanyMapper.ToCompanyOutputDTO(entity);
         }
 
-        public async Task<CompanyOutputDTO> CreateAsync(CompanyInputDTO dto)
+        public async Task<CompanyOutputDTO> CreateAsync(CompanyInputDTO dto, long currentUserId)
         {
             if (dto == null)
             {
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
-
-            // TODO: Substituir por ID do usuário autenticado via JWT
-            long currentUserId = 1;
 
             var entity = CompanyMapper.ToEntity(dto, currentUserId);
             var createdEntity = await _unitOfWork.CompanyRepository.CreateAsync(entity);
@@ -61,20 +58,25 @@ namespace ERP.Application.Services
             return CompanyMapper.ToCompanyOutputDTO(createdEntity);
         }
 
-        public async Task<CompanyOutputDTO> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto)
+        public async Task<CompanyOutputDTO> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto, long currentUserId)
         {
             if (dto == null)
             {
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
-            // TODO: Substituir por ID do usuário autenticado via JWT
-            long currentUserId = 1;
+            // ✅ Busca entidade existente para preservar CriadoPor e CriadoEm
+            var existingEntity = await _unitOfWork.CompanyRepository.GetOneByIdAsync(CompanyId);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException("Company", CompanyId);
+            }
 
-            var entity = CompanyMapper.ToEntity(dto, currentUserId);
-            var updatedEntity = await _unitOfWork.CompanyRepository.UpdateByIdAsync(CompanyId, entity);
+            // ✅ Atualiza apenas campos de negócio + auditoria de atualização
+            CompanyMapper.UpdateEntity(existingEntity, dto, currentUserId);
+            
             await _unitOfWork.SaveChangesAsync();
-            return CompanyMapper.ToCompanyOutputDTO(updatedEntity);
+            return CompanyMapper.ToCompanyOutputDTO(existingEntity);
         }
 
         public async Task<bool> DeleteByIdAsync(long CompanyId)

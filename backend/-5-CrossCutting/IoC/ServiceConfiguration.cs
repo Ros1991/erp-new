@@ -24,6 +24,9 @@ namespace ERP.CrossCutting.IoC
             services.AddSingleton<ITokenService, TokenService>();
             services.AddScoped<IEmailService, EmailService>();
 
+            // Register HttpContextAccessor para acessar o contexto HTTP nos services
+            services.AddHttpContextAccessor();
+
             return services;
         }
     }

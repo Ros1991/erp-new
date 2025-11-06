@@ -44,15 +44,12 @@ namespace ERP.Application.Services
             return AccountMapper.ToAccountOutputDTO(entity);
         }
 
-        public async Task<AccountOutputDTO> CreateAsync(AccountInputDTO dto)
+        public async Task<AccountOutputDTO> CreateAsync(AccountInputDTO dto, long currentUserId)
         {
             if (dto == null)
             {
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
-
-            // TODO: Substituir por ID do usuário autenticado via JWT
-            long currentUserId = 1;
 
             var entity = AccountMapper.ToEntity(dto, currentUserId);
             var createdEntity = await _unitOfWork.AccountRepository.CreateAsync(entity);
@@ -60,20 +57,25 @@ namespace ERP.Application.Services
             return AccountMapper.ToAccountOutputDTO(createdEntity);
         }
 
-        public async Task<AccountOutputDTO> UpdateByIdAsync(long AccountId, AccountInputDTO dto)
+        public async Task<AccountOutputDTO> UpdateByIdAsync(long AccountId, AccountInputDTO dto, long currentUserId)
         {
             if (dto == null)
             {
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
-            // TODO: Substituir por ID do usuário autenticado via JWT
-            long currentUserId = 1;
+            // ✅ Busca entidade existente para preservar CriadoPor e CriadoEm
+            var existingEntity = await _unitOfWork.AccountRepository.GetOneByIdAsync(AccountId);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException("Account", AccountId);
+            }
 
-            var entity = AccountMapper.ToEntity(dto, currentUserId);
-            var updatedEntity = await _unitOfWork.AccountRepository.UpdateByIdAsync(AccountId, entity);
+            // ✅ Atualiza apenas campos de negócio + auditoria de atualização
+            AccountMapper.UpdateEntity(existingEntity, dto, currentUserId);
+            
             await _unitOfWork.SaveChangesAsync();
-            return AccountMapper.ToAccountOutputDTO(updatedEntity);
+            return AccountMapper.ToAccountOutputDTO(existingEntity);
         }
 
         public async Task<bool> DeleteByIdAsync(long AccountId)

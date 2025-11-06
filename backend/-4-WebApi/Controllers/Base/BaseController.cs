@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ERP.CrossCutting.Exceptions;
 using ERP.Application.DTOs.Base;
+using ERP.WebApi.Extensions;
 using System.Diagnostics;
 
 namespace ERP.WebApi.Controllers.Base
@@ -16,6 +17,46 @@ namespace ERP.WebApi.Controllers.Base
         protected BaseController(ILogger logger)
         {
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Obtém o ID do usuário autenticado
+        /// </summary>
+        protected long GetCurrentUserId()
+        {
+            return HttpContext.GetUserId();
+        }
+
+        /// <summary>
+        /// Obtém o email do usuário autenticado
+        /// </summary>
+        protected string? GetCurrentUserEmail()
+        {
+            return HttpContext.GetUserEmail();
+        }
+
+        /// <summary>
+        /// Obtém o telefone do usuário autenticado
+        /// </summary>
+        protected string? GetCurrentUserPhone()
+        {
+            return HttpContext.GetUserPhone();
+        }
+
+        /// <summary>
+        /// Obtém o CPF do usuário autenticado
+        /// </summary>
+        protected string? GetCurrentUserCpf()
+        {
+            return HttpContext.GetUserCpf();
+        }
+
+        /// <summary>
+        /// Verifica se o usuário está autenticado
+        /// </summary>
+        protected bool IsUserAuthenticated()
+        {
+            return HttpContext.IsAuthenticated();
         }
         /// <summary>
         /// Validates ModelState and throws ValidationException if invalid

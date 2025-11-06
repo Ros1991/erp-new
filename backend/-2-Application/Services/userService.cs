@@ -69,10 +69,18 @@ namespace ERP.Application.Services
 
             ValidateAtLeastOneContact(dto);
 
-            var entity = UserMapper.ToEntity(dto);
-            var updatedEntity = await _unitOfWork.UserRepository.UpdateByIdAsync(UserId, entity);
+            // ✅ Busca entidade existente
+            var existingEntity = await _unitOfWork.UserRepository.GetOneByIdAsync(UserId);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException("User", UserId);
+            }
+
+            // ✅ Atualiza apenas campos do DTO
+            UserMapper.UpdateEntity(existingEntity, dto);
+            
             await _unitOfWork.SaveChangesAsync();
-            return UserMapper.ToUserOutputDTO(updatedEntity);
+            return UserMapper.ToUserOutputDTO(existingEntity);
         }
 
         private void ValidateAtLeastOneContact(UserInputDTO dto)

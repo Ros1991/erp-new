@@ -46,5 +46,17 @@ namespace ERP.Application.Mappers
                 now            // AtualizadoEm
             );
         }
+
+        public static void UpdateEntity(Account entity, AccountInputDTO dto, long userId)
+        {
+            if (entity == null || dto == null) return;
+            entity.CompanyId = dto.CompanyId;
+            entity.Name = dto.Name;
+            entity.Type = dto.Type;
+            entity.InitialBalance = dto.InitialBalance;
+            entity.AtualizadoPor = userId;
+            entity.AtualizadoEm = DateTime.UtcNow;
+            // ✅ CriadoPor e CriadoEm NÃO são alterados
+        }
     }
 }

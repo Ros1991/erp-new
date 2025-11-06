@@ -8,8 +8,8 @@ namespace ERP.Application.Interfaces.Services
 		Task<List<CompanyOutputDTO>> GetAllAsync();
 		Task<PagedResult<CompanyOutputDTO>> GetPagedAsync(CompanyFilterDTO filters);
 		Task<CompanyOutputDTO> GetOneByIdAsync(long CompanyId);
-		Task<CompanyOutputDTO> CreateAsync(CompanyInputDTO dto);
-		Task<CompanyOutputDTO> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto);
+		Task<CompanyOutputDTO> CreateAsync(CompanyInputDTO dto, long currentUserId);
+		Task<CompanyOutputDTO> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto, long currentUserId);
 		Task<bool> DeleteByIdAsync(long CompanyId);
     }
 }
