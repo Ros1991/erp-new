@@ -15,15 +15,15 @@ namespace ERP.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<AccountOutputDTO>> GetAllAsync()
+        public async Task<List<AccountOutputDTO>> GetAllAsync(long companyId)
         {
-            var entities = await _unitOfWork.AccountRepository.GetAllAsync();
+            var entities = await _unitOfWork.AccountRepository.GetAllAsync(companyId);
             return AccountMapper.ToAccountOutputDTOList(entities);
         }
 
-        public async Task<PagedResult<AccountOutputDTO>> GetPagedAsync(AccountFilterDTO filters)
+        public async Task<PagedResult<AccountOutputDTO>> GetPagedAsync(long companyId, AccountFilterDTO filters)
         {
-            var pagedEntities = await _unitOfWork.AccountRepository.GetPagedAsync(filters);
+            var pagedEntities = await _unitOfWork.AccountRepository.GetPagedAsync(companyId, filters);
             var dtoItems = AccountMapper.ToAccountOutputDTOList(pagedEntities.Items);
             
             return new PagedResult<AccountOutputDTO>(
@@ -44,7 +44,7 @@ namespace ERP.Application.Services
             return AccountMapper.ToAccountOutputDTO(entity);
         }
 
-        public async Task<AccountOutputDTO> CreateAsync(AccountInputDTO dto, long currentUserId)
+        public async Task<AccountOutputDTO> CreateAsync(AccountInputDTO dto, long companyId, long currentUserId)
         {
             if (dto == null)
             {
@@ -52,6 +52,9 @@ namespace ERP.Application.Services
             }
 
             var entity = AccountMapper.ToEntity(dto, currentUserId);
+            // ✅ Força CompanyId do contexto (segurança)
+            entity.CompanyId = companyId;
+            
             var createdEntity = await _unitOfWork.AccountRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             return AccountMapper.ToAccountOutputDTO(createdEntity);

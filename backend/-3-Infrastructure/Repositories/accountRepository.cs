@@ -18,15 +18,18 @@ namespace ERP.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Account>> GetAllAsync()
+        public async Task<List<Account>> GetAllAsync(long companyId)
         {
             return await _context.Set<Account>()
+                .Where(a => a.CompanyId == companyId)
                 .ToListAsync();
         }
 
-        public async Task<PagedResult<Account>> GetPagedAsync(AccountFilterDTO filters)
+        public async Task<PagedResult<Account>> GetPagedAsync(long companyId, AccountFilterDTO filters)
         {
-            var query = _context.Set<Account>().AsQueryable();
+            var query = _context.Set<Account>()
+                .Where(a => a.CompanyId == companyId)
+                .AsQueryable();
 
             // Busca geral (Search)
             if (!string.IsNullOrWhiteSpace(filters.Search))

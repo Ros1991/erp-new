@@ -18,11 +18,14 @@ namespace ERP.CrossCutting.IoC
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<ICompanyUserService, CompanyUserService>();
 
             // Register Infrastructure Services
             services.AddSingleton<IPasswordHashService, PasswordHashService>();
             services.AddSingleton<ITokenService, TokenService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IPermissionService, PermissionService>();
 
             // Register HttpContextAccessor para acessar o contexto HTTP nos services
             services.AddHttpContextAccessor();

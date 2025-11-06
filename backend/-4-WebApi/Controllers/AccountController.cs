@@ -32,13 +32,15 @@ public class AccountController : BaseController
     [HttpGet("/account/getAll/")]
     public async Task<ActionResult<BaseResponse<List<AccountOutputDTO>>>> GetAllAsync()
     {
-        return await ExecuteAsync(() => _accountService.GetAllAsync(), "Contas listadas com sucesso");
+        var companyId = GetCompanyId();
+        return await ExecuteAsync(() => _accountService.GetAllAsync(companyId), "Contas listadas com sucesso");
     }
 
     [HttpGet("/account/getPaged/")]
     public async Task<ActionResult<BaseResponse<PagedResult<AccountOutputDTO>>>> GetPagedAsync([FromQuery] AccountFilterDTO filters)
     {
-        return await ExecuteAsync(() => _accountService.GetPagedAsync(filters), "Contas listadas com sucesso");
+        var companyId = GetCompanyId();
+        return await ExecuteAsync(() => _accountService.GetPagedAsync(companyId, filters), "Contas listadas com sucesso");
     }
 
     [HttpGet("/account/{accountId}/getOneById/")]
@@ -51,9 +53,10 @@ public class AccountController : BaseController
     [HttpPost("/account/create/")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> CreateAsync(AccountInputDTO dto)
     {
+        var companyId = GetCompanyId();
         var currentUserId = GetCurrentUserId();
         return await ValidateAndExecuteCreateAsync(
-            () => _accountService.CreateAsync(dto, currentUserId),
+            () => _accountService.CreateAsync(dto, companyId, currentUserId),
             nameof(GetOneByIdAsync),
             result => new { account_id = result.AccountId },
             "Conta criada com sucesso"

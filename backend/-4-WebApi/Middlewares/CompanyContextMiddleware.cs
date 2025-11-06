@@ -1,4 +1,6 @@
 using ERP.CrossCutting.Exceptions;
+using ERP.CrossCutting.Services;
+using ERP.WebApi.Extensions;
 
 namespace ERP.WebApi.Middlewares
 {
@@ -59,10 +61,32 @@ namespace ERP.WebApi.Middlewares
                     return;
                 }
 
-                // TODO: Validar se o usuário tem acesso a essa Company
-                // var userId = context.GetUserId();
-                // var hasAccess = await ValidateUserCompanyAccess(userId, companyId);
-                // if (!hasAccess) { return 403; }
+                // ✅ Validar se o usuário tem acesso a essa Company
+                var userId = context.GetUserId();
+                
+                if (userId > 0)
+                {
+                    // Obter PermissionService do DI
+                    var permissionService = context.RequestServices.GetService<IPermissionService>();
+                    
+                    if (permissionService != null)
+                    {
+                        var hasAccess = await permissionService.UserHasAccessToCompanyAsync(userId, companyId);
+                        
+                        if (!hasAccess)
+                        {
+                            _logger.LogWarning("Acesso negado: UserId={UserId} não tem acesso à CompanyId={CompanyId}", userId, companyId);
+                            context.Response.StatusCode = 403;
+                            await context.Response.WriteAsJsonAsync(new 
+                            { 
+                                code = 403,
+                                message = "Você não tem acesso a esta empresa.",
+                                data = (object)null
+                            });
+                            return;
+                        }
+                    }
+                }
 
                 // ✅ Salva CompanyId no contexto
                 context.Items["CompanyId"] = companyId;
