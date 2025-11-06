@@ -1,6 +1,7 @@
 using CAU.Application.Interfaces;
 using CAU.Application.Interfaces.Services;
 using CAU.Application.Services;
+using CAU.CrossCutting.Services;
 using CAU.Infrastructure.UnitOfWork;
 
 namespace CAU.CrossCutting.IoC
@@ -16,6 +17,12 @@ namespace CAU.CrossCutting.IoC
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
+
+            // Register Infrastructure Services
+            services.AddSingleton<IPasswordHashService, PasswordHashService>();
+            services.AddSingleton<ITokenService, TokenService>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

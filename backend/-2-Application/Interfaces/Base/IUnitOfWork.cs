@@ -8,6 +8,7 @@ namespace CAU.Application.Interfaces
         ICompanyRepository CompanyRepository { get; }
         IAccountRepository AccountRepository { get; }
         IUserRepository UserRepository { get; }
+        IUserTokenRepository UserTokenRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();
