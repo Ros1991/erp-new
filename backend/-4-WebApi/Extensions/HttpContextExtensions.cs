@@ -68,5 +68,34 @@ namespace ERP.WebApi.Extensions
         {
             return context.GetUserId() > 0 || context.User.Identity?.IsAuthenticated == true;
         }
+
+        /// <summary>
+        /// Obtém o CompanyId do contexto da requisição (multi-tenant)
+        /// </summary>
+        public static long GetCompanyId(this HttpContext context)
+        {
+            if (context.Items.TryGetValue("CompanyId", out var companyId) && companyId is long id)
+            {
+                return id;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Define o CompanyId no contexto da requisição
+        /// </summary>
+        public static void SetCompanyId(this HttpContext context, long companyId)
+        {
+            context.Items["CompanyId"] = companyId;
+        }
+
+        /// <summary>
+        /// Verifica se existe um CompanyId no contexto
+        /// </summary>
+        public static bool HasCompanyContext(this HttpContext context)
+        {
+            return context.GetCompanyId() > 0;
+        }
     }
 }

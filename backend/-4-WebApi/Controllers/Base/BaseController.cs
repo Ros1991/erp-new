@@ -58,6 +58,23 @@ namespace ERP.WebApi.Controllers.Base
         {
             return HttpContext.IsAuthenticated();
         }
+
+        /// <summary>
+        /// Obtém o CompanyId do contexto da requisição (multi-tenant)
+        /// </summary>
+        protected long GetCompanyId()
+        {
+            return HttpContext.GetCompanyId();
+        }
+
+        /// <summary>
+        /// Verifica se existe um CompanyId no contexto
+        /// </summary>
+        protected bool HasCompanyContext()
+        {
+            return HttpContext.HasCompanyContext();
+        }
+
         /// <summary>
         /// Validates ModelState and throws ValidationException if invalid
         /// </summary>
