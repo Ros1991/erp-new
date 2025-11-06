@@ -1,0 +1,120 @@
+using CAU.Application.Interfaces;
+using CAU.Application.Interfaces.Repositories;
+using CAU.Infrastructure.Data;
+using CAU.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
+
+namespace CAU.Infrastructure.UnitOfWork
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly ErpContext _context;
+        private IDbContextTransaction _transaction;
+        private bool _disposed = false;
+
+        // ACL Repositories - All implemented
+
+        private ICompanyRepository _CompanyRepository;
+        private IAccountRepository _AccountRepository;
+        private IUserRepository _UserRepository;
+
+        public UnitOfWork(ErpContext context)
+        {
+            _context = context;
+        }
+
+        public ICompanyRepository CompanyRepository =>
+            _CompanyRepository ??= new CompanyRepository(_context);
+
+        public IAccountRepository AccountRepository =>
+            _AccountRepository ??= new AccountRepository(_context);
+
+        public IUserRepository UserRepository =>
+            _UserRepository ??= new UserRepository(_context);
+
+        // Transaction Management
+        public bool HasActiveTransaction => _transaction != null;
+
+        public async Task BeginTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                throw new InvalidOperationException("Uma transação já está ativa.");
+            }
+
+            _transaction = await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_transaction == null)
+            {
+                throw new InvalidOperationException("Nenhuma transação ativa para confirmar.");
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                await _transaction.CommitAsync();
+            }
+            catch
+            {
+                await RollbackTransactionAsync();
+                throw;
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            if (_transaction == null)
+            {
+                throw new InvalidOperationException("Nenhuma transação ativa para reverter.");
+            }
+
+            try
+            {
+                await _transaction.RollbackAsync();
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        // Dispose Pattern
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                // Rollback any active transaction before disposing
+                if (_transaction != null)
+                {
+                    _transaction.Rollback();
+                    _transaction.Dispose();
+                    _transaction = null;
+                }
+
+                _context?.Dispose();
+                _disposed = true;
+            }
+        }
+    }
+}
