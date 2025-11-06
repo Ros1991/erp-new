@@ -1,7 +1,7 @@
-using CAU.Domain.Entities;
-using CAU.Application.DTOs;//.Company;
+using ERP.Domain.Entities;
+using ERP.Application.DTOs;//.Company;
 
-namespace CAU.Application.Mappers
+namespace ERP.Application.Mappers
 {
     public static class CompanyMapper
     {

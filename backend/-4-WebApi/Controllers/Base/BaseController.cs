@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using CAU.CrossCutting.Exceptions;
-using CAU.Application.DTOs.Base;
+using ERP.CrossCutting.Exceptions;
+using ERP.Application.DTOs.Base;
 using System.Diagnostics;
 
-namespace CAU.WebApi.Controllers.Base
+namespace ERP.WebApi.Controllers.Base
 {
     /// <summary>
     /// Base controller with common error handling and helper methods

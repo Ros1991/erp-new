@@ -1,6 +1,6 @@
-using CAU.Domain.Entities;
+using ERP.Domain.Entities;
 
-namespace CAU.Application.Interfaces.Repositories
+namespace ERP.Application.Interfaces.Repositories
 {
     public interface IUserTokenRepository
     {

@@ -1,4 +1,4 @@
-namespace CAU.Application.DTOs.Base
+namespace ERP.Application.DTOs.Base
 {
     /// <summary>
     /// Resultado paginado para listagens

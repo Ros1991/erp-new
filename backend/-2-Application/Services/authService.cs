@@ -1,12 +1,12 @@
-using CAU.Application.DTOs.Auth;
-using CAU.Application.Interfaces;
-using CAU.Application.Interfaces.Services;
-using CAU.CrossCutting.Exceptions;
-using CAU.CrossCutting.Services;
-using CAU.Domain.Entities;
+using ERP.Application.DTOs.Auth;
+using ERP.Application.Interfaces;
+using ERP.Application.Interfaces.Services;
+using ERP.CrossCutting.Exceptions;
+using ERP.CrossCutting.Services;
+using ERP.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CAU.Application.Services
+namespace ERP.Application.Services
 {
     public class AuthService : IAuthService
     {

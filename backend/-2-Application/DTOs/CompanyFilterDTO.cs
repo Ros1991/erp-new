@@ -1,6 +1,6 @@
-using CAU.Application.DTOs.Base;
+using ERP.Application.DTOs.Base;
 
-namespace CAU.Application.DTOs
+namespace ERP.Application.DTOs
 {
     /// <summary>
     /// Filtros específicos para Company

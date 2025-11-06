@@ -1,6 +1,6 @@
-using CAU.Application.DTOs.Auth;
+using ERP.Application.DTOs.Auth;
 
-namespace CAU.Application.Interfaces.Services
+namespace ERP.Application.Interfaces.Services
 {
     public interface IAuthService
     {

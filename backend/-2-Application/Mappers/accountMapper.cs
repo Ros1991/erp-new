@@ -1,7 +1,7 @@
-using CAU.Application.DTOs;
-using CAU.Domain.Entities;
+using ERP.Application.DTOs;
+using ERP.Domain.Entities;
 
-namespace CAU.Application.Mappers
+namespace ERP.Application.Mappers
 {
     public static class AccountMapper
     {

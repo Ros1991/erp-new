@@ -1,13 +1,13 @@
-using CAU.Application.DTOs;
-using CAU.Application.DTOs.Base;
-using CAU.Application.Interfaces.Repositories;
-using CAU.Domain.Entities;
-using CAU.Infrastructure.Data;
-using CAU.Infrastructure.Extensions;
-using CAU.CrossCutting.Exceptions;
+using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
+using ERP.Application.Interfaces.Repositories;
+using ERP.Domain.Entities;
+using ERP.Infrastructure.Data;
+using ERP.Infrastructure.Extensions;
+using ERP.CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace CAU.Infrastructure.Repositories
+namespace ERP.Infrastructure.Repositories
 {
     public class AccountRepository : IAccountRepository
     {

@@ -1,10 +1,10 @@
-using CAU.Application.DTOs;
-using CAU.Application.Interfaces;
-using CAU.Application.Interfaces.Services;
-using CAU.Application.Mappers;
-using CAU.CrossCutting.Exceptions;
+using ERP.Application.DTOs;
+using ERP.Application.Interfaces;
+using ERP.Application.Interfaces.Services;
+using ERP.Application.Mappers;
+using ERP.CrossCutting.Exceptions;
 
-namespace CAU.Application.Services
+namespace ERP.Application.Services
 {
     public class AccountService : IAccountService
     {

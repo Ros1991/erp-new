@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace CAU.CrossCutting.Services
+namespace ERP.CrossCutting.Services
 {
     public interface ITokenService
     {
@@ -47,8 +47,8 @@ namespace CAU.CrossCutting.Services
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"] ?? "CAU.API",
-                audience: _configuration["Jwt:Audience"] ?? "CAU.Client",
+                issuer: _configuration["Jwt:Issuer"] ?? "ERP.API",
+                audience: _configuration["Jwt:Audience"] ?? "ERP.Client",
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(double.Parse(_configuration["Jwt:ExpiresInHours"] ?? "2")),
                 signingCredentials: credentials

@@ -1,4 +1,4 @@
-namespace CAU.CrossCutting.Services
+namespace ERP.CrossCutting.Services
 {
     public interface IPasswordHashService
     {

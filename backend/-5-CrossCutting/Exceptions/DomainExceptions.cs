@@ -1,6 +1,6 @@
 using System;
 
-namespace CAU.CrossCutting.Exceptions
+namespace ERP.CrossCutting.Exceptions
 {
     /// <summary>
     /// Base exception for all domain-specific exceptions

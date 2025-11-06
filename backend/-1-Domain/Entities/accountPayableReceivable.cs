@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CAU.Domain.Entities
+namespace ERP.Domain.Entities
 {
 	[Table("tb_account_payable_receivable", Schema = "erp")]
 	public class AccountPayableReceivable

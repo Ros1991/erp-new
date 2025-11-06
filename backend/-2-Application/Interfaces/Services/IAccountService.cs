@@ -1,7 +1,7 @@
-using CAU.Application.DTOs;
-using CAU.Application.DTOs.Base;
+using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
 
-namespace CAU.Application.Interfaces.Services
+namespace ERP.Application.Interfaces.Services
 {
     public interface IAccountService
     {

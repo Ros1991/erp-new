@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CAU.Application.DTOs
+namespace ERP.Application.DTOs
 {
     public class AccountInputDTO
     {

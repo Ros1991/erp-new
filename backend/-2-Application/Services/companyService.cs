@@ -1,11 +1,11 @@
-using CAU.Application.DTOs;//.Company;
-using CAU.Application.Interfaces.Services;
-using CAU.Application.Interfaces;
-using CAU.Application.Mappers;
-using CAU.CrossCutting.Exceptions;
-using CAU.Domain.Entities;
+using ERP.Application.DTOs;//.Company;
+using ERP.Application.Interfaces.Services;
+using ERP.Application.Interfaces;
+using ERP.Application.Mappers;
+using ERP.CrossCutting.Exceptions;
+using ERP.Domain.Entities;
 
-namespace CAU.Application.Services
+namespace ERP.Application.Services
 {
     public class CompanyService : ICompanyService
     {

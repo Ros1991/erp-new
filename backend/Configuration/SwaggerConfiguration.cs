@@ -2,7 +2,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
 
-namespace CAU.Configuration;
+namespace ERP.Configuration;
 
 /// <summary>
 /// Configuração do Swagger/OpenAPI para documentação detalhada da API

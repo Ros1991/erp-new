@@ -1,6 +1,6 @@
-using CAU.Application.Interfaces.Repositories;
+using ERP.Application.Interfaces.Repositories;
 
-namespace CAU.Application.Interfaces
+namespace ERP.Application.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {

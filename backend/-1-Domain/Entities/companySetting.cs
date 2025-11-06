@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CAU.Domain.Entities
+namespace ERP.Domain.Entities
 {
 	[Table("tb_company_setting", Schema = "erp")]
 	public class CompanySetting

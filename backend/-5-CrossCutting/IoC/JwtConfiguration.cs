@@ -2,7 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-namespace CAU.CrossCutting.IoC
+namespace ERP.CrossCutting.IoC
 {
     public static class JwtConfiguration
     {
@@ -27,9 +27,9 @@ namespace CAU.CrossCutting.IoC
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["Jwt:Issuer"] ?? "CAU.API",
+                    ValidIssuer = configuration["Jwt:Issuer"] ?? "ERP.API",
                     ValidateAudience = true,
-                    ValidAudience = configuration["Jwt:Audience"] ?? "CAU.Client",
+                    ValidAudience = configuration["Jwt:Audience"] ?? "ERP.Client",
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };

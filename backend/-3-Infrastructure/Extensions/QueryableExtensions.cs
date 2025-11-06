@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace CAU.Infrastructure.Extensions
+namespace ERP.Infrastructure.Extensions
 {
     public static class QueryableExtensions
     {

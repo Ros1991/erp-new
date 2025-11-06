@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using CAU.CrossCutting.Exceptions;
-using CAU.Application.DTOs.Base;
+using ERP.CrossCutting.Exceptions;
+using ERP.Application.DTOs.Base;
 using System.Net;
 
-namespace CAU.CrossCutting.Filters
+namespace ERP.CrossCutting.Filters
 {
     /// <summary>
     /// Global exception filter for centralized error handling across all controllers

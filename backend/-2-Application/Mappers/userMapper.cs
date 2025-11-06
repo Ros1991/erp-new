@@ -1,7 +1,7 @@
-using CAU.Domain.Entities;
-using CAU.Application.DTOs;//.User;
+using ERP.Domain.Entities;
+using ERP.Application.DTOs;//.User;
 
-namespace CAU.Application.Mappers
+namespace ERP.Application.Mappers
 {
     public static class UserMapper
     {

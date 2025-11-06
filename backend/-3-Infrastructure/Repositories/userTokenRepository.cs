@@ -1,10 +1,10 @@
-using CAU.Application.Interfaces.Repositories;
-using CAU.Domain.Entities;
-using CAU.Infrastructure.Data;
-using CAU.CrossCutting.Exceptions;
+using ERP.Application.Interfaces.Repositories;
+using ERP.Domain.Entities;
+using ERP.Infrastructure.Data;
+using ERP.CrossCutting.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace CAU.Infrastructure.Repositories
+namespace ERP.Infrastructure.Repositories
 {
     public class UserTokenRepository : IUserTokenRepository
     {

@@ -1,4 +1,4 @@
-namespace CAU.Application.DTOs.Base
+namespace ERP.Application.DTOs.Base
 {
     /// <summary>
     /// Parâmetros de paginação e filtros para requisições

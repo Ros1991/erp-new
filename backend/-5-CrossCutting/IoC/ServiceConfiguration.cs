@@ -1,10 +1,10 @@
-using CAU.Application.Interfaces;
-using CAU.Application.Interfaces.Services;
-using CAU.Application.Services;
-using CAU.CrossCutting.Services;
-using CAU.Infrastructure.UnitOfWork;
+using ERP.Application.Interfaces;
+using ERP.Application.Interfaces.Services;
+using ERP.Application.Services;
+using ERP.CrossCutting.Services;
+using ERP.Infrastructure.UnitOfWork;
 
-namespace CAU.CrossCutting.IoC
+namespace ERP.CrossCutting.IoC
 {
     public static class ServiceConfiguration
     {

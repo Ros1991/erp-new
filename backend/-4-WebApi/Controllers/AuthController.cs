@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using CAU.Application.DTOs.Auth;
-using CAU.Application.DTOs.Base;
-using CAU.Application.Interfaces.Services;
-using CAU.WebApi.Controllers.Base;
+using ERP.Application.DTOs.Auth;
+using ERP.Application.DTOs.Base;
+using ERP.Application.Interfaces.Services;
+using ERP.WebApi.Controllers.Base;
 
-namespace CAU.WebApi.Controllers;
+namespace ERP.WebApi.Controllers;
 
 /// <summary>
 /// Controller para autenticação e gerenciamento de usuários

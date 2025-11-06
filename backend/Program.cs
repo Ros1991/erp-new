@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using CAU.Infrastructure.Data;
-using CAU.CrossCutting.Filters;
+using ERP.Infrastructure.Data;
+using ERP.CrossCutting.Filters;
 using Microsoft.OpenApi.Models;
-using CAU.CrossCutting.IoC;
-using CAU.Configuration; // ADICIONADO: Nossa configuração personalizada do Swagger
+using ERP.CrossCutting.IoC;
+using ERP.Configuration; // ADICIONADO: Nossa configuração personalizada do Swagger
 
 var builder = WebApplication.CreateBuilder(args);
 

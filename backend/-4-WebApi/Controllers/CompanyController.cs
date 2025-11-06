@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
-using CAU.Application.DTOs;
-using CAU.Application.DTOs.Base;
-using CAU.Application.Interfaces.Services;
-using CAU.WebApi.Controllers.Base;
-using CAU.Configuration;
+using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
+using ERP.Application.Interfaces.Services;
+using ERP.WebApi.Controllers.Base;
+using ERP.Configuration;
 
-namespace CAU.WebApi.Controllers;
+namespace ERP.WebApi.Controllers;
 
 /// <summary>
-/// Controller para gerenciamento de company do sistema de Cadastros do CAU Digital
+/// Controller para gerenciamento de company do sistema ERP
 /// </summary>
 /// <remarks>
 /// Este controller fornece endpoints RESTful para operações CRUD em company,

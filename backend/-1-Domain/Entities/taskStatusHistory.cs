@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CAU.Domain.Entities
+namespace ERP.Domain.Entities
 {
 	[Table("tb_task_status_history", Schema = "erp")]
 	public class TaskStatusHistory

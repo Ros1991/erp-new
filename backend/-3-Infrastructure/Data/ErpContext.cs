@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using CAU.Domain.Entities;
+using ERP.Domain.Entities;
 
-namespace CAU.Infrastructure.Data
+namespace ERP.Infrastructure.Data
 {
 	public partial class ErpContext : DbContext
 	{
