@@ -22,6 +22,9 @@ namespace ERP.Domain.Entities
 		[Column("role_permissions")]
 		public string Permissions { get; set; } // JSON string com as permissões
 
+		[Column("role_is_system")]
+		public bool IsSystem { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
@@ -45,6 +48,7 @@ namespace ERP.Domain.Entities
 			long Param_CompanyId, 
 			string Param_Name, 
 			string Param_Permissions, 
+			bool Param_IsSystem, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
@@ -54,6 +58,7 @@ namespace ERP.Domain.Entities
 			CompanyId = Param_CompanyId;
 			Name = Param_Name;
 			Permissions = Param_Permissions;
+			IsSystem = Param_IsSystem;
 			CriadoPor = Param_CriadoPor;
 			AtualizadoPor = Param_AtualizadoPor;
 			CriadoEm = Param_CriadoEm;

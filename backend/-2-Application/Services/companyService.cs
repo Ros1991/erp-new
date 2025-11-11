@@ -53,9 +53,29 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
+            // 1. Criar a empresa
             var entity = CompanyMapper.ToEntity(dto, currentUserId);
             var createdEntity = await _unitOfWork.CompanyRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
+
+            // 2. Criar role "Dono" para a empresa
+            var ownerRole = RoleMapper.CreateOwnerRole(createdEntity.CompanyId, currentUserId);
+            var createdRole = await _unitOfWork.RoleRepository.CreateAsync(ownerRole);
+            await _unitOfWork.SaveChangesAsync();
+
+            // 3. Associar o usuário criador à role "Dono"
+            var companyUser = new CompanyUser(
+                createdEntity.CompanyId,
+                currentUserId,
+                createdRole.RoleId,
+                currentUserId,
+                null,
+                DateTime.UtcNow,
+                null
+            );
+            await _unitOfWork.CompanyUserRepository.CreateAsync(companyUser);
+            await _unitOfWork.SaveChangesAsync();
+
             return CompanyMapper.ToCompanyOutputDTO(createdEntity);
         }
 

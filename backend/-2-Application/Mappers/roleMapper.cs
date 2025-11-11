@@ -17,6 +17,7 @@ namespace ERP.Application.Mappers
                 CompanyId = entity.CompanyId,
                 Name = entity.Name,
                 Permissions = DeserializePermissions(entity.Permissions),
+                IsSystem = entity.IsSystem,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -39,10 +40,11 @@ namespace ERP.Application.Mappers
                 companyId,
                 dto.Name,
                 SerializePermissions(dto.Permissions),
+                false,         // IsSystem (false por padrão)
                 userId,        // CriadoPor
-                userId,        // AtualizadoPor
+                null,          // AtualizadoPor
                 now,           // CriadoEm
-                now            // AtualizadoEm
+                null           // AtualizadoEm
             );
         }
 
@@ -86,6 +88,49 @@ namespace ERP.Application.Mappers
             {
                 return new RolePermissions();
             }
+        }
+
+        /// <summary>
+        /// Cria role de Owner (Dono) com permissões totais para uma empresa
+        /// </summary>
+        public static Role CreateOwnerRole(long companyId, long userId)
+        {
+            var now = DateTime.UtcNow;
+            var ownerPermissions = CreateOwnerPermissions();
+
+            return new Role(
+                companyId,
+                "Dono",
+                SerializePermissions(ownerPermissions),
+                true,          // IsSystem = true (não pode ser editada/deletada)
+                userId,        // CriadoPor
+                null,          // AtualizadoPor
+                now,           // CriadoEm
+                null           // AtualizadoEm
+            );
+        }
+
+        /// <summary>
+        /// Cria permissões de Owner (acesso total)
+        /// </summary>
+        private static RolePermissions CreateOwnerPermissions()
+        {
+            return new RolePermissions
+            {
+                IsAdmin = true,
+                AllowedEndpoints = new List<string> { "*" }, // Todos os endpoints
+                Modules = new Dictionary<string, ModulePermissions>
+                {
+                    { Modules.Company, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Account, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.User, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Role, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Product, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Order, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Financial, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
+                    { Modules.Report, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } }
+                }
+            };
         }
     }
 }

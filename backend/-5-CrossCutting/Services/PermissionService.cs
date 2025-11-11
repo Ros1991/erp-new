@@ -36,6 +36,15 @@ namespace ERP.CrossCutting.Services
 
         public async Task<bool> UserHasPermissionAsync(long userId, long companyId, string module, string action)
         {
+            // Verificar se o usuário tem role do sistema (IsSystem)
+            var role = await _unitOfWork.CompanyUserRepository.GetUserRoleInCompanyAsync(userId, companyId);
+            
+            if (role != null && role.IsSystem)
+            {
+                _logger.LogInformation("Usuário {UserId} tem role do sistema (IsSystem=true) - acesso total permitido", userId);
+                return true;
+            }
+
             var permissions = await GetUserPermissionsAsync(userId, companyId);
 
             if (permissions == null)
@@ -83,6 +92,18 @@ namespace ERP.CrossCutting.Services
             {
                 _logger.LogWarning("Role não encontrada para UserId={UserId}, CompanyId={CompanyId}", userId, companyId);
                 return null;
+            }
+
+            // Se for role do sistema (IsSystem=true), retornar permissões de admin total
+            if (role.IsSystem)
+            {
+                _logger.LogInformation("Role do sistema detectada (IsSystem=true) para UserId={UserId}, RoleId={RoleId} - retornando permissões totais", userId, role.RoleId);
+                return new RolePermissions
+                {
+                    IsAdmin = true,
+                    AllowedEndpoints = new List<string> { "*" },
+                    Modules = new Dictionary<string, ModulePermissions>()
+                };
             }
 
             try

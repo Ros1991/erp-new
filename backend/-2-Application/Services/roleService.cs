@@ -57,6 +57,12 @@ namespace ERP.Application.Services
                 throw new EntityNotFoundException("Role", roleId);
             }
 
+            // Validar se é role do sistema (não pode ser editada)
+            if (existingEntity.IsSystem)
+            {
+                throw new ValidationException("Role", "Roles do sistema (Owner/Admin) não podem ser editadas.");
+            }
+
             RoleMapper.UpdateEntity(existingEntity, dto, currentUserId);
             
             await _unitOfWork.SaveChangesAsync();
@@ -65,6 +71,19 @@ namespace ERP.Application.Services
 
         public async Task<bool> DeleteByIdAsync(long roleId)
         {
+            // Buscar role para validar antes de deletar
+            var existingEntity = await _unitOfWork.RoleRepository.GetOneByIdAsync(roleId);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException("Role", roleId);
+            }
+
+            // Validar se é role do sistema (não pode ser deletada)
+            if (existingEntity.IsSystem)
+            {
+                throw new ValidationException("Role", "Roles do sistema (Owner/Admin) não podem ser deletadas.");
+            }
+
             var result = await _unitOfWork.RoleRepository.DeleteByIdAsync(roleId);
             await _unitOfWork.SaveChangesAsync();
             return result;

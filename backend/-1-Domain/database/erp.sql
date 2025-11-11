@@ -506,6 +506,7 @@ ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "uk_payroll_employee_payr
 	"company_id"                           bigint               DEFAULT 0 NOT NULL,
 	"role_name"                            varchar (255)        NOT NULL,
 	"role_permissions"                     jsonb                NOT NULL,
+	"role_is_system"                       boolean              DEFAULT false NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
 	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
