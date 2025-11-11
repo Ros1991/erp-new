@@ -37,11 +37,11 @@ namespace ERP.Application.Mappers
             return new Company(
              dto.Name,
              dto.Document,
-             dto.UserId,
+             userId,        // UserId (do token)
              userId,        // CriadoPor
-             userId,        // AtualizadoPor
+             null,          // AtualizadoPor
              now,           // CriadoEm
-             now            // AtualizadoEm
+             null           // AtualizadoEm
             );
         }
 
@@ -50,7 +50,7 @@ namespace ERP.Application.Mappers
             if (entity == null || dto == null) return;
 			entity.Name = dto.Name;
 			entity.Document = dto.Document;
-			entity.UserId = dto.UserId;
+			// UserId não pode ser alterado após criação
 			entity.AtualizadoPor = userId;
 			entity.AtualizadoEm = DateTime.UtcNow;
         }

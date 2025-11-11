@@ -14,7 +14,6 @@ export interface Company {
 export interface CreateCompanyInput {
   name: string;
   document?: string;
-  userId: number;
 }
 
 export interface UpdateCompanyInput {

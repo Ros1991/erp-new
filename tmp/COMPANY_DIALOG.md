@@ -47,8 +47,8 @@ Service completo para gerenciar empresas:
 ```typescript
 {
   name: string;        // Razão social (máx 255 caracteres)
-  document: string;    // CNPJ sem formatação (14 dígitos)
-  userId: number;      // ID do usuário (automático)
+  document?: string;   // CNPJ sem formatação (14 dígitos) - OPCIONAL
+  // userId: removido - extraído do token JWT automaticamente
 }
 ```
 
@@ -79,9 +79,10 @@ Dialog modal para adicionar empresas:
 
 **Validações:**
 1. Nome obrigatório (máx 255 caracteres)
-2. CNPJ obrigatório (exatamente 14 dígitos)
-3. CNPJ válido (algoritmo de validação)
-4. Usuário autenticado
+2. CNPJ opcional, mas se informado:
+   - Deve ter exatamente 14 dígitos
+   - Deve ser válido (algoritmo de validação)
+3. Autenticação via token JWT (automática)
 
 ---
 

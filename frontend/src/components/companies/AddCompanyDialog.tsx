@@ -5,7 +5,6 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
 import companyService from '../../services/companyService';
 import { parseBackendError } from '../../utils/errorHandler';
 
@@ -20,7 +19,6 @@ export function AddCompanyDialog({ open, onOpenChange, onSuccess }: AddCompanyDi
   const [cnpj, setCnpj] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useAuth();
   const { showError, showSuccess, showValidationErrors } = useToast();
 
   const formatCNPJ = (value: string) => {
@@ -70,18 +68,12 @@ export function AddCompanyDialog({ open, onOpenChange, onSuccess }: AddCompanyDi
       }
     }
 
-    if (!user?.userId) {
-      showError('Usuário não autenticado');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       await companyService.createCompany({
         name: name.trim(),
-        document: cnpjNumbers || undefined,
-        userId: user.userId
+        document: cnpjNumbers || undefined
       });
 
       showSuccess('Empresa criada com sucesso!');
