@@ -18,15 +18,23 @@ namespace ERP.Infrastructure.Repositories
             _context = context;
         }
 
-	    public async Task<List<Company>> GetAllAsync()
+	    public async Task<List<Company>> GetAllAsync(long userId)
         {
+            // Retorna apenas empresas onde o usuário está associado via CompanyUser
             return await _context.Set<Company>()
-            .ToListAsync();
+                .Where(c => _context.Set<CompanyUser>()
+                    .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
+                .OrderByDescending(c => c.CriadoEm)
+                .ToListAsync();
          }
 
-        public async Task<PagedResult<Company>> GetPagedAsync(CompanyFilterDTO filters)
+        public async Task<PagedResult<Company>> GetPagedAsync(CompanyFilterDTO filters, long userId)
         {
-            var query = _context.Set<Company>().AsQueryable();
+            // Filtrar apenas empresas onde o usuário está associado via CompanyUser
+            var query = _context.Set<Company>()
+                .Where(c => _context.Set<CompanyUser>()
+                    .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
+                .AsQueryable();
 
             // Aplicar filtros
             //if (!string.IsNullOrWhiteSpace(filters.Name))

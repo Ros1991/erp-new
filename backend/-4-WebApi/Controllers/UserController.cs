@@ -42,7 +42,7 @@ public class UserController : BaseController
         return await ExecuteAsync(() => _UserService.GetPagedAsync(filters), "Usuários listados com sucesso");
     }
 
-    [HttpGet("{userId}/getOneById")]
+    [HttpGet("{userId}")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> GetOneByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));
@@ -60,14 +60,14 @@ public class UserController : BaseController
         );
     }
     
-    [HttpPut("{userId}/updateById")]
+    [HttpPut("{userId}")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> UpdateByIdAsync(long UserId, UserInputDTO dto)
     {
         //ValidateId(UserId, nameof(UserId));
         return await ValidateAndExecuteAsync(() => _UserService.UpdateByIdAsync(UserId, dto), "Usuário atualizado com sucesso");
     }
     
-    [HttpDelete("{userId}/deleteById")]
+    [HttpDelete("{userId}")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));

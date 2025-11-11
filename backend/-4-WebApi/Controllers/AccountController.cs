@@ -43,7 +43,7 @@ public class AccountController : BaseController
         return await ExecuteAsync(() => _accountService.GetPagedAsync(companyId, filters), "Contas listadas com sucesso");
     }
 
-    [HttpGet("{accountId}/getOneById")]
+    [HttpGet("{accountId}")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> GetOneByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));
@@ -63,7 +63,7 @@ public class AccountController : BaseController
         );
     }
 
-    [HttpPut("{accountId}/updateById")]
+    [HttpPut("{accountId}")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> UpdateByIdAsync(long accountId, AccountInputDTO dto)
     {
         ValidateId(accountId, nameof(accountId));
@@ -71,7 +71,7 @@ public class AccountController : BaseController
         return await ValidateAndExecuteAsync(() => _accountService.UpdateByIdAsync(accountId, dto, currentUserId), "Conta atualizada com sucesso");
     }
 
-    [HttpDelete("{accountId}/deleteById")]
+    [HttpDelete("{accountId}")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));

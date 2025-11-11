@@ -17,15 +17,15 @@ namespace ERP.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<CompanyOutputDTO>> GetAllAsync()
+        public async Task<List<CompanyOutputDTO>> GetAllAsync(long userId)
         {
-            var entities = await _unitOfWork.CompanyRepository.GetAllAsync();
+            var entities = await _unitOfWork.CompanyRepository.GetAllAsync(userId);
             return CompanyMapper.ToCompanyOutputDTOList(entities);
         }
 
-        public async Task<PagedResult<CompanyOutputDTO>> GetPagedAsync(CompanyFilterDTO filters)
+        public async Task<PagedResult<CompanyOutputDTO>> GetPagedAsync(CompanyFilterDTO filters, long userId)
         {
-            var pagedEntities = await _unitOfWork.CompanyRepository.GetPagedAsync(filters);
+            var pagedEntities = await _unitOfWork.CompanyRepository.GetPagedAsync(filters, userId);
             var dtoItems = CompanyMapper.ToCompanyOutputDTOList(pagedEntities.Items);
             
             return new PagedResult<CompanyOutputDTO>(

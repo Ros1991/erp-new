@@ -21,6 +21,9 @@ builder.Services.AddControllers(options =>
 {
 	// Adiciona o filtro global de exceções
 	options.Filters.Add<GlobalExceptionFilter>();
+	
+	// NÃO remover sufixo "Async" dos nomes de action (para CreatedAtAction funcionar)
+	options.SuppressAsyncSuffixInActionNames = false;
 })
 .ConfigureApiBehaviorOptions(options =>
 {
@@ -79,7 +82,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // 2. HTTPS Redirection
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // 3. CORS
 app.UseCors("AllowAll");

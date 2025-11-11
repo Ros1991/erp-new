@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import authService from '../services/authService';
+import companyService from '../services/companyService';
 
 interface User {
   userId: number;
@@ -121,27 +122,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadCompanies = async () => {
     try {
-      // Simular carregamento de empresas - substituir pela API real
-      const mockCompanies: Company[] = [
-        {
-          id: 1,
-          name: 'Fazenda Castelo',
-          cnpj: '12.345.678/0001-90',
-          isActive: true,
-          createdAt: '2024-01-01'
-        },
-        {
-          id: 2,
-          name: 'Teste Empresa',
-          cnpj: '98.765.432/0001-10',
-          isActive: true,
-          createdAt: '2024-02-01'
-        }
-      ];
+      // Buscar empresas do usuário via API
+      const companiesData = await companyService.getMyCompanies();
       
-      setCompanies(mockCompanies);
+      // Mapear para o formato esperado pelo frontend
+      const mappedCompanies: Company[] = companiesData.map((company: any) => ({
+        id: company.companyId,
+        name: company.name,
+        cnpj: company.document,
+        isActive: true, // Assumir ativo por padrão (ajustar se backend tiver campo isActive)
+        createdAt: company.criadoEm
+      }));
+      
+      setCompanies(mappedCompanies);
     } catch (error) {
       console.error('Load companies failed:', error);
+      setCompanies([]);
     }
   };
 

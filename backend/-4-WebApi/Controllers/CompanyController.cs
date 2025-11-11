@@ -37,20 +37,23 @@ public class CompanyController : BaseController
     [HttpGet("getAll")]
     public async Task<ActionResult<BaseResponse<List<CompanyOutputDTO>>>> GetAllAsync()
     {
-        return await ExecuteAsync(() => _CompanyService.GetAllAsync(), "Empresas listadas com sucesso");
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(() => _CompanyService.GetAllAsync(currentUserId), "Empresas listadas com sucesso");
     }
 
     [HttpGet("getPaged")]
     public async Task<ActionResult<BaseResponse<PagedResult<CompanyOutputDTO>>>> GetPagedAsync([FromQuery] CompanyFilterDTO filters)
     {
-        return await ExecuteAsync(() => _CompanyService.GetPagedAsync(filters), "Empresas listadas com sucesso");
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(() => _CompanyService.GetPagedAsync(filters, currentUserId), "Empresas listadas com sucesso");
     }
 
-    [HttpGet("{companyId}/getOneById")]
-    public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> GetOneByIdAsync(long CompanyId)
+    [HttpGet("{companyId}")]
+ 
+    public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> GetOneByIdAsync(long companyId)
     {
         //ValidateId(CompanyId, nameof(CompanyId));
-        return await ExecuteAsync(() => _CompanyService.GetOneByIdAsync(CompanyId), "Empresa encontrada com sucesso");
+        return await ExecuteAsync(() => _CompanyService.GetOneByIdAsync(companyId), "Empresa encontrada com sucesso");
     }
     
     [HttpPost("create")]
@@ -60,19 +63,19 @@ public class CompanyController : BaseController
         return await ValidateAndExecuteCreateAsync(
             () => _CompanyService.CreateAsync(dto, currentUserId),
             nameof(GetOneByIdAsync),
-            result => new { company_id = result.CompanyId },
+            result => new { companyId = result.CompanyId },
             "Empresa criada com sucesso"
         );
     }
     
-    [HttpPut("{companyId}/updateById")]
+    [HttpPut("{companyId}")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto)
     {
         var currentUserId = GetCurrentUserId();
         return await ValidateAndExecuteAsync(() => _CompanyService.UpdateByIdAsync(CompanyId, dto, currentUserId), "Empresa atualizada com sucesso");
     }
     
-    [HttpDelete("{companyId}/deleteById")]
+    [HttpDelete("{companyId}")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long CompanyId)
     {
         //ValidateId(CompanyId, nameof(CompanyId));
