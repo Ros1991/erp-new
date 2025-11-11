@@ -30,14 +30,14 @@ namespace ERP.Application.Mappers
             return entities?.Select(ToRoleOutputDTO).ToList() ?? new List<RoleOutputDTO>();
         }
 
-        public static Role ToEntity(RoleInputDTO dto, long companyId, long userId)
+        public static Role ToEntity(RoleInputDTO dto, long userId)
         {
             if (dto == null) return null;
 
             var now = DateTime.UtcNow;
 
             return new Role(
-                companyId,
+                0,             // CompanyId (será definido no service)
                 dto.Name,
                 SerializePermissions(dto.Permissions),
                 false,         // IsSystem (false por padrão)

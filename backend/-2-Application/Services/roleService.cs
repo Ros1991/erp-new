@@ -1,4 +1,5 @@
 using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces;
 using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
@@ -15,10 +16,23 @@ namespace ERP.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<RoleOutputDTO>> GetAllByCompanyAsync(long companyId)
+        public async Task<List<RoleOutputDTO>> GetAllAsync(long companyId)
         {
             var entities = await _unitOfWork.RoleRepository.GetAllAsync(companyId);
             return RoleMapper.ToRoleOutputDTOList(entities);
+        }
+
+        public async Task<PagedResult<RoleOutputDTO>> GetPagedAsync(long companyId, RoleFilterDTO filters)
+        {
+            var pagedEntities = await _unitOfWork.RoleRepository.GetPagedAsync(companyId, filters);
+            var dtoItems = RoleMapper.ToRoleOutputDTOList(pagedEntities.Items);
+            
+            return new PagedResult<RoleOutputDTO>(
+                dtoItems,
+                pagedEntities.Page,
+                pagedEntities.PageSize,
+                pagedEntities.Total
+            );
         }
 
         public async Task<RoleOutputDTO> GetOneByIdAsync(long roleId)
@@ -38,7 +52,10 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
-            var entity = RoleMapper.ToEntity(dto, companyId, currentUserId);
+            var entity = RoleMapper.ToEntity(dto, currentUserId);
+            // ✅ Força CompanyId do contexto (segurança)
+            entity.CompanyId = companyId;
+            
             var createdEntity = await _unitOfWork.RoleRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             return RoleMapper.ToRoleOutputDTO(createdEntity);
