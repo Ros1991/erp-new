@@ -22,6 +22,11 @@ namespace ERP.Application.DTOs.Base
         public string Message { get; set; }
 
         /// <summary>
+        /// Erros de validação (field: mensagens)
+        /// </summary>
+        public Dictionary<string, List<string>>? Errors { get; set; }
+
+        /// <summary>
         /// Construtor para resposta de sucesso
         /// </summary>
         public BaseResponse(T data, int code = 200, string message = "Operação realizada com sucesso")
@@ -29,6 +34,7 @@ namespace ERP.Application.DTOs.Base
             Data = data;
             Code = code;
             Message = message;
+            Errors = null;
         }
 
         /// <summary>
@@ -39,6 +45,18 @@ namespace ERP.Application.DTOs.Base
             Data = default;
             Code = code;
             Message = message;
+            Errors = null;
+        }
+
+        /// <summary>
+        /// Construtor para resposta de erro com validações
+        /// </summary>
+        public BaseResponse(int code, string message, Dictionary<string, List<string>> errors)
+        {
+            Data = default;
+            Code = code;
+            Message = message;
+            Errors = errors;
         }
 
         /// <summary>

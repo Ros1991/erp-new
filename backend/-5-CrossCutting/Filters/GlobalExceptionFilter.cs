@@ -46,11 +46,9 @@ namespace ERP.CrossCutting.Filters
                 ValidationException ex => new BaseResponse<object>
                 (
                     code: 400,
-                    message: ex.Message
-                )
-                {
-                    Data = new { errors = ex.Errors }
-                },
+                    message: ex.Message,
+                    errors: ex.Errors
+                ),
 
                 DuplicateEntityException ex => new BaseResponse<object>
                 (

@@ -1,13 +1,11 @@
 /**
- * Estrutura de erro retornada pelo backend
+ * Estrutura de resposta do backend (BaseResponse)
  */
-interface BackendError {
-  type?: string;
-  title?: string;
-  status?: number;
+interface BackendResponse {
+  data?: any;
+  code: number;
+  message: string;
   errors?: Record<string, string[]>;
-  traceId?: string;
-  message?: string;
 }
 
 /**
@@ -26,34 +24,26 @@ export function parseBackendError(error: any): {
     };
   }
 
-  const data: BackendError = error.response.data;
+  const response: BackendResponse = error.response.data;
 
-  // Erros de validação (400 Bad Request com errors)
-  if (data.errors && Object.keys(data.errors).length > 0) {
+  // Erros de validação (errors na raiz do BaseResponse)
+  if (response.errors && Object.keys(response.errors).length > 0) {
     return {
       hasValidationErrors: true,
-      validationErrors: data.errors,
-      message: data.title || 'Erro de validação',
+      validationErrors: response.errors,
+      message: response.message || 'Erro de validação',
     };
   }
 
   // Erro com mensagem específica
-  if (data.message) {
+  if (response.message) {
     return {
       hasValidationErrors: false,
-      message: data.message,
+      message: response.message,
     };
   }
 
-  // Erro com title
-  if (data.title) {
-    return {
-      hasValidationErrors: false,
-      message: data.title,
-    };
-  }
-
-  // Status específicos
+  // Status específicos (fallback)
   switch (error.response.status) {
     case 400:
       return {

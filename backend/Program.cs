@@ -21,6 +21,27 @@ builder.Services.AddControllers(options =>
 {
 	// Adiciona o filtro global de exceções
 	options.Filters.Add<GlobalExceptionFilter>();
+})
+.ConfigureApiBehaviorOptions(options =>
+{
+	// Customizar resposta de erro de validação do ModelState
+	options.InvalidModelStateResponseFactory = context =>
+	{
+		var errors = context.ModelState
+			.Where(x => x.Value.Errors.Count > 0)
+			.ToDictionary(
+				kvp => kvp.Key,
+				kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+			);
+
+		var response = new ERP.Application.DTOs.Base.BaseResponse<object>(
+			code: 400,
+			message: "One or more validation errors occurred.",
+			errors: errors
+		);
+
+		return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+	};
 });
 
 // 4. CORS

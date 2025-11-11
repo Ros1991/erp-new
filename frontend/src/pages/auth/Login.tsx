@@ -40,10 +40,6 @@ export function Login() {
         ? credential 
         : credential.replace(/\D/g, '');
       
-      // Debug: verificar o que está sendo enviado
-      console.log('Credential digitado:', credential);
-      console.log('Credential limpo enviado:', cleanCredential);
-      
       // Validar se credential limpo não está vazio (pode acontecer se digitar apenas letras sem @)
       if (!cleanCredential || cleanCredential.trim() === '') {
         showError('Por favor, insira um e-mail, telefone ou CPF válido');
