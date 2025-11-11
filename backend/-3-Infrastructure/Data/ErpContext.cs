@@ -987,7 +987,14 @@ namespace ERP.Infrastructure.Data
 				.HasColumnType("string");
 			builder.Entity<Role>()
 				.Property(p => p.Permissions)
-				.HasColumnType("any");
+				.HasColumnType("jsonb")
+				.HasConversion(
+					v => v,  // Para o banco: mantém como string
+					v => v   // Do banco: mantém como string
+				);
+			builder.Entity<Role>()
+				.Property(p => p.IsSystem)
+				.HasColumnType("bool");
 			builder.Entity<Role>()
 				.Property(p => p.CriadoPor)
 				.HasDefaultValueSql("((0))")

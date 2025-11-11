@@ -59,7 +59,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation(); // SUBSTITUÍDO: Nossa configuração personalizada
 
-// 6. Configurações adicionais
+// 6. JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// 7. Configurações adicionais
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 
@@ -84,11 +87,16 @@ app.UseCors("AllowAll");
 // 4. Routing
 app.UseRouting();
 
-// 5. Authorization (se necessário no futuro)
-// app.UseAuthentication();
-// app.UseAuthorization();
+// 5. Authentication & Authorization
+app.UseAuthentication();
 
-// 6. Controllers
+// 6. Custom Middlewares (após autenticação, antes de autorização)
+app.UseMiddleware<ERP.WebApi.Middlewares.JwtMiddleware>();
+app.UseMiddleware<ERP.WebApi.Middlewares.CompanyContextMiddleware>();
+
+app.UseAuthorization();
+
+// 7. Controllers
 app.MapControllers();
 
 // ===== CONFIGURAÇÃO DE ROTAS PERSONALIZADAS =====
