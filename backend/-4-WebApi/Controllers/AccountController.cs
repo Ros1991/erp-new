@@ -29,28 +29,28 @@ public class AccountController : BaseController
         _accountService = accountService;
     }
 
-    [HttpGet("/account/getAll/")]
+    [HttpGet("getAll")]
     public async Task<ActionResult<BaseResponse<List<AccountOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
         return await ExecuteAsync(() => _accountService.GetAllAsync(companyId), "Contas listadas com sucesso");
     }
 
-    [HttpGet("/account/getPaged/")]
+    [HttpGet("getPaged")]
     public async Task<ActionResult<BaseResponse<PagedResult<AccountOutputDTO>>>> GetPagedAsync([FromQuery] AccountFilterDTO filters)
     {
         var companyId = GetCompanyId();
         return await ExecuteAsync(() => _accountService.GetPagedAsync(companyId, filters), "Contas listadas com sucesso");
     }
 
-    [HttpGet("/account/{accountId}/getOneById/")]
+    [HttpGet("{accountId}/getOneById")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> GetOneByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));
         return await ExecuteAsync(() => _accountService.GetOneByIdAsync(accountId), "Conta encontrada com sucesso");
     }
 
-    [HttpPost("/account/create/")]
+    [HttpPost("create")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> CreateAsync(AccountInputDTO dto)
     {
         var companyId = GetCompanyId();
@@ -63,7 +63,7 @@ public class AccountController : BaseController
         );
     }
 
-    [HttpPut("/account/{accountId}/updateById/")]
+    [HttpPut("{accountId}/updateById")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> UpdateByIdAsync(long accountId, AccountInputDTO dto)
     {
         ValidateId(accountId, nameof(accountId));
@@ -71,7 +71,7 @@ public class AccountController : BaseController
         return await ValidateAndExecuteAsync(() => _accountService.UpdateByIdAsync(accountId, dto, currentUserId), "Conta atualizada com sucesso");
     }
 
-    [HttpDelete("/account/{accountId}/deleteById/")]
+    [HttpDelete("{accountId}/deleteById")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));

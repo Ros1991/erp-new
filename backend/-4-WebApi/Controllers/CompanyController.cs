@@ -34,26 +34,26 @@ public class CompanyController : BaseController
         _CompanyService = CompanyService;
     }
 
-    [HttpGet("/company/getAll/")]
+    [HttpGet("getAll")]
     public async Task<ActionResult<BaseResponse<List<CompanyOutputDTO>>>> GetAllAsync()
     {
         return await ExecuteAsync(() => _CompanyService.GetAllAsync(), "Empresas listadas com sucesso");
     }
 
-    [HttpGet("/company/getPaged/")]
+    [HttpGet("getPaged")]
     public async Task<ActionResult<BaseResponse<PagedResult<CompanyOutputDTO>>>> GetPagedAsync([FromQuery] CompanyFilterDTO filters)
     {
         return await ExecuteAsync(() => _CompanyService.GetPagedAsync(filters), "Empresas listadas com sucesso");
     }
 
-    [HttpGet("/company/{companyId}/getOneById/")]
+    [HttpGet("{companyId}/getOneById")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> GetOneByIdAsync(long CompanyId)
     {
         //ValidateId(CompanyId, nameof(CompanyId));
         return await ExecuteAsync(() => _CompanyService.GetOneByIdAsync(CompanyId), "Empresa encontrada com sucesso");
     }
     
-    [HttpPost("/company/create/")]
+    [HttpPost("create")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> CreateAsync(CompanyInputDTO dto)
     {
         var currentUserId = GetCurrentUserId();
@@ -65,14 +65,14 @@ public class CompanyController : BaseController
         );
     }
     
-    [HttpPut("/company/{companyId}/updateById/")]
+    [HttpPut("{companyId}/updateById")]
     public async Task<ActionResult<BaseResponse<CompanyOutputDTO>>> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto)
     {
         var currentUserId = GetCurrentUserId();
         return await ValidateAndExecuteAsync(() => _CompanyService.UpdateByIdAsync(CompanyId, dto, currentUserId), "Empresa atualizada com sucesso");
     }
     
-    [HttpDelete("/company/{companyId}/deleteById/")]
+    [HttpDelete("{companyId}/deleteById")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long CompanyId)
     {
         //ValidateId(CompanyId, nameof(CompanyId));

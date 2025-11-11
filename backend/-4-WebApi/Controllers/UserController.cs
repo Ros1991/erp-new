@@ -30,26 +30,26 @@ public class UserController : BaseController
         _UserService = UserService;
     }
 
-    [HttpGet("/user/getAll/")]
+    [HttpGet("getAll")]
     public async Task<ActionResult<BaseResponse<List<UserOutputDTO>>>> GetAllAsync()
     {
         return await ExecuteAsync(() => _UserService.GetAllAsync(), "Usuários listados com sucesso");
     }
 
-    [HttpGet("/user/getPaged/")]
+    [HttpGet("getPaged")]
     public async Task<ActionResult<BaseResponse<PagedResult<UserOutputDTO>>>> GetPagedAsync([FromQuery] UserFilterDTO filters)
     {
         return await ExecuteAsync(() => _UserService.GetPagedAsync(filters), "Usuários listados com sucesso");
     }
 
-    [HttpGet("/user/{userId}/getOneById/")]
+    [HttpGet("{userId}/getOneById")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> GetOneByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));
         return await ExecuteAsync(() => _UserService.GetOneByIdAsync(UserId), "Usuário encontrado com sucesso");
     }
 
-    [HttpPost("/user/create/")]
+    [HttpPost("create")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> CreateAsync(UserInputDTO dto)
     {
         return await ValidateAndExecuteCreateAsync(
@@ -60,14 +60,14 @@ public class UserController : BaseController
         );
     }
     
-    [HttpPut("/user/{userId}/updateById/")]
+    [HttpPut("{userId}/updateById")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> UpdateByIdAsync(long UserId, UserInputDTO dto)
     {
         //ValidateId(UserId, nameof(UserId));
         return await ValidateAndExecuteAsync(() => _UserService.UpdateByIdAsync(UserId, dto), "Usuário atualizado com sucesso");
     }
     
-    [HttpDelete("/user/{userId}/deleteById/")]
+    [HttpDelete("{userId}/deleteById")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));

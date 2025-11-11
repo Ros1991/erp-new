@@ -26,7 +26,7 @@ class CompanyService {
    * Lista todas as empresas do usuário autenticado
    */
   async getMyCompanies(): Promise<Company[]> {
-    const response = await api.get('/company/getAll/');
+    const response = await api.get('company/getAll');
     return response.data;
   }
 
@@ -34,7 +34,7 @@ class CompanyService {
    * Busca uma empresa por ID
    */
   async getCompanyById(id: number): Promise<Company> {
-    const response = await api.get(`/company/${id}/getOneById/`);
+    const response = await api.get(`company/${id}/getOneById`);
     return response.data;
   }
 
@@ -42,7 +42,7 @@ class CompanyService {
    * Cria uma nova empresa
    */
   async createCompany(data: CreateCompanyInput): Promise<Company> {
-    const response = await api.post('/company/create/', data);
+    const response = await api.post('company/create', data);
     return response.data;
   }
 
@@ -50,7 +50,7 @@ class CompanyService {
    * Atualiza uma empresa existente
    */
   async updateCompany(id: number, data: UpdateCompanyInput): Promise<Company> {
-    const response = await api.put(`/company/${id}/updateById/`, data);
+    const response = await api.put(`company/${id}/updateById`, data);
     return response.data;
   }
 
@@ -58,7 +58,7 @@ class CompanyService {
    * Deleta uma empresa
    */
   async deleteCompany(id: number): Promise<void> {
-    await api.delete(`/company/${id}/deleteById/`);
+    await api.delete(`company/${id}/deleteById`);
   }
 
   /**
