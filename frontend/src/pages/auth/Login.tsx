@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -8,6 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { parseBackendError } from '../../utils/errorHandler';
+import { 
+  saveRememberMeData, 
+  loadRememberMeData, 
+  clearRememberMeData,
+  isRememberMeEnabled 
+} from '../../utils/rememberMe';
 
 export function Login() {
   const [credential, setCredential] = useState(''); // Email, Phone ou CPF
@@ -18,6 +24,19 @@ export function Login() {
   
   const { login } = useAuth();
   const { showValidationErrors, showError } = useToast();
+
+  // Carregar dados salvos ao montar o componente
+  useEffect(() => {
+    if (isRememberMeEnabled()) {
+      const savedData = loadRememberMeData();
+      
+      if (savedData) {
+        setCredential(savedData.credential);
+        setPassword(savedData.password);
+        setRememberMe(true);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +67,15 @@ export function Login() {
       }
       
       await login(cleanCredential, password);
+      
+      // Gerenciar "Lembrar de mim"
+      if (rememberMe) {
+        // Salvar credenciais no localStorage
+        saveRememberMeData(credential, password);
+      } else {
+        // Limpar credenciais salvas
+        clearRememberMeData();
+      }
     } catch (err: any) {
       const { hasValidationErrors, validationErrors, message } = parseBackendError(err);
       

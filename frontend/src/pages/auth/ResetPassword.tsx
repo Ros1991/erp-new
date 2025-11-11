@@ -40,8 +40,8 @@ export function ResetPassword() {
       return;
     }
 
-    if (code.length < 6) {
-      showError('O código deve ter pelo menos 6 caracteres');
+    if (code.length < 32) {
+      showError('Código inválido. Verifique o código recebido por e-mail');
       return;
     }
 
@@ -139,7 +139,7 @@ export function ResetPassword() {
                     onChange={(e) => setCode(e.target.value)}
                     disabled={isLoading}
                     required
-                    maxLength={10}
+                    maxLength={64}
                   />
                   <p className="text-xs text-gray-500">
                     Verifique seu e-mail e insira o código recebido
