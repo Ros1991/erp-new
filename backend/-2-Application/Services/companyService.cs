@@ -93,6 +93,12 @@ namespace ERP.Application.Services
                 throw new EntityNotFoundException("Company", CompanyId);
             }
 
+            // 🔒 Validação: apenas o dono da empresa pode editar
+            if (existingEntity.UserId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("Apenas o dono da empresa pode editar suas informações.");
+            }
+
             // ✅ Atualiza apenas campos de negócio + auditoria de atualização
             CompanyMapper.UpdateEntity(existingEntity, dto, currentUserId);
             
@@ -102,6 +108,18 @@ namespace ERP.Application.Services
 
         public async Task<bool> DeleteByIdAsync(long CompanyId, long currentUserId)
         {
+            // 🔒 Validação: buscar empresa e verificar se usuário é o dono
+            var existingEntity = await _unitOfWork.CompanyRepository.GetOneByIdAsync(CompanyId);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException("Company", CompanyId);
+            }
+
+            if (existingEntity.UserId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("Apenas o dono da empresa pode deletá-la.");
+            }
+
             var result = await _unitOfWork.CompanyRepository.DeleteByIdAsync(CompanyId, currentUserId);
             await _unitOfWork.SaveChangesAsync();
             return result;

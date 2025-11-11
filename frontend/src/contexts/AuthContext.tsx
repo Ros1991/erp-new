@@ -15,6 +15,7 @@ interface Company {
   id: number;
   name: string;
   cnpj?: string;
+  userId: number; // ID do dono da empresa
   isActive: boolean;
   createdAt: string;
 }
@@ -130,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: company.companyId,
         name: company.name,
         cnpj: company.document,
+        userId: company.userId, // ID do dono da empresa
         isActive: true, // Assumir ativo por padrão (ajustar se backend tiver campo isActive)
         createdAt: company.criadoEm
       }));

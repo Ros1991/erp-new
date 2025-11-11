@@ -4,7 +4,7 @@ export interface Company {
   companyId: number;
   name: string;
   document?: string;
-  userId: number;
+  userId: number; // ID do dono da empresa
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;

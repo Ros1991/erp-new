@@ -101,16 +101,19 @@ export function CompanySelect() {
                       Acessar
                     </Button>
                     
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/company/${company.id}/settings`);
-                      }}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                    {/* Botão de configurações só aparece se o usuário for o dono */}
+                    {user?.userId === company.userId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/company/${company.id}/settings`);
+                        }}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

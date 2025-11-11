@@ -13,7 +13,7 @@ import { parseBackendError } from '../../utils/errorHandler';
 export function CompanySettings() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loadCompanies } = useAuth();
+  const { loadCompanies, user } = useAuth();
   const { showError, showSuccess, showValidationErrors } = useToast();
 
   const [company, setCompany] = useState<Company | null>(null);
@@ -34,6 +34,14 @@ export function CompanySettings() {
     setIsLoading(true);
     try {
       const data = await companyService.getCompanyById(Number(id));
+      
+      // 🔒 Verificar se o usuário é o dono da empresa
+      if (user?.userId !== data.userId) {
+        showError('Apenas o dono da empresa pode acessar as configurações.');
+        navigate('/companies');
+        return;
+      }
+      
       setCompany(data);
       setName(data.name);
       setCnpj(data.document ? companyService.formatCNPJ(data.document) : '');
