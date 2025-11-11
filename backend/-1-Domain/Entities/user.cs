@@ -33,7 +33,7 @@ namespace ERP.Domain.Entities
 		public string? ResetToken { get; set; }
 
 		[Column("user_reset_token_expires_at")]
-		public string? ResetTokenExpiresAt { get; set; }
+		public DateTime? ResetTokenExpiresAt { get; set; }
 
 
 		//Parent Relations
@@ -60,7 +60,7 @@ namespace ERP.Domain.Entities
 			string? Param_Cpf, 
 			string Param_PasswordHash, 
 			string? Param_ResetToken, 
-			string? Param_ResetTokenExpiresAt
+			DateTime? Param_ResetTokenExpiresAt
 		)
 		{
 			Email = Param_Email;

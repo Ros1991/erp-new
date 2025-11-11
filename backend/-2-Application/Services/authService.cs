@@ -77,8 +77,8 @@ namespace ERP.Application.Services
                 UserId = user.UserId,
                 Token = accessToken,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(2).ToString("o"),
-                RefreshExpiresAt = DateTime.UtcNow.AddDays(7).ToString("o"),
+                ExpiresAt = DateTime.UtcNow.AddHours(2),
+                RefreshExpiresAt = DateTime.UtcNow.AddDays(7),
                 IsRevoked = false
             };
 
@@ -128,8 +128,8 @@ namespace ERP.Application.Services
                 UserId = user.UserId,
                 Token = accessToken,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(2).ToString("o"),
-                RefreshExpiresAt = DateTime.UtcNow.AddDays(7).ToString("o"),
+                ExpiresAt = DateTime.UtcNow.AddHours(2),
+                RefreshExpiresAt = DateTime.UtcNow.AddDays(7),
                 IsRevoked = false
             };
 
@@ -184,7 +184,7 @@ namespace ERP.Application.Services
             // Gerar token de reset
             var resetToken = Guid.NewGuid().ToString("N");
             user.ResetToken = resetToken;
-            user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1).ToString("o");
+            user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
 
             await _unitOfWork.UserRepository.UpdateByIdAsync(user.UserId, user);
             await _unitOfWork.SaveChangesAsync();
@@ -208,8 +208,7 @@ namespace ERP.Application.Services
             }
 
             // Verificar se token expirou
-            if (string.IsNullOrWhiteSpace(user.ResetTokenExpiresAt) ||
-                DateTime.Parse(user.ResetTokenExpiresAt) < DateTime.UtcNow)
+            if (!user.ResetTokenExpiresAt.HasValue || user.ResetTokenExpiresAt.Value < DateTime.UtcNow)
             {
                 throw new ValidationException("Token", "Token expirado.");
             }
@@ -236,7 +235,7 @@ namespace ERP.Application.Services
             }
 
             // Verificar se refresh token expirou
-            if (DateTime.Parse(token.RefreshExpiresAt) < DateTime.UtcNow)
+            if (token.RefreshExpiresAt.HasValue && token.RefreshExpiresAt.Value < DateTime.UtcNow)
             {
                 throw new ValidationException("Token", "Refresh token expirado.");
             }
@@ -262,8 +261,8 @@ namespace ERP.Application.Services
                 UserId = user.UserId,
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(2).ToString("o"),
-                RefreshExpiresAt = DateTime.UtcNow.AddDays(7).ToString("o"),
+                ExpiresAt = DateTime.UtcNow.AddHours(2),
+                RefreshExpiresAt = DateTime.UtcNow.AddDays(7),
                 IsRevoked = false
             };
 

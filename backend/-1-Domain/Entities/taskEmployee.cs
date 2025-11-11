@@ -29,10 +29,10 @@ namespace ERP.Domain.Entities
 		public long? ActualHours { get; set; }
 
 		[Column("task_employee_start_date")]
-		public string? StartDate { get; set; }
+		public DateTime? StartDate { get; set; }
 
 		[Column("task_employee_end_date")]
-		public string? EndDate { get; set; }
+		public DateTime? EndDate { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
@@ -63,8 +63,8 @@ namespace ERP.Domain.Entities
 			string Param_Status, 
 			long? Param_EstimatedHours, 
 			long? Param_ActualHours, 
-			string? Param_StartDate, 
-			string? Param_EndDate, 
+			DateTime? Param_StartDate, 
+			DateTime? Param_EndDate, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 

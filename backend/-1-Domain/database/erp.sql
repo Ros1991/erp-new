@@ -2,6 +2,12 @@
 /*   Esquema para a criação do banco de dados da aplicação    */
 /*                        PortalDefault                       */
 /*------------------------------------------------------------*/
+/*                                                            */
+/*   IMPORTANTE: Este schema usa TIMESTAMPTZ para todos os   */
+/*   campos de data/hora, garantindo suporte a timezone.     */
+/*   Configure o banco para timezone UTC:                    */
+/*   ALTER DATABASE seu_banco SET timezone TO 'UTC';         */
+/*                                                            */
 /*------------------------------------------------------------*/
 /*                     Exclusão de Views                      */
 /*------------------------------------------------------------*/
@@ -55,8 +61,8 @@ DROP TABLE IF EXISTS "erp"."tb_user_token";
 	"account_initial_balance"              decimal (15,2)       DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_account" PRIMARY KEY 
 		(
 			"account_id"
@@ -78,8 +84,8 @@ DROP TABLE IF EXISTS "erp"."tb_user_token";
 	"account_payable_receivable_is_paid"   boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_account_payable_receivable" PRIMARY KEY 
 		(
 			"account_payable_receivable_id"
@@ -98,8 +104,8 @@ DROP TABLE IF EXISTS "erp"."tb_user_token";
 	"user_id"                              bigint               DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_company" PRIMARY KEY 
 		(
 			"company_id"
@@ -127,8 +133,8 @@ ALTER TABLE "erp"."tb_company" ADD CONSTRAINT "uk_company_document" UNIQUE("comp
 	"company_setting_weekly_hours_default" decimal (5,2)        DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_company_setting" PRIMARY KEY 
 		(
 			"company_setting_id"
@@ -147,8 +153,8 @@ ALTER TABLE "erp"."tb_company" ADD CONSTRAINT "uk_company_document" UNIQUE("comp
 	"role_id"                              bigint               NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_company_user" PRIMARY KEY 
 		(
 			"company_user_id"
@@ -176,8 +182,8 @@ ALTER TABLE "erp"."tb_company_user" ADD CONSTRAINT "uk_company_user_company_user
 	"contract_is_active"                   boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_contract" PRIMARY KEY 
 		(
 			"contract_id"
@@ -198,8 +204,8 @@ ALTER TABLE "erp"."tb_company_user" ADD CONSTRAINT "uk_company_user_company_user
 	"contract_benefit_discount_amount"     decimal (10,2)       DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_contract_benefit_discount" PRIMARY KEY 
 		(
 			"contract_benefit_discount_id"
@@ -218,8 +224,8 @@ ALTER TABLE "erp"."tb_company_user" ADD CONSTRAINT "uk_company_user_company_user
 	"contract_cost_center_percentage"      decimal (5,2)        DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_contract_cost_center" PRIMARY KEY 
 		(
 			"contract_cost_center_id"
@@ -240,8 +246,8 @@ ALTER TABLE "erp"."tb_contract_cost_center" ADD CONSTRAINT "uk_contract_cost_cen
 	"cost_center_is_active"                boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_cost_center" PRIMARY KEY 
 		(
 			"cost_center_id"
@@ -266,8 +272,8 @@ ALTER TABLE "erp"."tb_cost_center" ADD CONSTRAINT "uk_cost_center_company_name" 
 	"employee_cpf"                         varchar (11)         NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_employee" PRIMARY KEY 
 		(
 			"employee_id"
@@ -289,8 +295,8 @@ ALTER TABLE "erp"."tb_employee" ADD CONSTRAINT "uk_employee_phone" UNIQUE("emplo
 	"location_id"                          bigint               NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_employee_allowed_location" PRIMARY KEY 
 		(
 			"employee_allowed_location_id"
@@ -315,8 +321,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"financial_transaction_transaction_date" date                 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_financial_transaction" PRIMARY KEY 
 		(
 			"financial_transaction_id"
@@ -339,8 +345,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"justification_status"                 varchar (10)         NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_justification" PRIMARY KEY 
 		(
 			"justification_id"
@@ -362,8 +368,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"loan_advance_is_approved"             boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_loan_advance" PRIMARY KEY 
 		(
 			"loan_advance_id"
@@ -386,8 +392,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"location_is_active"                   boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_location" PRIMARY KEY 
 		(
 			"location_id"
@@ -410,8 +416,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"payroll_is_closed"                    boolean              NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_payroll" PRIMARY KEY 
 		(
 			"payroll_id"
@@ -435,8 +441,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"payroll_employee_total_net_pay"       decimal (10,2)       DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_payroll_employee" PRIMARY KEY 
 		(
 			"payroll_employee_id"
@@ -461,8 +467,8 @@ ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "uk_payroll_employee_payr
 	"payroll_item_calculation_details"     jsonb                NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_payroll_item" PRIMARY KEY 
 		(
 			"payroll_item_id"
@@ -484,8 +490,8 @@ ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "uk_payroll_employee_payr
 	"purchase_order_status"                varchar (10)         NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_purchase_order" PRIMARY KEY 
 		(
 			"purchase_order_id"
@@ -504,8 +510,8 @@ ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "uk_payroll_employee_payr
 	"role_permissions"                     jsonb                NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_role" PRIMARY KEY 
 		(
 			"role_id"
@@ -539,8 +545,8 @@ ALTER TABLE "erp"."tb_role" ADD CONSTRAINT "uk_role_company_name" UNIQUE("compan
 	"task_overall_status"                  varchar (10)         NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_task" PRIMARY KEY 
 		(
 			"task_id"
@@ -560,8 +566,8 @@ ALTER TABLE "erp"."tb_role" ADD CONSTRAINT "uk_role_company_name" UNIQUE("compan
 	"task_comment_attachment_url"          varchar (2048)       NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_task_comment" PRIMARY KEY 
 		(
 			"task_comment_id"
@@ -580,12 +586,12 @@ ALTER TABLE "erp"."tb_role" ADD CONSTRAINT "uk_role_company_name" UNIQUE("compan
 	"task_employee_status"                 varchar (10)         NOT NULL,
 	"task_employee_estimated_hours"        decimal (10,2)       NULL,
 	"task_employee_actual_hours"           decimal (10,2)       NULL,
-	"task_employee_start_date"             varchar (10)         NULL,
-	"task_employee_end_date"               varchar (10)         NULL,
+	"task_employee_start_date"             timestamptz          NULL,
+	"task_employee_end_date"               timestamptz          NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_task_employee" PRIMARY KEY 
 		(
 			"task_employee_id"
@@ -606,8 +612,8 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "uk_task_employee_task_emplo
 	"task_status_history_change_reason"    text                 NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_task_status_history" PRIMARY KEY 
 		(
 			"task_status_history_id"
@@ -623,14 +629,14 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "uk_task_employee_task_emplo
 	"time_entry_id"                        bigint               NOT NULL GENERATED BY DEFAULT AS IDENTITY ,
 	"employee_id"                          bigint               DEFAULT 0 NOT NULL,
 	"time_entry_type"                      varchar (10)         NOT NULL,
-	"time_entry_timestamp"                 varchar (10)         NOT NULL,
+	"time_entry_timestamp"                 timestamptz          NOT NULL,
 	"time_entry_latitude"                  decimal (9,6)        NULL,
 	"time_entry_longitude"                 decimal (9,6)        NULL,
 	"location_id"                          bigint               NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_time_entry" PRIMARY KEY 
 		(
 			"time_entry_id"
@@ -649,8 +655,8 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "uk_task_employee_task_emplo
 	"transaction_cost_center_amount"       decimal (15,2)       DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
-	"criado_em"                            timestamp            DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"atualizado_em"                        timestamp            NULL,
+	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"atualizado_em"                        timestamptz          NULL,
 		CONSTRAINT "pk_transaction_cost_center" PRIMARY KEY 
 		(
 			"transaction_cost_center_id"
@@ -670,7 +676,7 @@ ALTER TABLE "erp"."tb_transaction_cost_center" ADD CONSTRAINT "uk_transaction_co
 	"user_cpf"                             varchar (11)         NULL,
 	"user_password_hash"                   varchar (255)        NOT NULL,
 	"user_reset_token"                     varchar (2048)       NULL,
-	"user_reset_token_expires_at"          varchar (10)         NULL,
+	"user_reset_token_expires_at"          timestamptz          NULL,
 		CONSTRAINT "pk_user" PRIMARY KEY 
 		(
 			"user_id"
@@ -695,8 +701,8 @@ ALTER TABLE "erp"."tb_user" ADD CONSTRAINT "uk_user_phone" UNIQUE("user_phone");
 	"user_id"                              bigint               DEFAULT 0 NOT NULL,
 	"user_token_token"                     varchar (2048)       NOT NULL,
 	"user_token_refresh_token"             varchar (2048)       NULL,
-	"user_token_expires_at"                varchar (10)         NOT NULL,
-	"user_token_refresh_expires_at"        varchar (10)         NULL,
+	"user_token_expires_at"                timestamptz          NOT NULL,
+	"user_token_refresh_expires_at"        timestamptz          NULL,
 	"user_token_is_revoked"                boolean              NOT NULL,
 		CONSTRAINT "pk_user_token" PRIMARY KEY 
 		(

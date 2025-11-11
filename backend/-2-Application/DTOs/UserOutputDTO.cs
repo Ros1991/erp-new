@@ -8,6 +8,6 @@ namespace ERP.Application.DTOs
 	public string? Cpf { get; set; }
 	public string PasswordHash { get; set; }	
 	public string? ResetToken { get; set; }
-	public string? ResetTokenExpiresAt { get; set; }
+	public DateTime? ResetTokenExpiresAt { get; set; }
     }
 }

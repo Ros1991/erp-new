@@ -20,7 +20,7 @@ namespace ERP.Domain.Entities
 		public string Type { get; set; }
 
 		[Column("time_entry_timestamp")]
-		public string Timestamp { get; set; }
+		public DateTime Timestamp { get; set; }
 
 		[Column("time_entry_latitude")]
 		public long? Latitude { get; set; }
@@ -55,7 +55,7 @@ namespace ERP.Domain.Entities
 		public TimeEntry(
 			long Param_EmployeeId, 
 			string Param_Type, 
-			string Param_Timestamp, 
+			DateTime Param_Timestamp, 
 			long? Param_Latitude, 
 			long? Param_Longitude, 
 			long? Param_LocationId, 

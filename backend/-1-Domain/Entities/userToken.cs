@@ -25,10 +25,10 @@ namespace ERP.Domain.Entities
 		public string? RefreshToken { get; set; }
 
 		[Column("user_token_expires_at")]
-		public string ExpiresAt { get; set; }
+		public DateTime ExpiresAt { get; set; }
 
 		[Column("user_token_refresh_expires_at")]
-		public string? RefreshExpiresAt { get; set; }
+		public DateTime? RefreshExpiresAt { get; set; }
 
 		[Column("user_token_is_revoked")]
 		public bool IsRevoked { get; set; }
@@ -44,8 +44,8 @@ namespace ERP.Domain.Entities
 			long Param_UserId, 
 			string Param_Token, 
 			string? Param_RefreshToken, 
-			string Param_ExpiresAt, 
-			string? Param_RefreshExpiresAt, 
+			DateTime Param_ExpiresAt, 
+			DateTime? Param_RefreshExpiresAt, 
 			bool Param_IsRevoked
 		)
 		{
