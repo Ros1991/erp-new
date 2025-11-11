@@ -86,7 +86,7 @@ namespace ERP.WebApi.Controllers.Base
                     .Where(x => x.Value.Errors.Count > 0)
                     .ToDictionary(
                         kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
                     );
 
                 throw new ValidationException(errors);

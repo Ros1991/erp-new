@@ -52,9 +52,9 @@ namespace ERP.CrossCutting.Exceptions
     /// </summary>
     public class ValidationException : DomainException
     {
-        public Dictionary<string, string[]> Errors { get; }
+        public Dictionary<string, List<string>> Errors { get; }
 
-        public ValidationException(Dictionary<string, string[]> errors) 
+        public ValidationException(Dictionary<string, List<string>> errors) 
             : base("One or more validation errors occurred.")
         {
             Errors = errors;
@@ -63,9 +63,9 @@ namespace ERP.CrossCutting.Exceptions
         public ValidationException(string field, string error) 
             : base($"Validation error in field '{field}': {error}")
         {
-            Errors = new Dictionary<string, string[]>
+            Errors = new Dictionary<string, List<string>>
             {
-                { field, new[] { error } }
+                { field, new List<string> { error } }
             };
         }
     }
