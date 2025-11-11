@@ -18,7 +18,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Filter
 } from 'lucide-react';
 
 export function Roles() {
@@ -30,6 +31,7 @@ export function Roles() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const pageSize = 10;
 
   const loadRoles = useCallback(async () => {
@@ -68,19 +70,39 @@ export function Roles() {
     <MainLayout>
       {/* Header */}
       <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+        {/* Desktop Header with Button */}
+        <div className="hidden sm:flex sm:items-start sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Cargos</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">Gerencie os cargos e permissões da empresa</p>
+            <h1 className="text-3xl font-bold text-gray-900">Cargos</h1>
+            <p className="text-base text-gray-600 mt-1">Gerencie os cargos e permissões da empresa</p>
           </div>
-          <Button className="w-full sm:w-auto">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Novo Cargo
           </Button>
         </div>
 
-        {/* Filters */}
-        <div className="relative">
+        {/* Mobile Header with Filter Button */}
+        <div className="sm:hidden mb-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-gray-900">Cargos</h1>
+              <p className="text-sm text-gray-600 mt-1">Gerencie os cargos e permissões da empresa</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className={`h-9 w-9 p-0 flex-shrink-0 ${showMobileFilters ? 'bg-primary-50 border-primary-300' : ''}`}
+              title={showMobileFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
+            >
+              <Filter className={`h-4 w-4 ${showMobileFilters ? 'text-primary-600' : ''}`} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Desktop Filters (always visible) */}
+        <div className="hidden sm:block relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="text"
@@ -93,7 +115,32 @@ export function Roles() {
             className="pl-10 h-9"
           />
         </div>
+
+        {/* Mobile Filters (collapsible) */}
+        {showMobileFilters && (
+          <div className="sm:hidden relative mb-4 animate-in slide-in-from-top-2 duration-200">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Buscar por nome..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10 h-9"
+            />
+          </div>
+        )}
       </div>
+
+      {/* Floating Action Button (Mobile only) */}
+      <button
+        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
+        aria-label="Novo Cargo"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       {/* Desktop Table */}
       <div className="hidden lg:block">
@@ -242,10 +289,10 @@ export function Roles() {
 
       {/* Pagination and Results Info */}
       {!isLoading && roles.length > 0 && (
-        <div className="mt-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mt-6 pb-24 sm:pb-6">
+          <div className="flex flex-col gap-4">
             {/* Results Count */}
-            <div className="text-sm text-gray-600 text-center sm:text-left">
+            <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
               Exibindo {roles.length} de {totalCount} cargo(s)
               {totalPages > 1 && (
                 <span className="hidden sm:inline"> • Página {currentPage} de {totalPages}</span>
@@ -254,7 +301,7 @@ export function Roles() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center gap-1 justify-center sm:justify-end flex-wrap">
+              <div className="flex items-center gap-1 justify-center flex-wrap">
                 {/* First Page */}
                 <Button
                   variant="outline"
@@ -279,8 +326,8 @@ export function Roles() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                {/* Page Numbers */}
-                <div className="hidden sm:flex items-center gap-1">
+                {/* Page Numbers - Full display on mobile and desktop */}
+                <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter((page) => {
                       // Show first page, last page, current page, and adjacent pages
@@ -296,24 +343,19 @@ export function Roles() {
                       return (
                         <div key={page} className="flex items-center gap-1">
                           {showEllipsis && (
-                            <span className="px-2 text-gray-400">...</span>
+                            <span className="px-1 sm:px-2 text-gray-400 text-sm">...</span>
                           )}
                           <Button
                             variant={currentPage === page ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(page)}
-                            className="h-9 min-w-9 px-3"
+                            className="h-9 min-w-[32px] sm:min-w-9 px-2 sm:px-3 text-sm"
                           >
                             {page}
                           </Button>
                         </div>
                       );
                     })}
-                </div>
-
-                {/* Mobile: Current Page Display */}
-                <div className="flex sm:hidden items-center px-3 text-sm font-medium text-gray-700">
-                  {currentPage} / {totalPages}
                 </div>
 
                 {/* Next Page */}
