@@ -17,7 +17,7 @@ namespace ERP.Domain.Entities
 		public long CompanyId { get; set; }
 
 		[Column("employee_id_general_manager")]
-		public long EmployeeIdGeneralManager { get; set; }
+		public long? EmployeeIdGeneralManager { get; set; }
 
 		[Column("company_setting_time_tolerance_minutes")]
 		public long TimeToleranceMinutes { get; set; }
@@ -50,13 +50,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -67,7 +67,7 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public CompanySetting(
 			long Param_CompanyId, 
-			long Param_EmployeeIdGeneralManager, 
+			long? Param_EmployeeIdGeneralManager, 
 			long Param_TimeToleranceMinutes, 
 			long Param_PayrollDay, 
 			long Param_PayrollClosingDay, 
@@ -78,9 +78,9 @@ namespace ERP.Domain.Entities
 			long Param_RequireJustificationAfterHours, 
 			long Param_WeeklyHoursDefault, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			CompanyId = Param_CompanyId;

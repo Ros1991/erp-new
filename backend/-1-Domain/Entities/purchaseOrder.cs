@@ -20,7 +20,7 @@ namespace ERP.Domain.Entities
 		public long UserIdRequester { get; set; }
 
 		[Column("user_id_approver")]
-		public long UserIdApprover { get; set; }
+		public long? UserIdApprover { get; set; }
 
 		[Column("purchase_order_description")]
 		public string Description { get; set; }
@@ -35,13 +35,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -59,14 +59,14 @@ namespace ERP.Domain.Entities
 		public PurchaseOrder(
 			long Param_CompanyId, 
 			long Param_UserIdRequester, 
-			long Param_UserIdApprover, 
+			long? Param_UserIdApprover, 
 			string Param_Description, 
 			long Param_TotalAmount, 
 			string Param_Status, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			CompanyId = Param_CompanyId;

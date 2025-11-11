@@ -17,22 +17,22 @@ namespace ERP.Domain.Entities
 		public long CompanyId { get; set; }
 
 		[Column("task_id_parent")]
-		public long TaskIdParent { get; set; }
+		public long? TaskIdParent { get; set; }
 
 		[Column("task_id_blocking")]
-		public long TaskIdBlocking { get; set; }
+		public long? TaskIdBlocking { get; set; }
 
 		[Column("task_title")]
 		public string Title { get; set; }
 
 		[Column("task_description")]
-		public string Description { get; set; }
+		public string? Description { get; set; }
 
 		[Column("task_priority")]
 		public string Priority { get; set; }
 
 		[Column("task_frequency_days")]
-		public long FrequencyDays { get; set; }
+		public long? FrequencyDays { get; set; }
 
 		[Column("task_allow_sunday")]
 		public bool AllowSunday { get; set; }
@@ -56,10 +56,10 @@ namespace ERP.Domain.Entities
 		public bool AllowSaturday { get; set; }
 
 		[Column("task_start_date")]
-		public DateTime StartDate { get; set; }
+		public DateTime? StartDate { get; set; }
 
 		[Column("task_end_date")]
-		public DateTime EndDate { get; set; }
+		public DateTime? EndDate { get; set; }
 
 		[Column("task_overall_status")]
 		public string OverallStatus { get; set; }
@@ -68,13 +68,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -97,12 +97,12 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public Task(
 			long Param_CompanyId, 
-			long Param_TaskIdParent, 
-			long Param_TaskIdBlocking, 
+			long? Param_TaskIdParent, 
+			long? Param_TaskIdBlocking, 
 			string Param_Title, 
-			string Param_Description, 
+			string? Param_Description, 
 			string Param_Priority, 
-			long Param_FrequencyDays, 
+			long? Param_FrequencyDays, 
 			bool Param_AllowSunday, 
 			bool Param_AllowMonday, 
 			bool Param_AllowTuesday, 
@@ -110,13 +110,13 @@ namespace ERP.Domain.Entities
 			bool Param_AllowThursday, 
 			bool Param_AllowFriday, 
 			bool Param_AllowSaturday, 
-			DateTime Param_StartDate, 
-			DateTime Param_EndDate, 
+			DateTime? Param_StartDate, 
+			DateTime? Param_EndDate, 
 			string Param_OverallStatus, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			CompanyId = Param_CompanyId;

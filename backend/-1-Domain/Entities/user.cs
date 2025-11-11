@@ -14,22 +14,26 @@ namespace ERP.Domain.Entities
 		public long UserId { get; set; }
 
 		[Column("user_email")]
-		public string Email { get; set; }
+		[MaxLength(255)]
+		public string? Email { get; set; }
 
 		[Column("user_phone")]
-		public string Phone { get; set; }
+		[MaxLength(20)]
+		public string? Phone { get; set; }
 
 		[Column("user_cpf")]
-		public string Cpf { get; set; }
+		[MaxLength(11)]
+		public string? Cpf { get; set; }
 
 		[Column("user_password_hash")]
 		public string PasswordHash { get; set; }
 
 		[Column("user_reset_token")]
-		public string ResetToken { get; set; }
+		[MaxLength(2048)]
+		public string? ResetToken { get; set; }
 
 		[Column("user_reset_token_expires_at")]
-		public string ResetTokenExpiresAt { get; set; }
+		public string? ResetTokenExpiresAt { get; set; }
 
 
 		//Parent Relations
@@ -51,12 +55,12 @@ namespace ERP.Domain.Entities
 
 		// Construtor com parâmetros
 		public User(
-			string Param_Email, 
-			string Param_Phone, 
-			string Param_Cpf, 
+			string? Param_Email, 
+			string? Param_Phone, 
+			string? Param_Cpf, 
 			string Param_PasswordHash, 
-			string Param_ResetToken, 
-			string Param_ResetTokenExpiresAt
+			string? Param_ResetToken, 
+			string? Param_ResetTokenExpiresAt
 		)
 		{
 			Email = Param_Email;

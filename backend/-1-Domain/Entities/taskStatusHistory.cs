@@ -17,25 +17,25 @@ namespace ERP.Domain.Entities
 		public long TaskEmployeeId { get; set; }
 
 		[Column("task_status_history_old_status")]
-		public string OldStatus { get; set; }
+	public string? OldStatus { get; set; }
 
 		[Column("task_status_history_new_status")]
 		public string NewStatus { get; set; }
 
 		[Column("task_status_history_change_reason")]
-		public string ChangeReason { get; set; }
+	public string? ChangeReason { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+	public long? AtualizadoPor { get; set; }
 
-		[Column("criado_em")]
-		public DateTime CriadoEm { get; set; }
+	[Column("criado_em")]
+	public DateTime CriadoEm { get; set; }
 
-		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+	[Column("atualizado_em")]
+	public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -46,13 +46,13 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public TaskStatusHistory(
 			long Param_TaskEmployeeId, 
-			string Param_OldStatus, 
-			string Param_NewStatus, 
-			string Param_ChangeReason, 
+		string? Param_OldStatus, 
+		string Param_NewStatus, 
+		string? Param_ChangeReason, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
-			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+		long? Param_AtualizadoPor, 
+		DateTime Param_CriadoEm, 
+		DateTime? Param_AtualizadoEm
 		)
 		{
 			TaskEmployeeId = Param_TaskEmployeeId;

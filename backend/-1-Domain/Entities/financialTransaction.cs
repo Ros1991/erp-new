@@ -20,10 +20,10 @@ namespace ERP.Domain.Entities
 		public long AccountId { get; set; }
 
 		[Column("purchase_order_id")]
-		public long PurchaseOrderId { get; set; }
+		public long? PurchaseOrderId { get; set; }
 
 		[Column("account_payable_receivable_id")]
-		public long AccountPayableReceivableId { get; set; }
+		public long? AccountPayableReceivableId { get; set; }
 
 		[Column("financial_transaction_description")]
 		public string Description { get; set; }
@@ -41,13 +41,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -67,16 +67,16 @@ namespace ERP.Domain.Entities
 		public FinancialTransaction(
 			long Param_CompanyId, 
 			long Param_AccountId, 
-			long Param_PurchaseOrderId, 
-			long Param_AccountPayableReceivableId, 
+			long? Param_PurchaseOrderId, 
+			long? Param_AccountPayableReceivableId, 
 			string Param_Description, 
 			string Param_Type, 
 			long Param_Amount, 
 			DateTime Param_TransactionDate, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			CompanyId = Param_CompanyId;

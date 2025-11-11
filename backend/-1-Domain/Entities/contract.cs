@@ -38,10 +38,10 @@ namespace ERP.Domain.Entities
 		public DateTime StartDate { get; set; }
 
 		[Column("contract_end_date")]
-		public DateTime EndDate { get; set; }
+		public DateTime? EndDate { get; set; }
 
 		[Column("contract_weekly_hours")]
-		public long WeeklyHours { get; set; }
+		public long? WeeklyHours { get; set; }
 
 		[Column("contract_is_active")]
 		public bool IsActive { get; set; }
@@ -50,13 +50,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -78,13 +78,13 @@ namespace ERP.Domain.Entities
 			bool Param_HasIrrf, 
 			bool Param_HasFgts, 
 			DateTime Param_StartDate, 
-			DateTime Param_EndDate, 
-			long Param_WeeklyHours, 
+			DateTime? Param_EndDate, 
+			long? Param_WeeklyHours, 
 			bool Param_IsActive, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			EmployeeId = Param_EmployeeId;

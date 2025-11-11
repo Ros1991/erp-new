@@ -17,16 +17,18 @@ namespace ERP.Domain.Entities
 		public long UserId { get; set; }
 
 		[Column("user_token_token")]
+		[MaxLength(2048)]
 		public string Token { get; set; }
 
 		[Column("user_token_refresh_token")]
-		public string RefreshToken { get; set; }
+		[MaxLength(2048)]
+		public string? RefreshToken { get; set; }
 
 		[Column("user_token_expires_at")]
 		public string ExpiresAt { get; set; }
 
 		[Column("user_token_refresh_expires_at")]
-		public string RefreshExpiresAt { get; set; }
+		public string? RefreshExpiresAt { get; set; }
 
 		[Column("user_token_is_revoked")]
 		public bool IsRevoked { get; set; }
@@ -41,9 +43,9 @@ namespace ERP.Domain.Entities
 		public UserToken(
 			long Param_UserId, 
 			string Param_Token, 
-			string Param_RefreshToken, 
+			string? Param_RefreshToken, 
 			string Param_ExpiresAt, 
-			string Param_RefreshExpiresAt, 
+			string? Param_RefreshExpiresAt, 
 			bool Param_IsRevoked
 		)
 		{

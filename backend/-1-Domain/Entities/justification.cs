@@ -23,13 +23,14 @@ namespace ERP.Domain.Entities
 		public string Reason { get; set; }
 
 		[Column("justification_attachment_url")]
-		public string AttachmentUrl { get; set; }
+		[MaxLength(2048)]
+		public string? AttachmentUrl { get; set; }
 
 		[Column("justification_hours_granted")]
-		public long HoursGranted { get; set; }
+		public long? HoursGranted { get; set; }
 
 		[Column("user_id_approver")]
-		public long UserIdApprover { get; set; }
+		public long? UserIdApprover { get; set; }
 
 		[Column("justification_status")]
 		public string Status { get; set; }
@@ -38,13 +39,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -59,14 +60,14 @@ namespace ERP.Domain.Entities
 			long Param_EmployeeId, 
 			DateTime Param_ReferenceDate, 
 			string Param_Reason, 
-			string Param_AttachmentUrl, 
-			long Param_HoursGranted, 
-			long Param_UserIdApprover, 
+			string? Param_AttachmentUrl, 
+			long? Param_HoursGranted, 
+			long? Param_UserIdApprover, 
 			string Param_Status, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			EmployeeId = Param_EmployeeId;

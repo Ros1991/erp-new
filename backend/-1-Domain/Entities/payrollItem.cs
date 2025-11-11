@@ -29,25 +29,25 @@ namespace ERP.Domain.Entities
 		public long Amount { get; set; }
 
 		[Column("payroll_item_reference_id")]
-		public long ReferenceId { get; set; }
+		public long? ReferenceId { get; set; }
 
 		[Column("payroll_item_calculation_basis")]
-		public long CalculationBasis { get; set; }
+		public long? CalculationBasis { get; set; }
 
 		[Column("payroll_item_calculation_details")]
-		public string CalculationDetails { get; set; }
+		public string? CalculationDetails { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -62,13 +62,13 @@ namespace ERP.Domain.Entities
 			string Param_Type, 
 			string Param_Category, 
 			long Param_Amount, 
-			long Param_ReferenceId, 
-			long Param_CalculationBasis, 
-			string Param_CalculationDetails, 
+			long? Param_ReferenceId, 
+			long? Param_CalculationBasis, 
+			string? Param_CalculationDetails, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			PayrollEmployeeId = Param_PayrollEmployeeId;

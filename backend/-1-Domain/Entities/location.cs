@@ -20,7 +20,7 @@ namespace ERP.Domain.Entities
 		public string Name { get; set; }
 
 		[Column("location_address")]
-		public string Address { get; set; }
+		public string? Address { get; set; }
 
 		[Column("location_latitude")]
 		public long Latitude { get; set; }
@@ -38,13 +38,13 @@ namespace ERP.Domain.Entities
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -60,15 +60,15 @@ namespace ERP.Domain.Entities
 		public Location(
 			long Param_CompanyId, 
 			string Param_Name, 
-			string Param_Address, 
+			string? Param_Address, 
 			long Param_Latitude, 
 			long Param_Longitude, 
 			long Param_RadiusMeters, 
 			bool Param_IsActive, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			CompanyId = Param_CompanyId;

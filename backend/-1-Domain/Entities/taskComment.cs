@@ -23,19 +23,20 @@ namespace ERP.Domain.Entities
 		public string Comment { get; set; }
 
 		[Column("task_comment_attachment_url")]
-		public string AttachmentUrl { get; set; }
+		[MaxLength(2048)]
+		public string? AttachmentUrl { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
-		public long AtualizadoPor { get; set; }
+		public long? AtualizadoPor { get; set; }
 
 		[Column("criado_em")]
 		public DateTime CriadoEm { get; set; }
 
 		[Column("atualizado_em")]
-		public DateTime AtualizadoEm { get; set; }
+		public DateTime? AtualizadoEm { get; set; }
 
 
 		//Criando Relação com a tabelas
@@ -50,11 +51,11 @@ namespace ERP.Domain.Entities
 			long Param_TaskId, 
 			long Param_UserId, 
 			string Param_Comment, 
-			string Param_AttachmentUrl, 
+			string? Param_AttachmentUrl, 
 			long Param_CriadoPor, 
-			long Param_AtualizadoPor, 
+			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
-			DateTime Param_AtualizadoEm
+			DateTime? Param_AtualizadoEm
 		)
 		{
 			TaskId = Param_TaskId;
