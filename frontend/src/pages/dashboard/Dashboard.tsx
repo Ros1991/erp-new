@@ -1,37 +1,18 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { MainLayout } from '../../components/layout';
 import {
   BarChart3,
   Building2,
-  ChevronDown,
   DollarSign,
-  Home,
-  LogOut,
-  Menu,
   Package,
-  Settings,
-  ShoppingCart,
   TrendingUp,
-  Users,
-  X
+  Users
 } from 'lucide-react';
 
 export function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { user, selectedCompany, logout } = useAuth();
-
-  const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/dashboard', active: true },
-    { icon: Users, label: 'Funcionários', path: '/employees' },
-    { icon: ShoppingCart, label: 'Vendas', path: '/sales' },
-    { icon: Package, label: 'Produtos', path: '/products' },
-    { icon: DollarSign, label: 'Financeiro', path: '/financial' },
-    { icon: BarChart3, label: 'Relatórios', path: '/reports' },
-    { icon: Settings, label: 'Configurações', path: '/settings' },
-  ];
+  const { user } = useAuth();
 
   const stats = [
     {
@@ -69,69 +50,7 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-40">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden text-gray-600 hover:text-gray-900"
-            >
-              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            
-            <img src="/logo-full.svg" alt="MeuGestor" className="h-10" />
-            
-            <div className="hidden md:flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Empresa:</span>
-              <Button variant="ghost" size="sm" className="font-medium">
-                {selectedCompany?.name}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="hidden sm:block text-sm text-gray-600">
-              Olá, <span className="font-medium">{user?.name}</span>
-            </span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex pt-16">
-        {/* Sidebar */}
-        <aside
-          className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-transform z-30 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 lg:w-64 w-64`}
-        >
-          <nav className="p-4 space-y-1">
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  item.active
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <main className={`flex-1 ${sidebarOpen ? 'lg:ml-64' : ''} p-6`}>
-          <div className="max-w-7xl mx-auto">
+    <MainLayout>
             {/* Welcome Section */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">
@@ -257,9 +176,6 @@ export function Dashboard() {
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+    </MainLayout>
   );
 }

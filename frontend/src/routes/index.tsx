@@ -15,6 +15,11 @@ import { CompanySettings } from '../pages/companies/CompanySettings';
 // Dashboard pages
 import { Dashboard } from '../pages/dashboard/Dashboard';
 
+// Internal pages
+import { Roles } from '../pages/roles/Roles';
+import { Users } from '../pages/users/Users';
+import { Accounts } from '../pages/accounts/Accounts';
+
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -82,6 +87,42 @@ export function AppRoutes() {
           <ProtectedRoute>
             <CompanyProtectedRoute>
               <Dashboard />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Roles */}
+      <Route
+        path="/roles"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <Roles />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Users */}
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <Users />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Accounts */}
+      <Route
+        path="/accounts"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <Accounts />
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }

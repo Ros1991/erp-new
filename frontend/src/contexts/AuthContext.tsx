@@ -6,6 +6,7 @@ import companyService from '../services/companyService';
 
 interface User {
   userId: number;
+  name?: string;
   email?: string;
   phone?: string;
   cpf?: string;
