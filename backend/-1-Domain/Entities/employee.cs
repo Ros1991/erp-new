@@ -53,16 +53,18 @@ namespace ERP.Domain.Entities
 		//Criando Relação com a tabelas
         public virtual Company Company { get; set; } = null!;
 		//Criando Relação com a tabelas
-        public virtual Employee Employee { get; set; } = null!;
+        public virtual Employee EmployeeManager { get; set; } = null!;
 		//Criando Relação com a tabelas
         public virtual User User { get; set; } = null!;
 		//Parent Relations
         public virtual ICollection<Contract> ContractList { get; set; } = new List<Contract>();
 		//Parent Relations
         public virtual ICollection<EmployeeAllowedLocation> EmployeeAllowedLocationList { get; set; } = new List<EmployeeAllowedLocation>();
-		//Parent Relations
+        //Parent Relations
         public virtual ICollection<Justification> JustificationList { get; set; } = new List<Justification>();
-		//Parent Relations
+        //Parent Relations
+        public virtual ICollection<Employee> EmployeeManagerList { get; set; } = new List<Employee>();
+        //Parent Relations
         public virtual ICollection<LoanAdvance> LoanAdvanceList { get; set; } = new List<LoanAdvance>();
 		//Parent Relations
         public virtual ICollection<PayrollEmployee> PayrollEmployeeList { get; set; } = new List<PayrollEmployee>();

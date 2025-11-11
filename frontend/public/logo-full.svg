@@ -1,0 +1,19 @@
+<svg width="420" height="130" viewBox="0 0 420 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Barras -->
+  <rect x="45" y="58" width="25" height="45" rx="3" fill="#1e3a8a"/>
+  <rect x="80" y="33" width="25" height="70" rx="3" fill="#1e3a8a"/>
+  <rect x="115" y="8" width="25" height="95" rx="3" fill="#1e3a8a"/>
+  
+  <!-- Linha de crescimento -->
+  <circle cx="57.5" cy="78" r="10" fill="#10b981"/>
+  <circle cx="92.5" cy="53" r="10" fill="#10b981"/>
+  <circle cx="127.5" cy="28" r="10" fill="#10b981"/>
+  <line x1="57.5" y1="78" x2="92.5" y2="53" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  <line x1="92.5" y1="53" x2="127.5" y2="28" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Texto "Meu" -->
+  <text x="165" y="63" font-family="Arial, sans-serif" font-size="65" font-weight="bold" fill="#1e3a8a">Meu</text>
+  
+  <!-- Texto "Gestor" -->
+  <text x="165" y="118" font-family="Arial, sans-serif" font-size="65" font-weight="bold" fill="#1e3a8a">Gestor</text>
+</svg>

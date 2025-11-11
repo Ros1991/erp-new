@@ -35,7 +35,7 @@ namespace ERP.Domain.Entities
 		public long CalculationBasis { get; set; }
 
 		[Column("payroll_item_calculation_details")]
-		public any CalculationDetails { get; set; }
+		public string CalculationDetails { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
@@ -64,7 +64,7 @@ namespace ERP.Domain.Entities
 			long Param_Amount, 
 			long Param_ReferenceId, 
 			long Param_CalculationBasis, 
-			any Param_CalculationDetails, 
+			string Param_CalculationDetails, 
 			long Param_CriadoPor, 
 			long Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 

@@ -39,9 +39,9 @@ namespace ERP.Domain.Entities
 		//Parent Relations
         public virtual ICollection<Justification> JustificationList { get; set; } = new List<Justification>();
 		//Parent Relations
-        public virtual ICollection<PurchaseOrder> PurchaseOrderList { get; set; } = new List<PurchaseOrder>();
+        public virtual ICollection<PurchaseOrder> PurchaseOrderRequesterList { get; set; } = new List<PurchaseOrder>();
 		//Parent Relations
-        public virtual ICollection<PurchaseOrder> PurchaseOrderList { get; set; } = new List<PurchaseOrder>();
+        public virtual ICollection<PurchaseOrder> PurchaseOrderApproverList { get; set; } = new List<PurchaseOrder>();
 		//Parent Relations
         public virtual ICollection<TaskComment> TaskCommentList { get; set; } = new List<TaskComment>();
 		//Parent Relations

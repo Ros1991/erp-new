@@ -80,12 +80,16 @@ namespace ERP.Domain.Entities
 		//Criando Relação com a tabelas
         public virtual Company Company { get; set; } = null!;
 		//Criando Relação com a tabelas
-        public virtual Task Task { get; set; } = null!;
+        public virtual Task ParentTask { get; set; } = null!;
 		//Criando Relação com a tabelas
-        public virtual Task Task { get; set; } = null!;
-		//Parent Relations
+        public virtual Task BlockingTask { get; set; } = null!;
+        //Parent Relations
+        public virtual ICollection<Task> ParentTaskList { get; set; } = new List<Task>();
+        //Parent Relations
+        public virtual ICollection<Task> BlockingTaskList { get; set; } = new List<Task>();
+        //Parent Relations
         public virtual ICollection<TaskComment> TaskCommentList { get; set; } = new List<TaskComment>();
-		//Parent Relations
+        //Parent Relations
         public virtual ICollection<TaskEmployee> TaskEmployeeList { get; set; } = new List<TaskEmployee>();
 		// Construtor padrão para EF
 		public Task() { }

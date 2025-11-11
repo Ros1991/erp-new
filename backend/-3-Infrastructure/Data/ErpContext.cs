@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ERP.Domain.Entities;
+using Task = ERP.Domain.Entities.Task;
 
 namespace ERP.Infrastructure.Data
 {
@@ -92,8 +93,8 @@ namespace ERP.Infrastructure.Data
 				.HasForeignKey(i => i.CompanyId)
 				.HasPrincipalKey(i => i.CompanyId);
 			builder.Entity<Employee>()
-				.HasOne(i => i.Employee)
-				.WithMany(i => i.EmployeeList)
+				.HasOne(i => i.EmployeeManager)
+				.WithMany(i => i.EmployeeManagerList)
 				.HasForeignKey(i => i.EmployeeIdManager)
 				.HasPrincipalKey(i => i.EmployeeId);
 			builder.Entity<Employee>()
@@ -177,13 +178,13 @@ namespace ERP.Infrastructure.Data
 				.HasForeignKey(i => i.CompanyId)
 				.HasPrincipalKey(i => i.CompanyId);
 			builder.Entity<PurchaseOrder>()
-				.HasOne(i => i.User)
-				.WithMany(i => i.PurchaseOrderList)
+				.HasOne(i => i.UserAprrover)
+				.WithMany(i => i.PurchaseOrderApproverList)
 				.HasForeignKey(i => i.UserIdApprover)
 				.HasPrincipalKey(i => i.UserId);
 			builder.Entity<PurchaseOrder>()
-				.HasOne(i => i.User)
-				.WithMany(i => i.PurchaseOrderList)
+				.HasOne(i => i.UserRequester)
+				.WithMany(i => i.PurchaseOrderRequesterList)
 				.HasForeignKey(i => i.UserIdRequester)
 				.HasPrincipalKey(i => i.UserId);
 			builder.Entity<Task>()
@@ -192,13 +193,13 @@ namespace ERP.Infrastructure.Data
 				.HasForeignKey(i => i.CompanyId)
 				.HasPrincipalKey(i => i.CompanyId);
 			builder.Entity<Task>()
-				.HasOne(i => i.Task)
-				.WithMany(i => i.TaskList)
+				.HasOne(i => i.BlockingTask)
+				.WithMany(i => i.BlockingTaskList)
 				.HasForeignKey(i => i.TaskIdBlocking)
 				.HasPrincipalKey(i => i.TaskId);
 			builder.Entity<Task>()
-				.HasOne(i => i.Task)
-				.WithMany(i => i.TaskList)
+				.HasOne(i => i.ParentTask)
+				.WithMany(i => i.ParentTaskList)
 				.HasForeignKey(i => i.TaskIdParent)
 				.HasPrincipalKey(i => i.TaskId);
 			builder.Entity<TaskComment>()

@@ -47,9 +47,9 @@ namespace ERP.Domain.Entities
 		//Criando Relação com a tabelas
         public virtual Company Company { get; set; } = null!;
 		//Criando Relação com a tabelas
-        public virtual User User { get; set; } = null!;
+        public virtual User UserRequester { get; set; } = null!;
 		//Criando Relação com a tabelas
-        public virtual User User { get; set; } = null!;
+        public virtual User UserAprrover { get; set; } = null!;
 		//Parent Relations
         public virtual ICollection<FinancialTransaction> FinancialTransactionList { get; set; } = new List<FinancialTransaction>();
 		// Construtor padrão para EF
