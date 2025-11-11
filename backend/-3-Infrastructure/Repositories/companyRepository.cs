@@ -20,20 +20,22 @@ namespace ERP.Infrastructure.Repositories
 
 	    public async Task<List<Company>> GetAllAsync(long userId)
         {
-            // Retorna apenas empresas onde o usuário está associado via CompanyUser
+            // Retorna apenas empresas não deletadas onde o usuário está associado via CompanyUser
             return await _context.Set<Company>()
-                .Where(c => _context.Set<CompanyUser>()
-                    .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
+                .Where(c => c.DeletadoEm == null && 
+                    _context.Set<CompanyUser>()
+                        .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
                 .OrderByDescending(c => c.CriadoEm)
                 .ToListAsync();
          }
 
         public async Task<PagedResult<Company>> GetPagedAsync(CompanyFilterDTO filters, long userId)
         {
-            // Filtrar apenas empresas onde o usuário está associado via CompanyUser
+            // Filtrar apenas empresas não deletadas onde o usuário está associado via CompanyUser
             var query = _context.Set<Company>()
-                .Where(c => _context.Set<CompanyUser>()
-                    .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
+                .Where(c => c.DeletadoEm == null &&
+                    _context.Set<CompanyUser>()
+                        .Any(cu => cu.CompanyId == c.CompanyId && cu.UserId == userId))
                 .AsQueryable();
 
             // Aplicar filtros
@@ -99,17 +101,20 @@ namespace ERP.Infrastructure.Repositories
             return existing;
         }
 
-	    public async Task<bool> DeleteByIdAsync(long CompanyId)
+	    public async Task<bool> DeleteByIdAsync(long CompanyId, long currentUserId)
         {
             if (CompanyId <= 0)
                 throw new ValidationException(nameof(CompanyId), "CompanyId deve ser maior que zero.");
 
             var existing = await _context.Set<Company>().FindAsync(CompanyId);
             
-            if (existing == null)
+            if (existing == null || existing.DeletadoEm != null)
                 throw new EntityNotFoundException("Company", CompanyId);
 
-            _context.Set<Company>().Remove(existing);
+            // Soft delete: apenas marcar como deletado
+            existing.DeletadoEm = DateTime.UtcNow;
+            existing.DeletadoPor = currentUserId;
+            
             return true;
         }
     }

@@ -10,6 +10,7 @@ import { ResetPassword } from '../pages/auth/ResetPassword';
 
 // Company pages
 import { CompanySelect } from '../pages/companies/CompanySelect';
+import { CompanySettings } from '../pages/companies/CompanySettings';
 
 // Dashboard pages
 import { Dashboard } from '../pages/dashboard/Dashboard';
@@ -60,6 +61,16 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanySelect />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Company Settings */}
+      <Route
+        path="/company/:id/settings"
+        element={
+          <ProtectedRoute>
+            <CompanySettings />
           </ProtectedRoute>
         }
       />

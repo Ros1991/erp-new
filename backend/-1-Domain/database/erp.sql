@@ -106,6 +106,8 @@ DROP TABLE IF EXISTS "erp"."tb_user_token";
 	"atualizado_por"                       bigint               NULL,
 	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"atualizado_em"                        timestamptz          NULL,
+	"deletado_em"                          timestamptz          NULL,
+	"deletado_por"                         bigint               NULL,
 		CONSTRAINT "pk_company" PRIMARY KEY 
 		(
 			"company_id"
@@ -711,6 +713,18 @@ ALTER TABLE "erp"."tb_user" ADD CONSTRAINT "uk_user_phone" UNIQUE("user_phone");
 
 ALTER TABLE "erp"."tb_user_token" ADD CONSTRAINT "uk_user_token_refresh_token" UNIQUE("user_token_refresh_token");
 ALTER TABLE "erp"."tb_user_token" ADD CONSTRAINT "uk_user_token_token" UNIQUE("user_token_token");
+
+/*------------------------------------------------------------*/
+/*                     Índices                                */
+/*------------------------------------------------------------*/
+
+-- Índice para melhorar performance de queries que filtram empresas não deletadas
+CREATE INDEX "idx_company_deletado_em" ON "erp"."tb_company"("deletado_em");
+
+/*------------------------------------------------------------*/
+/*                 Constraints de Foreign Key                */
+/*------------------------------------------------------------*/
+
 ALTER TABLE "erp"."tb_account" ADD CONSTRAINT "fk_account_company"
 	FOREIGN KEY
 		("company_id")

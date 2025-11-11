@@ -79,8 +79,9 @@ public class CompanyController : BaseController
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long CompanyId)
     {
         //ValidateId(CompanyId, nameof(CompanyId));
+        var currentUserId = GetCurrentUserId();
         return await ExecuteBooleanAsync(
-            () => _CompanyService.DeleteByIdAsync(CompanyId),
+            () => _CompanyService.DeleteByIdAsync(CompanyId, currentUserId),
             "Empresa deletada com sucesso",
             "Empresa não encontrada ou não pôde ser deletada"
         );

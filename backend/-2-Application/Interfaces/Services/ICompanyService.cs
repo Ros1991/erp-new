@@ -10,6 +10,6 @@ namespace ERP.Application.Interfaces.Services
 		Task<CompanyOutputDTO> GetOneByIdAsync(long CompanyId);
 		Task<CompanyOutputDTO> CreateAsync(CompanyInputDTO dto, long currentUserId);
 		Task<CompanyOutputDTO> UpdateByIdAsync(long CompanyId, CompanyInputDTO dto, long currentUserId);
-		Task<bool> DeleteByIdAsync(long CompanyId);
+		Task<bool> DeleteByIdAsync(long CompanyId, long currentUserId);
     }
 }

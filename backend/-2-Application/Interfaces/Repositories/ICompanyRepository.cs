@@ -11,6 +11,6 @@ namespace ERP.Application.Interfaces.Repositories
 		Task<Company> GetOneByIdAsync(long CompanyId);
 		Task<Company> CreateAsync(Company entity);
 		Task<Company> UpdateByIdAsync(long CompanyId, Company entity);
-		Task<bool> DeleteByIdAsync(long CompanyId);
+		Task<bool> DeleteByIdAsync(long CompanyId, long currentUserId);
 	}
 }

@@ -100,9 +100,9 @@ namespace ERP.Application.Services
             return CompanyMapper.ToCompanyOutputDTO(existingEntity);
         }
 
-        public async Task<bool> DeleteByIdAsync(long CompanyId)
+        public async Task<bool> DeleteByIdAsync(long CompanyId, long currentUserId)
         {
-            var result = await _unitOfWork.CompanyRepository.DeleteByIdAsync(CompanyId);
+            var result = await _unitOfWork.CompanyRepository.DeleteByIdAsync(CompanyId, currentUserId);
             await _unitOfWork.SaveChangesAsync();
             return result;
         }

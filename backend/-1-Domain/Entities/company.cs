@@ -34,6 +34,12 @@ namespace ERP.Domain.Entities
 		[Column("atualizado_em")]
 		public DateTime? AtualizadoEm { get; set; }
 
+		[Column("deletado_em")]
+		public DateTime? DeletadoEm { get; set; }
+
+		[Column("deletado_por")]
+		public long? DeletadoPor { get; set; }
+
 
 		//Parent Relations
 		public virtual ICollection<Account> AccountList { get; set; } = new List<Account>();
