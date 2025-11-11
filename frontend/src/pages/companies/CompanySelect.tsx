@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Calendar, LogOut, Plus, Settings } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent } from '../../components/ui/Card';
 import { useAuth } from '../../contexts/AuthContext';
+import { AddCompanyDialog } from '../../components/companies/AddCompanyDialog';
 
 export function CompanySelect() {
   const { user, companies, selectCompany, loadCompanies, logout } = useAuth();
   const navigate = useNavigate();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   useEffect(() => {
     loadCompanies();
@@ -15,6 +17,11 @@ export function CompanySelect() {
 
   const handleSelectCompany = (company: any) => {
     selectCompany(company);
+  };
+
+  const handleCompanyCreated = () => {
+    // Recarregar lista de empresas após criar uma nova
+    loadCompanies();
   };
 
   return (
@@ -28,7 +35,7 @@ export function CompanySelect() {
           
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">
-              Olá, <span className="font-medium">{user?.name}</span>
+              Olá, <span className="font-medium">{user?.email || user?.phone || user?.cpf || 'Usuário'}</span>
             </span>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -75,7 +82,7 @@ export function CompanySelect() {
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <span className="font-medium mr-2">CNPJ:</span>
-                      <span>{company.cnpj}</span>
+                      <span>{company.cnpj || <span className="italic text-gray-400">Não informado</span>}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -112,7 +119,7 @@ export function CompanySelect() {
             {/* Add New Company Card */}
             <Card
               className="border-2 border-dashed border-gray-300 hover:border-primary-500 transition-colors cursor-pointer bg-gray-50/50"
-              onClick={() => navigate('/company/new')}
+              onClick={() => setIsAddDialogOpen(true)}
             >
               <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[250px]">
                 <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
@@ -129,6 +136,13 @@ export function CompanySelect() {
           </div>
         </div>
       </div>
+
+      {/* Dialog para adicionar nova empresa */}
+      <AddCompanyDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSuccess={handleCompanyCreated}
+      />
     </div>
   );
 }

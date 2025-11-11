@@ -13,7 +13,7 @@ interface User {
 interface Company {
   id: number;
   name: string;
-  cnpj: string;
+  cnpj?: string;
   isActive: boolean;
   createdAt: string;
 }

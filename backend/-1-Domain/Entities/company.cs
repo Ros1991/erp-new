@@ -17,7 +17,7 @@ namespace ERP.Domain.Entities
 		public string Name { get; set; }
 
 		[Column("company_document")]
-		public string Document { get; set; }
+		public string? Document { get; set; }
 
 		[Column("user_id")]
 		public long UserId { get; set; }
@@ -64,7 +64,7 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public Company(
 			string Param_Name, 
-			string Param_Document, 
+			string? Param_Document, 
 			long Param_UserId, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
