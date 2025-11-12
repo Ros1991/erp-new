@@ -6,9 +6,10 @@ interface SwipeToDeleteProps {
   onDelete: () => void;
   onTap?: () => void;
   disabled?: boolean;
+  showDeleteButton?: boolean; // Controla se o botão de delete deve aparecer
 }
 
-export function SwipeToDelete({ children, onDelete, onTap, disabled = false }: SwipeToDeleteProps) {
+export function SwipeToDelete({ children, onDelete, onTap, disabled = false, showDeleteButton = true }: SwipeToDeleteProps) {
   const [showDeleteOverlay, setShowDeleteOverlay] = useState(false);
   const startTime = useRef(0);
   const longPressTimer = useRef<number | null>(null);
@@ -19,10 +20,12 @@ export function SwipeToDelete({ children, onDelete, onTap, disabled = false }: S
     startTime.current = Date.now();
     hasMoved.current = false;
     
-    // Long press detector
-    longPressTimer.current = window.setTimeout(() => {
-      setShowDeleteOverlay(true);
-    }, 500) as unknown as number;
+    // Long press detector - só ativa se showDeleteButton for true
+    if (showDeleteButton) {
+      longPressTimer.current = window.setTimeout(() => {
+        setShowDeleteOverlay(true);
+      }, 500) as unknown as number;
+    }
   };
 
   const handleTouchMove = () => {
@@ -35,17 +38,17 @@ export function SwipeToDelete({ children, onDelete, onTap, disabled = false }: S
   };
 
   const handleTouchEnd = () => {
-    if (disabled) return;
-    
     // Cancela long press timer
     if (longPressTimer.current !== null) {
       window.clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
     
+    if (disabled) return;
+    
     const tapDuration = Date.now() - startTime.current;
     
-    // Se foi um tap rápido sem movimento
+    // Se foi um tap rápido sem movimento e não está mostrando overlay
     if (!hasMoved.current && tapDuration < 300 && !showDeleteOverlay) {
       if (onTap) onTap();
     }

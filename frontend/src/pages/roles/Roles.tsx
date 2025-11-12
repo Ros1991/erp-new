@@ -310,14 +310,24 @@ export function Roles() {
             const canEdit = hasPermission('role.canEdit');
             const canDelete = hasPermission('role.canDelete');
             
+            // Desabilita se:
+            // - É role de sistema (ninguém pode editar/deletar)
+            // - OU não tem nenhuma permissão (nem edit nem delete)
+            const isDisabled = role.isSystem || (!canEdit && !canDelete);
+            
             return (
               <SwipeToDelete
                 key={role.roleId}
                 onDelete={canDelete ? () => handleDeleteClick(role) : () => {}}
-                onTap={canEdit ? () => navigate(`/roles/${role.roleId}/edit`) : () => {}}
-                disabled={role.isSystem || (!canEdit && !canDelete)}
+                onTap={canEdit ? () => navigate(`/roles/${role.roleId}/edit`) : undefined}
+                disabled={isDisabled}
+                showDeleteButton={canDelete && !role.isSystem}
               >
-                <Card className="hover:shadow-md transition-shadow active:bg-gray-50 cursor-pointer rounded-lg">
+                <Card className={`transition-all rounded-lg ${
+                  isDisabled 
+                    ? 'opacity-60 cursor-not-allowed' 
+                    : 'hover:shadow-md active:bg-gray-50 cursor-pointer'
+                }`}>
                   <CardContent className="p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
