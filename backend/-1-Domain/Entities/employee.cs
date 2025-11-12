@@ -35,10 +35,13 @@ namespace ERP.Domain.Entities
 		public string Phone { get; set; }
 
 		[Column("employee_cpf")]
-		public string Cpf { get; set; }
+	public string Cpf { get; set; }
 
-		[Column("criado_por")]
-		public long CriadoPor { get; set; }
+	[Column("employee_profile_image")]
+	public byte[]? ProfileImage { get; set; }
+
+	[Column("criado_por")]
+	public long CriadoPor { get; set; }
 
 		[Column("atualizado_por")]
 	public long? AtualizadoPor { get; set; }
@@ -84,7 +87,8 @@ namespace ERP.Domain.Entities
 			string Param_FullName, 
 			string Param_Email, 
 			string Param_Phone, 
-			string Param_Cpf, 
+			string Param_Cpf,
+			byte[]? Param_ProfileImage,
 			long Param_CriadoPor, 
 		long? Param_AtualizadoPor, 
 		DateTime Param_CriadoEm, 
@@ -99,6 +103,7 @@ namespace ERP.Domain.Entities
 			Email = Param_Email;
 			Phone = Param_Phone;
 			Cpf = Param_Cpf;
+			ProfileImage = Param_ProfileImage;
 			CriadoPor = Param_CriadoPor;
 			AtualizadoPor = Param_AtualizadoPor;
 			CriadoEm = Param_CriadoEm;

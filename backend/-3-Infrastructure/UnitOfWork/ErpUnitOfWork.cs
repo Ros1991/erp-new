@@ -21,6 +21,7 @@ namespace ERP.Infrastructure.UnitOfWork
         private IUserTokenRepository _UserTokenRepository;
         private IRoleRepository _RoleRepository;
         private ICompanyUserRepository _CompanyUserRepository;
+        private IEmployeeRepository _EmployeeRepository;
 
         public UnitOfWork(ErpContext context)
         {
@@ -44,6 +45,9 @@ namespace ERP.Infrastructure.UnitOfWork
 
         public ICompanyUserRepository CompanyUserRepository =>
             _CompanyUserRepository ??= new CompanyUserRepository(_context);
+
+        public IEmployeeRepository EmployeeRepository =>
+            _EmployeeRepository ??= new EmployeeRepository(_context);
 
         // Transaction Management
         public bool HasActiveTransaction => _transaction != null;

@@ -4,6 +4,7 @@ import {
   Home,
   Shield,
   Users,
+  UserCheck,
   Wallet
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
     { icon: Home, label: 'Dashboard', path: '/dashboard' }, // Sem permissão = sempre visível
     { icon: Shield, label: 'Cargos', path: '/roles', permission: 'role.canView' },
     { icon: Users, label: 'Usuários', path: '/users', permission: 'user.canView' },
+    { icon: UserCheck, label: 'Empregados', path: '/employees', permission: 'employee.canView' },
     { icon: Wallet, label: 'Conta Correntes', path: '/accounts', permission: 'account.canView' },
   ];
   

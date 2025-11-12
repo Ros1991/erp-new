@@ -86,6 +86,35 @@
           "description": "Excluir contas correntes"
         }
       ]
+    },
+    {
+      "key": "employee",
+      "name": "Empregados",
+      "description": "Gerenciar empregados da empresa",
+      "icon": "user-check",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de empregados"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos empregados"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar empregados existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir empregados"
+        }
+      ]
     }
   ]
 }

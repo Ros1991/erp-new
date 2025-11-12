@@ -9,13 +9,11 @@ import { SwipeToDelete } from '../../components/ui/SwipeToDelete';
 import { Protected } from '../../components/permissions/Protected';
 import { usePermissions } from '../../contexts/PermissionContext';
 import { useToast } from '../../contexts/ToastContext';
-import companyUserService, { type CompanyUser, type CompanyUserFilters } from '../../services/companyUserService';
+import employeeService, { type Employee, type EmployeeFilters } from '../../services/employeeService';
 import { 
   Plus, 
   Search, 
-  User,
   UserCheck,
-  ShieldCheck,
   Edit,
   Trash2,
   ChevronDown,
@@ -27,20 +25,34 @@ import {
   Filter
 } from 'lucide-react';
 
-export function Users() {
+// Funções de formatação
+const formatPhone = (phone?: string): string => {
+  if (!phone) return '-';
+  const numbers = phone.replace(/\D/g, '');
+  if (numbers.length === 11) {
+    return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+  if (numbers.length === 10) {
+    return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  }
+  return phone;
+};
+
+const formatCpf = (cpf?: string): string => {
+  if (!cpf) return '-';
+  const numbers = cpf.replace(/\D/g, '');
+  if (numbers.length === 11) {
+    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+  return cpf;
+};
+
+export function Employees() {
   const navigate = useNavigate();
   const { showSuccess, handleBackendError } = useToast();
   const { hasPermission } = usePermissions();
-  const [users, setUsers] = useState<CompanyUser[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Helper: Retorna email, telefone ou CPF (nessa ordem)
-  const getUserIdentifier = (user: CompanyUser): string => {
-    if (user.userEmail) return user.userEmail;
-    if (user.userPhone) return user.userPhone;
-    if (user.userCpf) return user.userCpf;
-    return 'Sem identificação';
-  };
   const [searchTerm, setSearchTerm] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,61 +60,56 @@ export function Users() {
   const [totalCount, setTotalCount] = useState(0);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<CompanyUser | null>(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
-  const loadUsers = useCallback(async () => {
+  const loadEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const filters: CompanyUserFilters = {
-        searchTerm: searchTerm.trim() || undefined,
+      const filters: EmployeeFilters = {
+        search: searchTerm || undefined,
         page: currentPage,
         pageSize,
-        sortBy: 'userEmail',
-        sortDirection: sortDirection
+        orderBy: 'nickname',
+        isAscending: sortDirection === 'asc'
       };
 
-      const result = await companyUserService.getPaged(filters);
-      setUsers(result.items);
+      const result = await employeeService.getEmployees(filters);
+      setEmployees(result.items);
       setTotalPages(result.totalPages);
       setTotalCount(result.totalCount);
     } catch (err: any) {
       handleBackendError(err);
-      setUsers([]);
+      setEmployees([]);
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, sortDirection, currentPage, handleBackendError]);
+  }, [searchTerm, sortDirection, currentPage, pageSize, handleBackendError]);
 
-  // Debounce no filtro de busca
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadUsers();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [loadUsers]);
+    loadEmployees();
+  }, [loadEmployees]);
 
   const handleSort = () => {
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
   };
 
-  const handleDeleteClick = (user: CompanyUser) => {
-    setUserToDelete(user);
+  const handleDeleteClick = (employee: Employee) => {
+    setEmployeeToDelete(employee);
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!userToDelete) return;
+    if (!employeeToDelete) return;
 
     setIsDeleting(true);
     try {
-      await companyUserService.delete(userToDelete.companyUserId);
-      showSuccess('Usuário removido da empresa com sucesso!');
+      await employeeService.deleteEmployee(employeeToDelete.employeeId);
+      showSuccess('Empregado excluído com sucesso!');
       setDeleteDialogOpen(false);
-      setUserToDelete(null);
-      loadUsers(); // Recarrega a lista
+      setEmployeeToDelete(null);
+      loadEmployees();
     } catch (err: any) {
       handleBackendError(err);
     } finally {
@@ -112,7 +119,24 @@ export function Users() {
 
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
-    setUserToDelete(null);
+    setEmployeeToDelete(null);
+  };
+
+  const renderProfileImage = (employee: Employee) => {
+    if (employee.profileImageBase64) {
+      return (
+        <img 
+          src={`data:image/jpeg;base64,${employee.profileImageBase64}`} 
+          alt={employee.nickname}
+          className="h-10 w-10 rounded-full object-cover"
+        />
+      );
+    }
+    return (
+      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+        <UserCheck className="h-5 w-5 text-gray-500" />
+      </div>
+    );
   };
 
   return (
@@ -122,13 +146,13 @@ export function Users() {
         {/* Desktop Header with Button */}
         <div className="hidden sm:flex sm:items-start sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Usuários</h1>
-            <p className="text-base text-gray-600 mt-1">Gerencie os usuários da empresa</p>
+            <h1 className="text-3xl font-bold text-gray-900">Empregados</h1>
+            <p className="text-base text-gray-600 mt-1">Gerencie os empregados da empresa</p>
           </div>
-          <Protected requires="user.canCreate">
-            <Button onClick={() => navigate('/users/new')}>
+          <Protected requires="employee.canCreate">
+            <Button onClick={() => navigate('/employees/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              Novo Usuário
+              Novo Empregado
             </Button>
           </Protected>
         </div>
@@ -137,8 +161,8 @@ export function Users() {
         <div className="sm:hidden mb-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-              <p className="text-sm text-gray-600 mt-1">Gerencie os usuários da empresa</p>
+              <h1 className="text-2xl font-bold text-gray-900">Empregados</h1>
+              <p className="text-sm text-gray-600 mt-1">Gerencie os empregados da empresa</p>
             </div>
             <Button
               variant="outline"
@@ -157,7 +181,7 @@ export function Users() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar por email, telefone, CPF ou cargo..."
+            placeholder="Buscar por nome, email, telefone, CPF..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -173,7 +197,7 @@ export function Users() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Buscar por email, telefone, CPF ou cargo..."
+              placeholder="Buscar por nome, email, telefone, CPF..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -186,11 +210,11 @@ export function Users() {
       </div>
 
       {/* Floating Action Button (Mobile only) */}
-      <Protected requires="user.canCreate">
+      <Protected requires="employee.canCreate">
         <button
-          onClick={() => navigate('/users/new')}
+          onClick={() => navigate('/employees/new')}
           className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
-          aria-label="Novo Usuário"
+          aria-label="Novo Empregado"
         >
           <Plus className="h-6 w-6" />
         </button>
@@ -203,12 +227,15 @@ export function Users() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Foto
+                  </th>
                   <th className="px-6 py-3 text-left">
                     <button
                       onClick={handleSort}
                       className="flex items-center space-x-1 text-xs font-medium text-gray-700 uppercase tracking-wider hover:text-gray-900"
                     >
-                      <span>Email</span>
+                      <span>Nome</span>
                       {sortDirection === 'asc' ? 
                         <ChevronUp className="h-4 w-4" /> : 
                         <ChevronDown className="h-4 w-4" />
@@ -216,7 +243,13 @@ export function Users() {
                     </button>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Cargo
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Telefone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    CPF
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Ações
@@ -226,69 +259,58 @@ export function Users() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center">
+                    <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                       </div>
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
+                ) : employees.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                      Nenhum usuário encontrado
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      Nenhum empregado encontrado
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
-                    <tr key={user.companyUserId} className="hover:bg-gray-50 transition-colors">
+                  employees.map((employee) => (
+                    <tr key={employee.employeeId} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          {user.roleIsSystem ? (
-                            <ShieldCheck className="h-5 w-5 text-purple-600" />
-                          ) : user.roleId ? (
-                            <UserCheck className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <User className="h-5 w-5 text-gray-600" />
-                          )}
-                          <div>
-                            <div className="font-medium text-gray-900">{getUserIdentifier(user)}</div>
-                          </div>
-                        </div>
+                        {renderProfileImage(employee)}
                       </td>
                       <td className="px-6 py-4">
-                        {user.roleName ? (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.roleIsSystem 
-                              ? 'bg-purple-100 text-purple-800' 
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.roleName}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Sem cargo
-                          </span>
-                        )}
+                        <div>
+                          <div className="font-medium text-gray-900">{employee.nickname}</div>
+                          <div className="text-sm text-gray-500">{employee.fullName}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {employee.email || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatPhone(employee.phone)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatCpf(employee.cpf)}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Protected requires="user.canEdit">
+                          <Protected requires="employee.canEdit">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              title="Editar usuário"
-                              onClick={() => navigate(`/users/${user.companyUserId}/edit`)}
+                              title="Editar empregado"
+                              onClick={() => navigate(`/employees/${employee.employeeId}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Protected>
-                          <Protected requires="user.canDelete">
+                          <Protected requires="employee.canDelete">
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDeleteClick(user)}
-                              title="Excluir usuário"
+                              onClick={() => handleDeleteClick(employee)}
+                              title="Excluir empregado"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -307,30 +329,30 @@ export function Users() {
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-4">
         {isLoading ? (
-          <Card className="overflow-hidden">
-            <CardContent className="p-12 text-center rounded-lg">
+          <Card>
+            <CardContent className="p-12 text-center">
               <div className="flex justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
               </div>
             </CardContent>
           </Card>
-        ) : users.length === 0 ? (
-          <Card className="overflow-hidden">
-            <CardContent className="p-12 text-center text-gray-500 rounded-lg">
-              Nenhum usuário encontrado
+        ) : employees.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center text-gray-500">
+              Nenhum empregado encontrado
             </CardContent>
           </Card>
         ) : (
-          users.map((user) => {
-            const canEdit = hasPermission('user.canEdit');
-            const canDelete = hasPermission('user.canDelete');
+          employees.map((employee) => {
+            const canEdit = hasPermission('employee.canEdit');
+            const canDelete = hasPermission('employee.canDelete');
             const isDisabled = !canEdit && !canDelete;
             
             return (
               <SwipeToDelete
-                key={user.companyUserId}
-                onDelete={canDelete ? () => handleDeleteClick(user) : () => {}}
-                onTap={canEdit ? () => navigate(`/users/${user.companyUserId}/edit`) : undefined}
+                key={employee.employeeId}
+                onDelete={canDelete ? () => handleDeleteClick(employee) : () => {}}
+                onTap={canEdit ? () => navigate(`/employees/${employee.employeeId}/edit`) : undefined}
                 disabled={isDisabled}
                 showDeleteButton={canDelete}
               >
@@ -340,32 +362,23 @@ export function Users() {
                     : 'hover:shadow-md active:bg-gray-50 cursor-pointer'
                 }`}>
                   <CardContent className="p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        {user.roleIsSystem ? (
-                          <ShieldCheck className="h-6 w-6 text-purple-600 flex-shrink-0" />
-                        ) : user.roleId ? (
-                          <UserCheck className="h-6 w-6 text-green-600 flex-shrink-0" />
-                        ) : (
-                          <User className="h-6 w-6 text-gray-600 flex-shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">{getUserIdentifier(user)}</h3>
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        {renderProfileImage(employee)}
                       </div>
-                      {user.roleName ? (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${
-                          user.roleIsSystem 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {user.roleName}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0 ml-2">
-                          Sem cargo
-                        </span>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{employee.nickname}</h3>
+                        <p className="text-sm text-gray-600 truncate">{employee.fullName}</p>
+                        {employee.email && (
+                          <p className="text-sm text-gray-500 truncate mt-1">{employee.email}</p>
+                        )}
+                        {employee.phone && (
+                          <p className="text-sm text-gray-500 mt-1">{formatPhone(employee.phone)}</p>
+                        )}
+                        {employee.cpf && (
+                          <p className="text-sm text-gray-500 mt-1">CPF: {formatCpf(employee.cpf)}</p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -376,12 +389,12 @@ export function Users() {
       </div>
 
       {/* Pagination and Results Info */}
-      {!isLoading && users.length > 0 && (
+      {!isLoading && employees.length > 0 && (
         <div className="mt-6 pb-24 sm:pb-6">
           <div className="flex flex-col gap-4">
             {/* Results Count */}
             <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
-              Exibindo {users.length} de {totalCount} usuário(s)
+              Exibindo {employees.length} de {totalCount} empregado(s)
               {totalPages > 1 && (
                 <span className="hidden sm:inline"> • Página {currentPage} de {totalPages}</span>
               )}
@@ -414,17 +427,15 @@ export function Users() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                {/* Page Numbers - Full display on mobile and desktop */}
+                {/* Page Numbers */}
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter((page) => {
-                      // Show first page, last page, current page, and adjacent pages
                       if (page === 1 || page === totalPages) return true;
                       if (Math.abs(page - currentPage) <= 1) return true;
                       return false;
                     })
                     .map((page, index, array) => {
-                      // Add ellipsis between non-consecutive pages
                       const prevPage = array[index - 1];
                       const showEllipsis = prevPage && page - prevPage > 1;
 
@@ -480,13 +491,13 @@ export function Users() {
         isOpen={deleteDialogOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Excluir Usuário"
+        title="Excluir Empregado"
         description={
-          userToDelete ? (
+          employeeToDelete ? (
             <>
               <p className="text-base mb-2">
-                Tem certeza que deseja excluir o usuário{' '}
-                <span className="font-semibold text-gray-900">{userToDelete.userEmail}</span>?
+                Tem certeza que deseja excluir o empregado{' '}
+                <span className="font-semibold text-gray-900">{employeeToDelete.nickname}</span>?
               </p>
             </>
           ) : ''

@@ -21,6 +21,8 @@ import { RoleForm } from '../pages/roles/RoleForm';
 import { Users } from '../pages/users/Users';
 import { AddUser } from '../pages/users/AddUser';
 import { EditUser } from '../pages/users/EditUser';
+import { Employees } from '../pages/employees/Employees';
+import { EmployeeForm } from '../pages/employees/EmployeeForm';
 import { Accounts } from '../pages/accounts/Accounts';
 import AccessDenied from '../pages/AccessDenied';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
@@ -167,6 +169,44 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="user.canEdit">
                 <EditUser />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Employees */}
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canView">
+                <Employees />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canCreate">
+                <EmployeeForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canEdit">
+                <EmployeeForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

@@ -11,6 +11,7 @@ namespace ERP.Application.Interfaces
         IUserTokenRepository UserTokenRepository { get; }
         IRoleRepository RoleRepository { get; }
         ICompanyUserRepository CompanyUserRepository { get; }
+        IEmployeeRepository EmployeeRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();

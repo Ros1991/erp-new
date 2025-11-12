@@ -20,6 +20,7 @@ namespace ERP.CrossCutting.IoC
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ICompanyUserService, CompanyUserService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
 
             // Register Infrastructure Services
             services.AddSingleton<IPasswordHashService, PasswordHashService>();
