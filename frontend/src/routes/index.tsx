@@ -19,8 +19,11 @@ import { Dashboard } from '../pages/dashboard/Dashboard';
 import { Roles } from '../pages/roles/Roles';
 import { RoleForm } from '../pages/roles/RoleForm';
 import { Users } from '../pages/users/Users';
+import { AddUser } from '../pages/users/AddUser';
+import { EditUser } from '../pages/users/EditUser';
 import { Accounts } from '../pages/accounts/Accounts';
 import AccessDenied from '../pages/AccessDenied';
+import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -100,7 +103,9 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <Roles />
+              <PermissionProtectedRoute requires="role.canView">
+                <Roles />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }
@@ -110,7 +115,9 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <RoleForm />
+              <PermissionProtectedRoute requires="role.canCreate">
+                <RoleForm />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }
@@ -120,7 +127,9 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <RoleForm />
+              <PermissionProtectedRoute requires="role.canEdit">
+                <RoleForm />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }
@@ -132,7 +141,33 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <Users />
+              <PermissionProtectedRoute requires="user.canView">
+                <Users />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="user.canCreate">
+                <AddUser />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users/:companyUserId/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="user.canEdit">
+                <EditUser />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }
@@ -144,7 +179,9 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <Accounts />
+              <PermissionProtectedRoute requires="account.canView">
+                <Accounts />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }

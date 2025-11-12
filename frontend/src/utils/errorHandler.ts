@@ -28,10 +28,14 @@ export function parseBackendError(error: any): {
 
   // Erros de validação (errors na raiz do BaseResponse)
   if (response.errors && Object.keys(response.errors).length > 0) {
+    // Extrair a primeira mensagem de erro limpa (sem o prefixo "Validation error in field...")
+    const firstField = Object.keys(response.errors)[0];
+    const firstErrorMessage = response.errors[firstField][0];
+    
     return {
       hasValidationErrors: true,
       validationErrors: response.errors,
-      message: response.message || 'Erro de validação',
+      message: firstErrorMessage || response.message || 'Erro de validação',
     };
   }
 

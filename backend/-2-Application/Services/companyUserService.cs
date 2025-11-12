@@ -109,6 +109,26 @@ namespace ERP.Application.Services
 
         public async Task<bool> RemoveUserFromCompanyAsync(long companyUserId)
         {
+            // Buscar o CompanyUser para obter userId e companyId
+            var companyUser = await _unitOfWork.CompanyUserRepository.GetOneByIdAsync(companyUserId);
+            if (companyUser == null)
+            {
+                throw new EntityNotFoundException("CompanyUser", companyUserId);
+            }
+
+            // Buscar a empresa para verificar se o usuário é o dono
+            var company = await _unitOfWork.CompanyRepository.GetOneByIdAsync(companyUser.CompanyId);
+            if (company == null)
+            {
+                throw new EntityNotFoundException("Company", companyUser.CompanyId);
+            }
+
+            // Validar se o usuário é o dono da empresa
+            if (company.UserId == companyUser.UserId)
+            {
+                throw new ValidationException("CompanyUser", "Não é possível remover o dono da empresa.");
+            }
+
             var result = await _unitOfWork.CompanyUserRepository.DeleteByIdAsync(companyUserId);
             await _unitOfWork.SaveChangesAsync();
             return result;

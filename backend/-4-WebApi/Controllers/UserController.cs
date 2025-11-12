@@ -60,7 +60,7 @@ public class UserController : BaseController
         return await ValidateAndExecuteCreateAsync(
             () => _UserService.CreateAsync(dto),
             nameof(GetOneByIdAsync),
-            result => new { user_id = result.UserId },
+            result => new { UserId = result.UserId },
             "Usuário criado com sucesso"
         );
     }

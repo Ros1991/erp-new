@@ -34,7 +34,7 @@ namespace ERP.Application.Mappers
              dto.Email,
              dto.Phone,
              dto.Cpf,
-             dto.PasswordHash,
+             dto.Password,  // Password do DTO
              null,          // ResetToken - não vem do DTO
              null           // ResetTokenExpiresAt - não vem do DTO
             );
@@ -46,7 +46,7 @@ namespace ERP.Application.Mappers
 			entity.Email = dto.Email;
 			entity.Phone = dto.Phone;
 			entity.Cpf = dto.Cpf;
-			entity.PasswordHash = dto.PasswordHash;
+			entity.PasswordHash = dto.Password;  // Password do DTO
 			// ResetToken e ResetTokenExpiresAt não são atualizados pelo DTO comum
         }
     }

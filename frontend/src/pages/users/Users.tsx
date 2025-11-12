@@ -10,7 +10,6 @@ import { Protected } from '../../components/permissions/Protected';
 import { usePermissions } from '../../contexts/PermissionContext';
 import { useToast } from '../../contexts/ToastContext';
 import companyUserService, { type CompanyUser, type CompanyUserFilters } from '../../services/companyUserService';
-import { parseBackendError } from '../../utils/errorHandler';
 import { 
   Plus, 
   Search, 
@@ -30,7 +29,7 @@ import {
 
 export function Users() {
   const navigate = useNavigate();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess, handleBackendError } = useToast();
   const { hasPermission } = usePermissions();
   const [users, setUsers] = useState<CompanyUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +56,7 @@ export function Users() {
     setIsLoading(true);
     try {
       const filters: CompanyUserFilters = {
-        searchTerm: searchTerm || undefined,
+        searchTerm: searchTerm.trim() || undefined,
         page: currentPage,
         pageSize,
         sortBy: 'userEmail',
@@ -69,16 +68,20 @@ export function Users() {
       setTotalPages(result.totalPages);
       setTotalCount(result.totalCount);
     } catch (err: any) {
-      const { message } = parseBackendError(err);
-      showError(message);
+      handleBackendError(err);
       setUsers([]);
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, sortDirection, currentPage, pageSize, showError]);
+  }, [searchTerm, sortDirection, currentPage, handleBackendError]);
 
+  // Debounce no filtro de busca
   useEffect(() => {
-    loadUsers();
+    const timer = setTimeout(() => {
+      loadUsers();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [loadUsers]);
 
   const handleSort = () => {
@@ -101,8 +104,7 @@ export function Users() {
       setUserToDelete(null);
       loadUsers(); // Recarrega a lista
     } catch (err: any) {
-      const { message } = parseBackendError(err);
-      showError(message);
+      handleBackendError(err);
     } finally {
       setIsDeleting(false);
     }
@@ -196,7 +198,7 @@ export function Users() {
 
       {/* Desktop Table */}
       <div className="hidden lg:block">
-        <Card className="overflow-hidden">
+        <Card>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -275,7 +277,7 @@ export function Users() {
                               variant="ghost" 
                               size="sm" 
                               title="Editar usuário"
-                              onClick={() => navigate(`/users/${user.userId}/edit`)}
+                              onClick={() => navigate(`/users/${user.companyUserId}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -328,7 +330,7 @@ export function Users() {
               <SwipeToDelete
                 key={user.companyUserId}
                 onDelete={canDelete ? () => handleDeleteClick(user) : () => {}}
-                onTap={canEdit ? () => navigate(`/users/${user.userId}/edit`) : undefined}
+                onTap={canEdit ? () => navigate(`/users/${user.companyUserId}/edit`) : undefined}
                 disabled={isDisabled}
                 showDeleteButton={canDelete}
               >

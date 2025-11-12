@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Toast, type ToastType } from '../components/ui/Toast';
+import { parseBackendError } from '../utils/errorHandler';
 
 interface ToastData {
   id: string;
@@ -16,6 +17,7 @@ interface ToastContextType {
   showWarning: (message: string, title?: string) => void;
   showInfo: (message: string, title?: string) => void;
   showValidationErrors: (errors: Record<string, string[]>) => void;
+  handleBackendError: (error: any) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -37,29 +39,35 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const showSuccess = useCallback((message: string, title = 'Sucesso') => {
+  const showSuccess = useCallback((message: string, title?: string) => {
     showToast('success', message, title);
   }, [showToast]);
 
-  const showError = useCallback((message: string, title = 'Erro') => {
+  const showError = useCallback((message: string, title?: string) => {
     showToast('error', message, title);
   }, [showToast]);
 
-  const showWarning = useCallback((message: string, title = 'Atenção') => {
+  const showWarning = useCallback((message: string, title?: string) => {
     showToast('warning', message, title);
   }, [showToast]);
 
-  const showInfo = useCallback((message: string, title = 'Informação') => {
+  const showInfo = useCallback((message: string, title?: string) => {
     showToast('info', message, title);
   }, [showToast]);
 
   const showValidationErrors = useCallback((errors: Record<string, string[]>) => {
-    // Exibir cada erro de validação como um toast separado
+    // Exibir cada erro de validação como um toast separado (sem título)
     Object.entries(errors).forEach(([, messages]) => {
       messages.forEach((message) => {
         showToast('error', message);
       });
     });
+  }, [showToast]);
+
+  // Função padronizada para lidar com erros do backend
+  const handleBackendError = useCallback((error: any) => {
+    const { message } = parseBackendError(error);
+    showToast('error', message); // Sem título, apenas a mensagem
   }, [showToast]);
 
   return (
@@ -71,6 +79,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         showWarning,
         showInfo,
         showValidationErrors,
+        handleBackendError,
       }}
     >
       {children}

@@ -7,6 +7,6 @@ namespace ERP.Application.DTOs
     /// </summary>
     public class UserFilterDTO : PagedRequest
     {
-        
+        public string? SearchTerm { get; set; }
     }
 }

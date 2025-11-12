@@ -43,6 +43,11 @@ export interface PagedResult<T> {
 }
 
 class RoleService {
+  async getAllRoles(): Promise<Role[]> {
+    const response = await api.get('/role/getAll');
+    return response.data.data;
+  }
+
   async getRoles(filters?: RoleFilters): Promise<PagedResult<Role>> {
     const params = new URLSearchParams();
     

@@ -47,11 +47,12 @@ class CompanyUserService {
   async getPaged(filters: CompanyUserFilters = {}): Promise<PagedResult<CompanyUser>> {
     const params = new URLSearchParams();
     
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
-    if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
+    // Backend espera PascalCase
+    if (filters.page) params.append('Page', filters.page.toString());
+    if (filters.pageSize) params.append('PageSize', filters.pageSize.toString());
+    if (filters.searchTerm) params.append('SearchTerm', filters.searchTerm);
+    if (filters.sortBy) params.append('SortBy', filters.sortBy);
+    if (filters.sortDirection) params.append('SortDirection', filters.sortDirection);
 
     const response = await api.get(`/companyuser/getPaged?${params.toString()}`);
     return response.data.data;
@@ -76,7 +77,7 @@ class CompanyUserService {
   /**
    * Atualizar cargo do usuário na empresa
    */
-  async update(id: number, data: Partial<CompanyUser>): Promise<CompanyUser> {
+  async update(id: number, data: { userId: number; roleId: number }): Promise<CompanyUser> {
     const response = await api.put(`/companyuser/${id}`, data);
     return response.data.data;
   }

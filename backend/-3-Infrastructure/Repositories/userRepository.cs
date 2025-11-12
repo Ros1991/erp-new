@@ -28,13 +28,21 @@ namespace ERP.Infrastructure.Repositories
         {
             var query = _context.Set<User>().AsQueryable();
 
-            // Busca geral (Search) - busca em Email, Phone e Cpf
-            if (!string.IsNullOrWhiteSpace(filters.Search))
+            // Busca por email, telefone ou CPF
+            if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
             {
+                var searchLower = filters.SearchTerm.ToLower();
+                // Apenas dígitos (para phone/cpf)
+                var onlyDigits = System.Text.RegularExpressions.Regex.Replace(searchLower, @"[^\d]", "");
+                
                 query = query.Where(x => 
-                    (x.Email != null && x.Email.Contains(filters.Search)) ||
-                    (x.Phone != null && x.Phone.Contains(filters.Search)) ||
-                    (x.Cpf != null && x.Cpf.Contains(filters.Search)));
+                    // Email: busca normal com ToLower
+                    (x.Email != null && x.Email.ToLower().Contains(searchLower)) ||
+                    // Phone: busca APENAS se tiver dígitos no termo
+                    (!string.IsNullOrEmpty(onlyDigits) && x.Phone != null && x.Phone.Contains(onlyDigits)) ||
+                    // CPF: busca APENAS se tiver dígitos no termo
+                    (!string.IsNullOrEmpty(onlyDigits) && x.Cpf != null && x.Cpf.Contains(onlyDigits))
+                );
             }
 
             // Contar total antes da paginação

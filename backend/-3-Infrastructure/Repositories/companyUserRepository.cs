@@ -39,16 +39,18 @@ namespace ERP.Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
             {
                 var searchLower = filters.SearchTerm.ToLower();
-                // Phone e CPF são salvos sem formatação, então remove caracteres especiais do termo
-                var cleanSearch = System.Text.RegularExpressions.Regex.Replace(searchLower, @"[^\d]", "");
+                // Remove apenas caracteres especiais (mantém letras e números)
+                var cleanSearch = System.Text.RegularExpressions.Regex.Replace(searchLower, @"[^\da-z]", "");
+                // Apenas dígitos (para phone/cpf)
+                var onlyDigits = System.Text.RegularExpressions.Regex.Replace(searchLower, @"[^\d]", "");
                 
                 query = query.Where(cu => 
                     // Email: busca normal com ToLower
                     (cu.User.Email != null && cu.User.Email.ToLower().Contains(searchLower)) ||
-                    // Phone: sempre busca sem formatação (banco não tem formatação)
-                    (cu.User.Phone != null && cu.User.Phone.Contains(cleanSearch)) ||
-                    // CPF: sempre busca sem formatação (banco não tem formatação)
-                    (cu.User.Cpf != null && cu.User.Cpf.Contains(cleanSearch)) ||
+                    // Phone: busca APENAS se tiver dígitos no termo
+                    (!string.IsNullOrEmpty(onlyDigits) && cu.User.Phone != null && cu.User.Phone.Contains(onlyDigits)) ||
+                    // CPF: busca APENAS se tiver dígitos no termo
+                    (!string.IsNullOrEmpty(onlyDigits) && cu.User.Cpf != null && cu.User.Cpf.Contains(onlyDigits)) ||
                     // Cargo: busca normal com ToLower
                     (cu.Role != null && cu.Role.Name.ToLower().Contains(searchLower))
                 );

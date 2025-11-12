@@ -30,10 +30,10 @@ query = query.Where(cu =>
     (cu.User.Email != null && cu.User.Email.ToLower().Contains(searchLower)) ||
     
     // Phone: SEMPRE busca sem formatação (banco não tem formatação)
-    (cu.User.Phone != null && cu.User.Phone.Contains(cleanSearch)) ||
+    (cu.User.Phone != null && cu.User.Phone.Contains(cleanSearch) && cleanSearch.Any(char.IsDigit)) ||
     
     // CPF: SEMPRE busca sem formatação (banco não tem formatação)
-    (cu.User.Cpf != null && cu.User.Cpf.Contains(cleanSearch)) ||
+    (cu.User.Cpf != null && cu.User.Cpf.Contains(cleanSearch) && cleanSearch.Any(char.IsDigit)) ||
     
     // Cargo: busca normal com ToLower
     (cu.Role != null && cu.Role.Name.ToLower().Contains(searchLower))
