@@ -20,6 +20,7 @@ import { Roles } from '../pages/roles/Roles';
 import { RoleForm } from '../pages/roles/RoleForm';
 import { Users } from '../pages/users/Users';
 import { Accounts } from '../pages/accounts/Accounts';
+import AccessDenied from '../pages/AccessDenied';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -145,6 +146,16 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <Accounts />
             </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Access Denied Page */}
+      <Route
+        path="/access-denied"
+        element={
+          <ProtectedRoute>
+            <AccessDenied />
           </ProtectedRoute>
         }
       />

@@ -4,6 +4,7 @@ using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Services;
 using ERP.WebApi.Controllers.Base;
+using ERP.WebApi.Attributes;
 using ERP.Configuration;
 
 namespace ERP.WebApi.Controllers;
@@ -30,6 +31,7 @@ public class RoleController : BaseController
     }
 
     [HttpGet("getAll")]
+    [RequirePermissions("role.canView")]
     public async Task<ActionResult<BaseResponse<List<RoleOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
@@ -37,6 +39,7 @@ public class RoleController : BaseController
     }
 
     [HttpGet("getPaged")]
+    [RequirePermissions("role.canView")]
     public async Task<ActionResult<BaseResponse<PagedResult<RoleOutputDTO>>>> GetPagedAsync([FromQuery] RoleFilterDTO filters)
     {
         var companyId = GetCompanyId();
@@ -44,6 +47,7 @@ public class RoleController : BaseController
     }
 
     [HttpGet("{roleId}")]
+    [RequirePermissions("role.canView")]
     public async Task<ActionResult<BaseResponse<RoleOutputDTO>>> GetOneByIdAsync(long roleId)
     {
         ValidateId(roleId, nameof(roleId));
@@ -51,6 +55,7 @@ public class RoleController : BaseController
     }
 
     [HttpPost("create")]
+    [RequirePermissions("role.canCreate")]
     public async Task<ActionResult<BaseResponse<RoleOutputDTO>>> CreateAsync(RoleInputDTO dto)
     {
         var companyId = GetCompanyId();
@@ -64,6 +69,7 @@ public class RoleController : BaseController
     }
 
     [HttpPut("{roleId}")]
+    [RequirePermissions("role.canEdit")]
     public async Task<ActionResult<BaseResponse<RoleOutputDTO>>> UpdateByIdAsync(long roleId, RoleInputDTO dto)
     {
         ValidateId(roleId, nameof(roleId));
@@ -72,6 +78,7 @@ public class RoleController : BaseController
     }
 
     [HttpDelete("{roleId}")]
+    [RequirePermissions("role.canDelete")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long roleId)
     {
         ValidateId(roleId, nameof(roleId));

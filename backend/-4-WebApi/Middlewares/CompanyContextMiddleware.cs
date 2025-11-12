@@ -22,7 +22,12 @@ namespace ERP.WebApi.Middlewares
             // ✅ Endpoints que NÃO precisam de CompanyId
             var excludedPaths = new[]
             {
-                "/api/auth/",
+                "/api/auth/login",
+                "/api/auth/register",
+                "/api/auth/forgot-password",
+                "/api/auth/reset-password",
+                "/api/auth/refresh-token",
+                "/api/auth/logout",
                 "/api/company/",
                 "/swagger",
                 "/health"

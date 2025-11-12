@@ -4,6 +4,7 @@ using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Services;
 using ERP.WebApi.Controllers.Base;
+using ERP.WebApi.Attributes;
 using ERP.Configuration;
 
 namespace ERP.WebApi.Controllers;
@@ -31,18 +32,21 @@ public class UserController : BaseController
     }
 
     [HttpGet("getAll")]
+    [RequirePermissions("user.canView")]
     public async Task<ActionResult<BaseResponse<List<UserOutputDTO>>>> GetAllAsync()
     {
         return await ExecuteAsync(() => _UserService.GetAllAsync(), "Usuários listados com sucesso");
     }
 
     [HttpGet("getPaged")]
+    [RequirePermissions("user.canView")]
     public async Task<ActionResult<BaseResponse<PagedResult<UserOutputDTO>>>> GetPagedAsync([FromQuery] UserFilterDTO filters)
     {
         return await ExecuteAsync(() => _UserService.GetPagedAsync(filters), "Usuários listados com sucesso");
     }
 
     [HttpGet("{userId}")]
+    [RequirePermissions("user.canView")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> GetOneByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));
@@ -50,6 +54,7 @@ public class UserController : BaseController
     }
 
     [HttpPost("create")]
+    [RequirePermissions("user.canCreate")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> CreateAsync(UserInputDTO dto)
     {
         return await ValidateAndExecuteCreateAsync(
@@ -61,6 +66,7 @@ public class UserController : BaseController
     }
     
     [HttpPut("{userId}")]
+    [RequirePermissions("user.canEdit")]
     public async Task<ActionResult<BaseResponse<UserOutputDTO>>> UpdateByIdAsync(long UserId, UserInputDTO dto)
     {
         //ValidateId(UserId, nameof(UserId));
@@ -68,6 +74,7 @@ public class UserController : BaseController
     }
     
     [HttpDelete("{userId}")]
+    [RequirePermissions("user.canDelete")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long UserId)
     {
         //ValidateId(UserId, nameof(UserId));

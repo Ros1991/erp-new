@@ -4,10 +4,12 @@ import { Building2, Calendar, LogOut, Plus, Settings } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePermissions } from '../../contexts/PermissionContext';
 import { AddCompanyDialog } from '../../components/companies/AddCompanyDialog';
 
 export function CompanySelect() {
   const { user, companies, selectCompany, loadCompanies, logout } = useAuth();
+  const { loadPermissions } = usePermissions();
   const navigate = useNavigate();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -15,8 +17,12 @@ export function CompanySelect() {
     loadCompanies();
   }, []);
 
-  const handleSelectCompany = (company: any) => {
+  const handleSelectCompany = async (company: any) => {
     selectCompany(company);
+    // Carregar permissões do usuário na empresa selecionada
+    await loadPermissions();
+    // Navegar para dashboard DEPOIS de carregar permissões
+    navigate('/dashboard');
   };
 
   const handleCompanyCreated = () => {

@@ -6,6 +6,8 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { SwipeToDelete } from '../../components/ui/SwipeToDelete';
+import { Protected } from '../../components/permissions/Protected';
+import { usePermissions } from '../../contexts/PermissionContext';
 import { useToast } from '../../contexts/ToastContext';
 import roleService, { type Role, type RoleFilters } from '../../services/roleService';
 import { parseBackendError } from '../../utils/errorHandler';
@@ -28,6 +30,7 @@ import {
 export function Roles() {
   const navigate = useNavigate();
   const { showError, showSuccess } = useToast();
+  const { hasPermission } = usePermissions();
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,10 +114,12 @@ export function Roles() {
             <h1 className="text-3xl font-bold text-gray-900">Cargos</h1>
             <p className="text-base text-gray-600 mt-1">Gerencie os cargos e permissões da empresa</p>
           </div>
-          <Button onClick={() => navigate('/roles/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cargo
-          </Button>
+          <Protected requires="role.canCreate">
+            <Button onClick={() => navigate('/roles/new')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Cargo
+            </Button>
+          </Protected>
         </div>
 
         {/* Mobile Header with Filter Button */}
@@ -170,13 +175,15 @@ export function Roles() {
       </div>
 
       {/* Floating Action Button (Mobile only) */}
-      <button
-        onClick={() => navigate('/roles/new')}
-        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
-        aria-label="Novo Cargo"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
+      <Protected requires="role.canCreate">
+        <button
+          onClick={() => navigate('/roles/new')}
+          className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
+          aria-label="Novo Cargo"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      </Protected>
 
       {/* Desktop Table */}
       <div className="hidden lg:block">
@@ -248,24 +255,28 @@ export function Roles() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            title="Editar cargo"
-                            onClick={() => navigate(`/roles/${role.roleId}/edit`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {!role.isSystem && (
+                          <Protected requires="role.canEdit">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDeleteClick(role)}
-                              title="Excluir cargo"
+                              title="Editar cargo"
+                              onClick={() => navigate(`/roles/${role.roleId}/edit`)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
+                          </Protected>
+                          {!role.isSystem && (
+                            <Protected requires="role.canDelete">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteClick(role)}
+                                title="Excluir cargo"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </Protected>
                           )}
                         </div>
                       </td>
@@ -295,38 +306,43 @@ export function Roles() {
             </CardContent>
           </Card>
         ) : (
-          roles.map((role) => (
-            <SwipeToDelete
-              key={role.roleId}
-              onDelete={() => handleDeleteClick(role)}
-              onTap={() => navigate(`/roles/${role.roleId}/edit`)}
-              disabled={role.isSystem}
-            >
-              <Card className="hover:shadow-md transition-shadow active:bg-gray-50 cursor-pointer rounded-lg">
-                <CardContent className="p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+          roles.map((role) => {
+            const canEdit = hasPermission('role.canEdit');
+            const canDelete = hasPermission('role.canDelete');
+            
+            return (
+              <SwipeToDelete
+                key={role.roleId}
+                onDelete={canDelete ? () => handleDeleteClick(role) : () => {}}
+                onTap={canEdit ? () => navigate(`/roles/${role.roleId}/edit`) : () => {}}
+                disabled={role.isSystem || (!canEdit && !canDelete)}
+              >
+                <Card className="hover:shadow-md transition-shadow active:bg-gray-50 cursor-pointer rounded-lg">
+                  <CardContent className="p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        {role.isSystem ? (
+                          <ShieldCheck className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                        ) : (
+                          <Shield className="h-6 w-6 text-gray-600 flex-shrink-0" />
+                        )}
+                        <h3 className="font-semibold text-gray-900 truncate">{role.name}</h3>
+                      </div>
                       {role.isSystem ? (
-                        <ShieldCheck className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0 ml-2">
+                          Sistema
+                        </span>
                       ) : (
-                        <Shield className="h-6 w-6 text-gray-600 flex-shrink-0" />
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0 ml-2">
+                          Customizado
+                        </span>
                       )}
-                      <h3 className="font-semibold text-gray-900 truncate">{role.name}</h3>
                     </div>
-                    {role.isSystem ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0 ml-2">
-                        Sistema
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0 ml-2">
-                        Customizado
-                      </span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </SwipeToDelete>
-          ))
+                  </CardContent>
+                </Card>
+              </SwipeToDelete>
+            );
+          })
         )}
       </div>
 

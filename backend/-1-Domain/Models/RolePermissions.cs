@@ -19,6 +19,11 @@ namespace ERP.Domain.Models
         /// É administrador? (acesso total)
         /// </summary>
         public bool IsAdmin { get; set; } = false;
+
+        /// <summary>
+        /// É role do sistema? (IsSystem=true, bypass total)
+        /// </summary>
+        public bool IsSystemRole { get; set; } = false;
     }
 
     /// <summary>

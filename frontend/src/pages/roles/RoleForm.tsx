@@ -59,17 +59,10 @@ export function RoleForm() {
     setLoadingModules(true);
     try {
       const activeModules = await moduleConfigurationService.getActiveModules();
-      console.log('Módulos carregados:', activeModules);
-      console.log('Quantidade de módulos:', activeModules.length);
-      if (activeModules.length > 0) {
-        console.log('Primeiro módulo:', activeModules[0]);
-        console.log('Permissões do primeiro módulo:', activeModules[0].permissions);
-      }
       setModules(activeModules);
     } catch (err: any) {
       const { message } = parseBackendError(err);
       showError(message);
-      console.error('Erro ao carregar módulos:', err);
     } finally {
       setLoadingModules(false);
     }

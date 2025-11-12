@@ -2,6 +2,7 @@ using System.Text.Json;
 using ERP.Application.Interfaces;
 using ERP.Domain.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace ERP.CrossCutting.Services
 {
@@ -10,17 +11,23 @@ namespace ERP.CrossCutting.Services
         Task<bool> UserHasAccessToCompanyAsync(long userId, long companyId);
         Task<bool> UserHasPermissionAsync(long userId, long companyId, string module, string action);
         Task<RolePermissions> GetUserPermissionsAsync(long userId, long companyId);
+        RolePermissions GetUserPermissions(int userId);
     }
 
     public class PermissionService : IPermissionService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PermissionService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PermissionService(IUnitOfWork unitOfWork, ILogger<PermissionService> logger)
+        public PermissionService(
+            IUnitOfWork unitOfWork, 
+            ILogger<PermissionService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<bool> UserHasAccessToCompanyAsync(long userId, long companyId)
@@ -83,13 +90,21 @@ namespace ERP.CrossCutting.Services
             return false;
         }
 
-        public async Task<RolePermissions> GetUserPermissionsAsync(long userId, long companyId)
+        public async Task<RolePermissions?> GetUserPermissionsAsync(long userId, long companyId)
         {
-            var role = await _unitOfWork.CompanyUserRepository.GetUserRoleInCompanyAsync(userId, companyId);
+            var companyUser = await _unitOfWork.CompanyUserRepository.GetByUserAndCompanyAsync(userId, companyId);
 
+            if (companyUser == null)
+            {
+                _logger.LogWarning("Nenhum vínculo encontrado para UserId={UserId}, CompanyId={CompanyId}", userId, companyId);
+                return null;
+            }
+
+            var role = companyUser.Role;
+            
             if (role == null)
             {
-                _logger.LogWarning("Role não encontrada para UserId={UserId}, CompanyId={CompanyId}", userId, companyId);
+                _logger.LogWarning("Role NULL para RoleId={RoleId}", companyUser.RoleId);
                 return null;
             }
 
@@ -100,6 +115,7 @@ namespace ERP.CrossCutting.Services
                 return new RolePermissions
                 {
                     IsAdmin = true,
+                    IsSystemRole = true,
                     AllowedEndpoints = new List<string> { "*" },
                     Modules = new Dictionary<string, ModulePermissions>()
                 };
@@ -112,6 +128,11 @@ namespace ERP.CrossCutting.Services
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
+                if (permissions != null)
+                {
+                    permissions.IsSystemRole = role.IsSystem;
+                }
+
                 _logger.LogInformation("Permissões carregadas para UserId={UserId}, RoleId={RoleId}", userId, role.RoleId);
                 return permissions;
             }
@@ -120,6 +141,41 @@ namespace ERP.CrossCutting.Services
                 _logger.LogError(ex, "Erro ao desserializar permissões da Role {RoleId}", role.RoleId);
                 return new RolePermissions();
             }
+        }
+
+        /// <summary>
+        /// Obtém permissões do usuário usando companyId do HttpContext
+        /// Método síncrono para uso em Authorization Filters
+        /// </summary>
+        public RolePermissions GetUserPermissions(int userId)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            long companyId = 0;
+            
+            // 1. Tentar pegar do HttpContext.Items (colocado pelo middleware)
+            if (httpContext?.Items.TryGetValue("CompanyId", out var companyIdObj) == true)
+            {
+                companyId = Convert.ToInt64(companyIdObj);
+            }
+            // 2. Tentar pegar do header X-Company-Id
+            else if (httpContext?.Request.Headers.TryGetValue("X-Company-Id", out var companyIdHeader) == true 
+                     && long.TryParse(companyIdHeader.FirstOrDefault(), out long headerCompanyId))
+            {
+                companyId = headerCompanyId;
+            }
+            // 3. Tentar pegar do token (fallback)
+            else
+            {
+                var companyIdClaim = httpContext?.User.FindFirst("companyId")?.Value;
+                if (!long.TryParse(companyIdClaim, out companyId))
+                {
+                    _logger.LogWarning("CompanyId não encontrado (header, items ou token) para UserId={UserId}", userId);
+                    return new RolePermissions();
+                }
+            }
+
+            // Executa de forma síncrona (não ideal, mas necessário para IAuthorizationFilter)
+            return GetUserPermissionsAsync(userId, companyId).GetAwaiter().GetResult();
         }
     }
 }

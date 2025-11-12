@@ -4,6 +4,7 @@ using ERP.Application.DTOs;
 using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Services;
 using ERP.WebApi.Controllers.Base;
+using ERP.WebApi.Attributes;
 using ERP.Configuration;
 
 namespace ERP.WebApi.Controllers;
@@ -30,6 +31,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("getAll")]
+    [RequirePermissions("account.canView")]
     public async Task<ActionResult<BaseResponse<List<AccountOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
@@ -37,6 +39,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("getPaged")]
+    [RequirePermissions("account.canView")]
     public async Task<ActionResult<BaseResponse<PagedResult<AccountOutputDTO>>>> GetPagedAsync([FromQuery] AccountFilterDTO filters)
     {
         var companyId = GetCompanyId();
@@ -44,6 +47,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("{accountId}")]
+    [RequirePermissions("account.canView")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> GetOneByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));
@@ -51,6 +55,7 @@ public class AccountController : BaseController
     }
 
     [HttpPost("create")]
+    [RequirePermissions("account.canCreate")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> CreateAsync(AccountInputDTO dto)
     {
         var companyId = GetCompanyId();
@@ -64,6 +69,7 @@ public class AccountController : BaseController
     }
 
     [HttpPut("{accountId}")]
+    [RequirePermissions("account.canEdit")]
     public async Task<ActionResult<BaseResponse<AccountOutputDTO>>> UpdateByIdAsync(long accountId, AccountInputDTO dto)
     {
         ValidateId(accountId, nameof(accountId));
@@ -72,6 +78,7 @@ public class AccountController : BaseController
     }
 
     [HttpDelete("{accountId}")]
+    [RequirePermissions("account.canDelete")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long accountId)
     {
         ValidateId(accountId, nameof(accountId));

@@ -77,9 +77,7 @@ export function ModulePermissions({
 
   // Obter detalhes de uma permissão específica
   const getPermissionDetails = (key: keyof Permissions): PermissionDetail | undefined => {
-    const details = module.permissionDetails?.find(p => p.key === key);
-    console.log(`Detalhes da permissão ${key}:`, details);
-    return details;
+    return module.permissionDetails?.find(p => p.key === key);
   };
 
   return (

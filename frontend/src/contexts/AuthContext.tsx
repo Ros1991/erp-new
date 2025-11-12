@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import authService from '../services/authService';
 import companyService from '../services/companyService';
+import { usePermissions } from './PermissionContext';
 
 interface User {
   userId: number;
@@ -36,6 +37,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { clearPermissions, loadPermissions } = usePermissions();
   const [user, setUser] = useState<User | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -62,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const company = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
             if (company.id) {
               setSelectedCompany(company);
+              // Carregar permissões se já tiver empresa selecionada (ex: refresh da página)
+              await loadPermissions();
             }
           }
         } else {
@@ -110,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setSelectedCompany(null);
       setCompanies([]);
+      clearPermissions(); // Limpar permissões ao fazer logout
       navigate('/login');
     }
   };
@@ -119,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('selectedCompanyId', company.id.toString());
     localStorage.setItem('selectedCompany', JSON.stringify(company));
     api.defaults.headers.common['X-Company-Id'] = company.id.toString();
-    navigate('/dashboard');
+    // Navegação removida daqui - será feita após carregar permissões
   };
 
   const loadCompanies = async () => {
