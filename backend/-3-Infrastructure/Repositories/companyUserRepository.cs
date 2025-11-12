@@ -1,3 +1,5 @@
+using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Repositories;
 using ERP.Domain.Entities;
 using ERP.Infrastructure.Data;
@@ -22,6 +24,51 @@ namespace ERP.Infrastructure.Repositories
                 .Include(cu => cu.Role)
                 .Where(cu => cu.CompanyId == companyId)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<CompanyUser>> GetPagedAsync(long companyId, CompanyUserFilterDTO filters)
+        {
+            // ✅ Query no banco, NÃO em memória
+            var query = _context.Set<CompanyUser>()
+                .Include(cu => cu.User)
+                .Include(cu => cu.Role)
+                .Where(cu => cu.CompanyId == companyId)
+                .AsQueryable();
+
+            // ✅ Filtro por termo de busca NO BANCO
+            if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
+            {
+                var searchLower = filters.SearchTerm.ToLower();
+                // Phone e CPF são salvos sem formatação, então remove caracteres especiais do termo
+                var cleanSearch = System.Text.RegularExpressions.Regex.Replace(searchLower, @"[^\d]", "");
+                
+                query = query.Where(cu => 
+                    // Email: busca normal com ToLower
+                    (cu.User.Email != null && cu.User.Email.ToLower().Contains(searchLower)) ||
+                    // Phone: sempre busca sem formatação (banco não tem formatação)
+                    (cu.User.Phone != null && cu.User.Phone.Contains(cleanSearch)) ||
+                    // CPF: sempre busca sem formatação (banco não tem formatação)
+                    (cu.User.Cpf != null && cu.User.Cpf.Contains(cleanSearch)) ||
+                    // Cargo: busca normal com ToLower
+                    (cu.Role != null && cu.Role.Name.ToLower().Contains(searchLower))
+                );
+            }
+
+            // ✅ Contar total NO BANCO antes da paginação
+            var total = await query.CountAsync();
+
+            // ✅ Ordenação NO BANCO
+            query = filters.SortDirection?.ToLower() == "desc"
+                ? query.OrderByDescending(cu => cu.User.Email)
+                : query.OrderBy(cu => cu.User.Email);
+
+            // ✅ Paginação NO BANCO (Skip/Take em IQueryable)
+            var items = await query
+                .Skip((filters.Page - 1) * filters.PageSize)
+                .Take(filters.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<CompanyUser>(items, filters.Page, filters.PageSize, total);
         }
 
         public async Task<CompanyUser> GetByUserAndCompanyAsync(long userId, long companyId)

@@ -1,4 +1,5 @@
 using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces;
 using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
@@ -19,6 +20,22 @@ namespace ERP.Application.Services
         {
             var entities = await _unitOfWork.CompanyUserRepository.GetAllAsync(companyId);
             return CompanyUserMapper.ToCompanyUserOutputDTOList(entities);
+        }
+
+        public async Task<PagedResult<CompanyUserOutputDTO>> GetPagedAsync(long companyId, CompanyUserFilterDTO filters)
+        {
+            // ✅ Repository faz TUDO no banco (filtro, ordenação, paginação)
+            var pagedEntities = await _unitOfWork.CompanyUserRepository.GetPagedAsync(companyId, filters);
+            
+            // ✅ Service apenas mapeia Entity → DTO
+            var dtoItems = CompanyUserMapper.ToCompanyUserOutputDTOList(pagedEntities.Items);
+            
+            return new PagedResult<CompanyUserOutputDTO>(
+                dtoItems,
+                pagedEntities.Page,
+                pagedEntities.PageSize,
+                pagedEntities.Total
+            );
         }
 
         public async Task<CompanyUserOutputDTO> GetOneByIdAsync(long companyUserId)
