@@ -9,7 +9,7 @@ namespace ERP.Application.DTOs
         [StringLength(100, ErrorMessage = "Name deve ter no máximo 100 caracteres")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Permissions é obrigatório")]
+        [Required(ErrorMessage = "Permissões é obrigatória")]
         public RolePermissions Permissions { get; set; }
     }
 }

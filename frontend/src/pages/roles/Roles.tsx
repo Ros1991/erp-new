@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { SwipeToDelete } from '../../components/ui/SwipeToDelete';
 import { useToast } from '../../contexts/ToastContext';
 import roleService, { type Role, type RoleFilters } from '../../services/roleService';
 import { parseBackendError } from '../../utils/errorHandler';
@@ -23,7 +26,8 @@ import {
 } from 'lucide-react';
 
 export function Roles() {
-  const { showError } = useToast();
+  const navigate = useNavigate();
+  const { showError, showSuccess } = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +36,9 @@ export function Roles() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
   const loadRoles = useCallback(async () => {
@@ -66,6 +73,34 @@ export function Roles() {
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
   };
 
+  const handleDeleteClick = (role: Role) => {
+    setRoleToDelete(role);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!roleToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await roleService.deleteRole(roleToDelete.roleId);
+      showSuccess('Cargo excluído com sucesso!');
+      setDeleteDialogOpen(false);
+      setRoleToDelete(null);
+      loadRoles(); // Recarrega a lista
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setRoleToDelete(null);
+  };
+
   return (
     <MainLayout>
       {/* Header */}
@@ -76,7 +111,7 @@ export function Roles() {
             <h1 className="text-3xl font-bold text-gray-900">Cargos</h1>
             <p className="text-base text-gray-600 mt-1">Gerencie os cargos e permissões da empresa</p>
           </div>
-          <Button>
+          <Button onClick={() => navigate('/roles/new')}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Cargo
           </Button>
@@ -136,6 +171,7 @@ export function Roles() {
 
       {/* Floating Action Button (Mobile only) */}
       <button
+        onClick={() => navigate('/roles/new')}
         className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
         aria-label="Novo Cargo"
       >
@@ -210,15 +246,28 @@ export function Roles() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {!role.isSystem && (
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-4 w-4" />
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Editar cargo"
+                            onClick={() => navigate(`/roles/${role.roleId}/edit`)}
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        )}
+                          {!role.isSystem && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteClick(role)}
+                              title="Excluir cargo"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -247,42 +296,36 @@ export function Roles() {
           </Card>
         ) : (
           roles.map((role) => (
-            <Card key={role.roleId} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <SwipeToDelete
+              key={role.roleId}
+              onDelete={() => handleDeleteClick(role)}
+              onTap={() => navigate(`/roles/${role.roleId}/edit`)}
+              disabled={role.isSystem}
+            >
+              <Card className="hover:shadow-md transition-shadow active:bg-gray-50 cursor-pointer rounded-lg">
+                <CardContent className="p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {role.isSystem ? (
+                        <ShieldCheck className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                      ) : (
+                        <Shield className="h-6 w-6 text-gray-600 flex-shrink-0" />
+                      )}
+                      <h3 className="font-semibold text-gray-900 truncate">{role.name}</h3>
+                    </div>
                     {role.isSystem ? (
-                      <ShieldCheck className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0 ml-2">
+                        Sistema
+                      </span>
                     ) : (
-                      <Shield className="h-6 w-6 text-gray-600 flex-shrink-0" />
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0 ml-2">
+                        Customizado
+                      </span>
                     )}
-                    <h3 className="font-semibold text-gray-900 truncate">{role.name}</h3>
                   </div>
-                  {role.isSystem ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0 ml-2">
-                      Sistema
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0 ml-2">
-                      Customizado
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  {!role.isSystem && (
-                    <Button variant="outline" size="sm" className="flex-1 text-red-600 hover:text-red-700 border-red-300">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </SwipeToDelete>
           ))
         )}
       </div>
@@ -386,6 +429,28 @@ export function Roles() {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Excluir Cargo"
+        description={
+          roleToDelete ? (
+            <>
+              <p className="text-base mb-2">
+                Tem certeza que deseja excluir o cargo{' '}
+                <span className="font-semibold text-gray-900">{roleToDelete.name}</span>?
+              </p>
+            </>
+          ) : ''
+        }
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </MainLayout>
   );
 }

@@ -30,7 +30,6 @@ namespace ERP.Domain.Models
         public bool CanCreate { get; set; } = false;
         public bool CanEdit { get; set; } = false;
         public bool CanDelete { get; set; } = false;
-        public bool CanExport { get; set; } = false;
     }
 
     /// <summary>
@@ -38,14 +37,9 @@ namespace ERP.Domain.Models
     /// </summary>
     public static class Modules
     {
-        public const string Company = "company";
-        public const string Account = "account";
-        public const string User = "user";
         public const string Role = "role";
-        public const string Product = "product";
-        public const string Order = "order";
-        public const string Financial = "financial";
-        public const string Report = "report";
+        public const string User = "user";
+        public const string Account = "account";
     }
 
     /// <summary>
@@ -57,6 +51,5 @@ namespace ERP.Domain.Models
         public const string Create = "create";
         public const string Edit = "edit";
         public const string Delete = "delete";
-        public const string Export = "export";
     }
 }

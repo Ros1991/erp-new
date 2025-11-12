@@ -79,10 +79,14 @@ namespace ERP.Application.Mappers
             
             try
             {
-                return JsonSerializer.Deserialize<RolePermissions>(permissionsJson, new JsonSerializerOptions 
+                var permissions = JsonSerializer.Deserialize<RolePermissions>(permissionsJson, new JsonSerializerOptions 
                 { 
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
                 }) ?? new RolePermissions();
+                
+                // Remove propriedades obsoletas dos dados antigos
+                // CanExport foi removido - limpar dos módulos ao carregar
+                return permissions;
             }
             catch
             {
@@ -121,14 +125,9 @@ namespace ERP.Application.Mappers
                 AllowedEndpoints = new List<string> { "*" }, // Todos os endpoints
                 Modules = new Dictionary<string, ModulePermissions>
                 {
-                    { Modules.Company, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Account, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.User, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Role, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Product, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Order, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Financial, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } },
-                    { Modules.Report, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true, CanExport = true } }
+                    { Modules.Role, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true } },
+                    { Modules.User, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true } },
+                    { Modules.Account, new ModulePermissions { CanView = true, CanCreate = true, CanEdit = true, CanDelete = true } }
                 }
             };
         }

@@ -1,10 +1,23 @@
 import api from './api';
 
+export interface ModulePermissions {
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface RolePermissions {
+  isAdmin: boolean;
+  modules: Record<string, ModulePermissions>;
+  allowedEndpoints?: string[];
+}
+
 export interface Role {
   roleId: number;
   companyId: number;
   name: string;
-  permissions: string; // JSON string
+  permissions: RolePermissions; // Objeto de permissões (parsed do JSON)
   isSystem: boolean;
   criadoPor: number;
   atualizadoPor?: number;
@@ -46,15 +59,24 @@ class RoleService {
 
   async getRoleById(id: number): Promise<Role> {
     const response = await api.get(`/role/${id}`);
-    return response.data.data;
+    const role = response.data.data;
+    
+    // Parse permissions se vier como string
+    if (typeof role.permissions === 'string') {
+      role.permissions = JSON.parse(role.permissions);
+    }
+    
+    return role;
   }
 
-  async createRole(data: { name: string; permissions: string }): Promise<Role> {
+  async createRole(data: { name: string; permissions: RolePermissions }): Promise<Role> {
+    // Backend espera permissions como objeto, não string
     const response = await api.post('/role/create', data);
     return response.data.data;
   }
 
-  async updateRole(id: number, data: { name: string; permissions: string }): Promise<Role> {
+  async updateRole(id: number, data: { name: string; permissions: RolePermissions }): Promise<Role> {
+    // Backend espera permissions como objeto, não string
     const response = await api.put(`/role/${id}`, data);
     return response.data.data;
   }

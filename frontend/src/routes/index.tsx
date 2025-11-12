@@ -17,6 +17,7 @@ import { Dashboard } from '../pages/dashboard/Dashboard';
 
 // Internal pages
 import { Roles } from '../pages/roles/Roles';
+import { RoleForm } from '../pages/roles/RoleForm';
 import { Users } from '../pages/users/Users';
 import { Accounts } from '../pages/accounts/Accounts';
 
@@ -99,6 +100,26 @@ export function AppRoutes() {
           <ProtectedRoute>
             <CompanyProtectedRoute>
               <Roles />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/roles/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <RoleForm />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/roles/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <RoleForm />
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }
