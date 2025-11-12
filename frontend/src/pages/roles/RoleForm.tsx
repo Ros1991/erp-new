@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import roleService from '../../services/roleService';
+import moduleConfigurationService, { type ModuleConfig } from '../../services/moduleConfigurationService';
 import { parseBackendError } from '../../utils/errorHandler';
 import { ArrowLeft, Save } from 'lucide-react';
 import { ModulePermissions } from '../../components/roles/ModulePermissions';
@@ -23,12 +24,6 @@ interface RoleFormData {
   };
 }
 
-const MODULES = [
-  { key: 'role', label: 'Cargos', description: 'Gerenciar cargos e permissões' },
-  { key: 'user', label: 'Usuários', description: 'Gerenciar usuários do sistema' },
-  { key: 'account', label: 'Conta Correntes', description: 'Gerenciar contas correntes' }
-];
-
 export function RoleForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -36,6 +31,8 @@ export function RoleForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSystemRole, setIsSystemRole] = useState(false);
+  const [modules, setModules] = useState<ModuleConfig[]>([]);
+  const [loadingModules, setLoadingModules] = useState(true);
   const [formData, setFormData] = useState<RoleFormData>({
     name: '',
     permissions: {
@@ -46,11 +43,37 @@ export function RoleForm() {
 
   const isEditing = !!id;
 
+  // Carregar configuração de módulos ao montar
+  useEffect(() => {
+    loadModulesConfiguration();
+  }, []);
+
+  // Carregar role se estiver editando
   useEffect(() => {
     if (isEditing) {
       loadRole();
     }
   }, [id]);
+
+  const loadModulesConfiguration = async () => {
+    setLoadingModules(true);
+    try {
+      const activeModules = await moduleConfigurationService.getActiveModules();
+      console.log('Módulos carregados:', activeModules);
+      console.log('Quantidade de módulos:', activeModules.length);
+      if (activeModules.length > 0) {
+        console.log('Primeiro módulo:', activeModules[0]);
+        console.log('Permissões do primeiro módulo:', activeModules[0].permissions);
+      }
+      setModules(activeModules);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+      console.error('Erro ao carregar módulos:', err);
+    } finally {
+      setLoadingModules(false);
+    }
+  };
 
   const loadRole = async () => {
     setIsLoading(true);
@@ -153,7 +176,7 @@ export function RoleForm() {
     }));
   };
 
-  if (isLoading) {
+  if (isLoading || loadingModules) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-64">
@@ -250,10 +273,16 @@ export function RoleForm() {
                 </p>
 
                 <div className="space-y-4">
-                  {MODULES.map(module => (
+                  {modules.map(module => (
                     <ModulePermissions
                       key={module.key}
-                      module={module}
+                      module={{
+                        key: module.key,
+                        label: module.name,
+                        description: module.description,
+                        icon: module.icon,
+                        permissionDetails: module.permissions
+                      }}
                       permissions={formData.permissions.modules[module.key] || {
                         canView: false,
                         canCreate: false,

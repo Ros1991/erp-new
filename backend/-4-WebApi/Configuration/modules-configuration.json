@@ -1,0 +1,160 @@
+{
+  "modules": [
+    {
+      "key": "role",
+      "name": "Cargos",
+      "description": "Gerenciar cargos e permissões do sistema",
+      "icon": "shield",
+      "order": 1,
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de cargos",
+          "allowedRoutes": [
+            { "method": "GET", "path": "/role/getAll" },
+            { "method": "GET", "path": "/role/getPaged" },
+            { "method": "GET", "path": "/role/{roleId}" }
+          ],
+          "order": 1,
+          "color": "blue"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos cargos",
+          "allowedRoutes": [
+            { "method": "POST", "path": "/role/create" }
+          ],
+          "order": 2,
+          "color": "green"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar cargos existentes",
+          "allowedRoutes": [
+            { "method": "PUT", "path": "/role/{roleId}" }
+          ],
+          "order": 3,
+          "color": "yellow"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir cargos do sistema",
+          "allowedRoutes": [
+            { "method": "DELETE", "path": "/role/{roleId}" }
+          ],
+          "order": 4,
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "key": "user",
+      "name": "Usuários",
+      "description": "Gerenciar usuários do sistema",
+      "icon": "users",
+      "order": 2,
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de usuários",
+          "allowedRoutes": [
+            { "method": "GET", "path": "/user/getAll" },
+            { "method": "GET", "path": "/user/getPaged" },
+            { "method": "GET", "path": "/user/{userId}" }
+          ],
+          "order": 1,
+          "color": "blue"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos usuários",
+          "allowedRoutes": [
+            { "method": "POST", "path": "/user/create" }
+          ],
+          "order": 2,
+          "color": "green"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar usuários existentes",
+          "allowedRoutes": [
+            { "method": "PUT", "path": "/user/{userId}" }
+          ],
+          "order": 3,
+          "color": "yellow"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir usuários do sistema",
+          "allowedRoutes": [
+            { "method": "DELETE", "path": "/user/{userId}" }
+          ],
+          "order": 4,
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "key": "account",
+      "name": "Conta Correntes",
+      "description": "Gerenciar contas correntes",
+      "icon": "wallet",
+      "order": 3,
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de contas correntes",
+          "allowedRoutes": [
+            { "method": "GET", "path": "/account/getAll" },
+            { "method": "GET", "path": "/account/getPaged" },
+            { "method": "GET", "path": "/account/{accountId}" }
+          ],
+          "order": 1,
+          "color": "blue"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novas contas correntes",
+          "allowedRoutes": [
+            { "method": "POST", "path": "/account/create" }
+          ],
+          "order": 2,
+          "color": "green"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar contas correntes existentes",
+          "allowedRoutes": [
+            { "method": "PUT", "path": "/account/{accountId}" }
+          ],
+          "order": 3,
+          "color": "yellow"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir contas correntes do sistema",
+          "allowedRoutes": [
+            { "method": "DELETE", "path": "/account/{accountId}" }
+          ],
+          "order": 4,
+          "color": "red"
+        }
+      ]
+    }
+  ]
+}

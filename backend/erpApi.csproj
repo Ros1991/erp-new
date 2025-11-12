@@ -25,4 +25,13 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copiar arquivo de configuração de módulos para o output -->
+    <None Update="-4-WebApi\Configuration\modules-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Link>Configuration\modules-configuration.json</Link>
+    </None>
+  </ItemGroup>
+
 </Project>

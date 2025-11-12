@@ -69,7 +69,6 @@ namespace ERP.CrossCutting.Services
                     Actions.Create => modulePermissions.CanCreate,
                     Actions.Edit => modulePermissions.CanEdit,
                     Actions.Delete => modulePermissions.CanDelete,
-                    Actions.Export => modulePermissions.CanExport,
                     _ => false
                 };
 
