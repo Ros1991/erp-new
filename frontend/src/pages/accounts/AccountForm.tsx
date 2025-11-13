@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import accountService from '../../services/accountService';
@@ -23,7 +24,7 @@ export function AccountForm() {
   
   const [formData, setFormData] = useState<AccountFormData>({
     name: '',
-    type: '',
+    type: 'Banco',
     initialBalance: '0',
   });
 
@@ -166,14 +167,16 @@ export function AccountForm() {
                   <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
                     Tipo <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <Select
                     id="type"
-                    type="text"
                     value={formData.type}
                     onChange={(e) => handleChange('type', e.target.value)}
-                    placeholder="Ex: Conta Corrente, Poupança, Caixa"
                     className={errors.type ? 'border-red-500' : ''}
-                  />
+                  >
+                    <option value="Banco">Banco</option>
+                    <option value="Socio">Sócio</option>
+                    <option value="Outros">Outros</option>
+                  </Select>
                   {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
                 </div>
 
