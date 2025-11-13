@@ -20,10 +20,10 @@
 - `Accounts.tsx` - Contas Correntes ✅ **NOVO**
 - `AccountPayableReceivables.tsx` - Contas a Pagar e Receber
 - `CostCenters.tsx` - Centros de Custo
-- `LoanAdvances.tsx` - Empréstimos/Adiantamentos
+- `LoanAdvances.tsx` - Empréstimos e Adiantamentos
 - `Locations.tsx` - Locais
 - `PurchaseOrders.tsx` - Ordens de Compra
-- `SupplierCustomers.tsx` - Fornecedores/Clientes
+- `SupplierCustomers.tsx` - Fornecedores e Clientes
 - `Tasks.tsx` - Tarefas
 
 ### 3. Páginas de Formulário (1/8) ⏳
@@ -112,7 +112,7 @@ Items adicionados:
 },
 {
   icon: DollarSign,
-  label: 'Empréstimos/Adiantamentos',
+  label: 'Empréstimos e Adiantamentos',
   path: '/loan-advances',
   permission: 'loanAdvance.canView'
 },
@@ -130,7 +130,7 @@ Items adicionados:
 },
 {
   icon: Users,
-  label: 'Fornecedores/Clientes',
+  label: 'Fornecedores e Clientes',
   path: '/supplier-customers',
   permission: 'supplierCustomer.canView'
 },

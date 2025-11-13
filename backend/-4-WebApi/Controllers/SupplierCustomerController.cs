@@ -31,7 +31,7 @@ public class SupplierCustomerController : BaseController
     public async Task<ActionResult<BaseResponse<List<SupplierCustomerOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Fornecedores/Clientes listados com sucesso");
+        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Fornecedores e Clientes listados com sucesso");
     }
 
     [HttpGet("getPaged")]
@@ -39,7 +39,7 @@ public class SupplierCustomerController : BaseController
     public async Task<ActionResult<BaseResponse<PagedResult<SupplierCustomerOutputDTO>>>> GetPagedAsync([FromQuery] SupplierCustomerFilterDTO filters)
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Fornecedores/Clientes listados com sucesso");
+        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Fornecedores e Clientes listados com sucesso");
     }
 
     [HttpGet("{id}")]

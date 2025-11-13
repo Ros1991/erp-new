@@ -31,7 +31,7 @@ public class LoanAdvanceController : BaseController
     public async Task<ActionResult<BaseResponse<List<LoanAdvanceOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Empréstimos/Adiantamentos listados com sucesso");
+        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Empréstimos e Adiantamentos listados com sucesso");
     }
 
     [HttpGet("getPaged")]
@@ -39,7 +39,7 @@ public class LoanAdvanceController : BaseController
     public async Task<ActionResult<BaseResponse<PagedResult<LoanAdvanceOutputDTO>>>> GetPagedAsync([FromQuery] LoanAdvanceFilterDTO filters)
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Empréstimos/Adiantamentos listados com sucesso");
+        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Empréstimos e Adiantamentos listados com sucesso");
     }
 
     [HttpGet("{id}")]

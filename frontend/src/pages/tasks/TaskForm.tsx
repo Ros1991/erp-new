@@ -421,7 +421,7 @@ export function TaskForm() {
             </CardContent>
           </Card>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 justify-end">
             <Button type="submit" disabled={isSaving} className="flex-1 sm:flex-none">
               {isSaving ? (
                 <>

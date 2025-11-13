@@ -1,8 +1,8 @@
-# Módulo de Fornecedores/Clientes Criado
+# Módulo de Fornecedores e Clientes Criado
 
 ## 📋 Resumo
 
-Nova tabela **SupplierCustomer** (Fornecedores/Clientes) criada no sistema ERP, incluindo todas as relações necessárias com as tabelas existentes.
+Nova tabela **SupplierCustomer** (Fornecedores e Clientes) criada no sistema ERP, incluindo todas as relações necessárias com as tabelas existentes.
 
 ---
 
@@ -270,4 +270,4 @@ Para completar o módulo, você precisará criar:
 **Status:** ✅ **ESTRUTURA COMPLETA**
 
 **Data:** 12/11/2025  
-**Conceito:** Fornecedores/Clientes unificados - a natureza (despesa/receita) vem da transação
+**Conceito:** Fornecedores e Clientes unificados - a natureza (despesa/receita) vem da transação

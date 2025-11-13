@@ -176,7 +176,7 @@
     },
     {
       "key": "loanAdvance",
-      "name": "Empréstimos/Adiantamentos",
+      "name": "Empréstimos e Adiantamentos",
       "description": "Gerenciar empréstimos e adiantamentos",
       "icon": "dollar-sign",
       "isActive": true,
@@ -184,22 +184,22 @@
         {
           "key": "canView",
           "name": "Visualizar",
-          "description": "Visualizar lista e detalhes de empréstimos/adiantamentos"
+          "description": "Visualizar lista e detalhes de empréstimos e adiantamentos"
         },
         {
           "key": "canCreate",
           "name": "Criar",
-          "description": "Criar novos empréstimos/adiantamentos"
+          "description": "Criar novos empréstimos e adiantamentos"
         },
         {
           "key": "canEdit",
           "name": "Editar",
-          "description": "Editar empréstimos/adiantamentos existentes"
+          "description": "Editar empréstimos e adiantamentos existentes"
         },
         {
           "key": "canDelete",
           "name": "Excluir",
-          "description": "Excluir empréstimos/adiantamentos"
+          "description": "Excluir empréstimos e adiantamentos"
         }
       ]
     },
@@ -263,7 +263,7 @@
     },
     {
       "key": "supplierCustomer",
-      "name": "Fornecedores/Clientes",
+      "name": "Fornecedores e Clientes",
       "description": "Gerenciar fornecedores e clientes",
       "icon": "users",
       "isActive": true,
@@ -271,22 +271,22 @@
         {
           "key": "canView",
           "name": "Visualizar",
-          "description": "Visualizar lista e detalhes de fornecedores/clientes"
+          "description": "Visualizar lista e detalhes de fornecedores e clientes"
         },
         {
           "key": "canCreate",
           "name": "Criar",
-          "description": "Criar novos fornecedores/clientes"
+          "description": "Criar novos fornecedores e clientes"
         },
         {
           "key": "canEdit",
           "name": "Editar",
-          "description": "Editar fornecedores/clientes existentes"
+          "description": "Editar fornecedores e clientes existentes"
         },
         {
           "key": "canDelete",
           "name": "Excluir",
-          "description": "Excluir fornecedores/clientes"
+          "description": "Excluir fornecedores e clientes"
         }
       ]
     },
