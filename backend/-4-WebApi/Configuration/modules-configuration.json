@@ -115,6 +115,209 @@
           "description": "Excluir empregados"
         }
       ]
+    },
+    {
+      "key": "accountPayableReceivable",
+      "name": "Contas a Pagar/Receber",
+      "description": "Gerenciar contas a pagar e a receber",
+      "icon": "file-text",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de contas a pagar/receber"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novas contas a pagar/receber"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar contas a pagar/receber existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir contas a pagar/receber"
+        }
+      ]
+    },
+    {
+      "key": "costCenter",
+      "name": "Centros de Custo",
+      "description": "Gerenciar centros de custo",
+      "icon": "pie-chart",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de centros de custo"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos centros de custo"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar centros de custo existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir centros de custo"
+        }
+      ]
+    },
+    {
+      "key": "loanAdvance",
+      "name": "Empréstimos/Adiantamentos",
+      "description": "Gerenciar empréstimos e adiantamentos",
+      "icon": "dollar-sign",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de empréstimos/adiantamentos"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos empréstimos/adiantamentos"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar empréstimos/adiantamentos existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir empréstimos/adiantamentos"
+        }
+      ]
+    },
+    {
+      "key": "location",
+      "name": "Locais",
+      "description": "Gerenciar locais de trabalho",
+      "icon": "map-pin",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de locais"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos locais"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar locais existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir locais"
+        }
+      ]
+    },
+    {
+      "key": "purchaseOrder",
+      "name": "Ordens de Compra",
+      "description": "Gerenciar ordens de compra",
+      "icon": "shopping-cart",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de ordens de compra"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novas ordens de compra"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar ordens de compra existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir ordens de compra"
+        }
+      ]
+    },
+    {
+      "key": "supplierCustomer",
+      "name": "Fornecedores/Clientes",
+      "description": "Gerenciar fornecedores e clientes",
+      "icon": "users",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de fornecedores/clientes"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novos fornecedores/clientes"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar fornecedores/clientes existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir fornecedores/clientes"
+        }
+      ]
+    },
+    {
+      "key": "task",
+      "name": "Tarefas",
+      "description": "Gerenciar tarefas do sistema",
+      "icon": "check-square",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de tarefas"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novas tarefas"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar tarefas existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir tarefas"
+        }
+      ]
     }
   ]
 }

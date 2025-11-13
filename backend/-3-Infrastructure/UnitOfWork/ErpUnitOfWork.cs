@@ -22,6 +22,13 @@ namespace ERP.Infrastructure.UnitOfWork
         private IRoleRepository _RoleRepository;
         private ICompanyUserRepository _CompanyUserRepository;
         private IEmployeeRepository _EmployeeRepository;
+        private IAccountPayableReceivableRepository _AccountPayableReceivableRepository;
+        private ICostCenterRepository _CostCenterRepository;
+        private ILoanAdvanceRepository _LoanAdvanceRepository;
+        private ILocationRepository _LocationRepository;
+        private IPurchaseOrderRepository _PurchaseOrderRepository;
+        private ISupplierCustomerRepository _SupplierCustomerRepository;
+        private ITaskRepository _TaskRepository;
 
         public UnitOfWork(ErpContext context)
         {
@@ -48,6 +55,27 @@ namespace ERP.Infrastructure.UnitOfWork
 
         public IEmployeeRepository EmployeeRepository =>
             _EmployeeRepository ??= new EmployeeRepository(_context);
+
+        public IAccountPayableReceivableRepository AccountPayableReceivableRepository =>
+            _AccountPayableReceivableRepository ??= new AccountPayableReceivableRepository(_context);
+
+        public ICostCenterRepository CostCenterRepository =>
+            _CostCenterRepository ??= new CostCenterRepository(_context);
+
+        public ILoanAdvanceRepository LoanAdvanceRepository =>
+            _LoanAdvanceRepository ??= new LoanAdvanceRepository(_context);
+
+        public ILocationRepository LocationRepository =>
+            _LocationRepository ??= new LocationRepository(_context);
+
+        public IPurchaseOrderRepository PurchaseOrderRepository =>
+            _PurchaseOrderRepository ??= new PurchaseOrderRepository(_context);
+
+        public ISupplierCustomerRepository SupplierCustomerRepository =>
+            _SupplierCustomerRepository ??= new SupplierCustomerRepository(_context);
+
+        public ITaskRepository TaskRepository =>
+            _TaskRepository ??= new TaskRepository(_context);
 
         // Transaction Management
         public bool HasActiveTransaction => _transaction != null;

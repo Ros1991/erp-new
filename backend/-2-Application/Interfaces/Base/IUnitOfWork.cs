@@ -12,6 +12,13 @@ namespace ERP.Application.Interfaces
         IRoleRepository RoleRepository { get; }
         ICompanyUserRepository CompanyUserRepository { get; }
         IEmployeeRepository EmployeeRepository { get; }
+        IAccountPayableReceivableRepository AccountPayableReceivableRepository { get; }
+        ICostCenterRepository CostCenterRepository { get; }
+        ILoanAdvanceRepository LoanAdvanceRepository { get; }
+        ILocationRepository LocationRepository { get; }
+        IPurchaseOrderRepository PurchaseOrderRepository { get; }
+        ISupplierCustomerRepository SupplierCustomerRepository { get; }
+        ITaskRepository TaskRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();

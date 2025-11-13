@@ -1,0 +1,103 @@
+using ERP.Application.DTOs;
+using ERP.Application.DTOs.Base;
+using ERP.Application.Interfaces.Repositories;
+using ERP.Domain.Entities;
+using ERP.Infrastructure.Data;
+using ERP.Infrastructure.Extensions;
+using ERP.CrossCutting.Exceptions;
+using Microsoft.EntityFrameworkCore;
+
+namespace ERP.Infrastructure.Repositories
+{
+    public class AccountPayableReceivableRepository : IAccountPayableReceivableRepository
+    {
+        private readonly ErpContext _context;
+
+        public AccountPayableReceivableRepository(ErpContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<AccountPayableReceivable>> GetAllAsync(long companyId)
+        {
+            return await _context.Set<AccountPayableReceivable>()
+                .Where(a => a.CompanyId == companyId)
+                .ToListAsync();
+        }
+
+        public async Task<PagedResult<AccountPayableReceivable>> GetPagedAsync(long companyId, AccountPayableReceivableFilterDTO filters)
+        {
+            var query = _context.Set<AccountPayableReceivable>()
+                .Where(a => a.CompanyId == companyId)
+                .AsQueryable();
+
+            // Busca geral (Search)
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                query = query.Where(x => 
+                    x.Description.Contains(filters.Search) || 
+                    x.Type.Contains(filters.Search));
+            }
+
+            // Contar total antes da paginação
+            var total = await query.CountAsync();
+
+            // ✅ Aplicar ordenação dinâmica
+            if (!string.IsNullOrWhiteSpace(filters.OrderBy))
+            {
+                query = query.OrderByProperty(filters.OrderBy, filters.IsAscending);
+            }
+            else
+            {
+                query = query.OrderByDescending(x => x.CriadoEm); // Ordenação padrão
+            }
+
+            // Aplicar paginação
+            var items = await query
+                .Skip(filters.Skip)
+                .Take(filters.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<AccountPayableReceivable>(items, filters.Page, filters.PageSize, total);
+        }
+
+        public async Task<AccountPayableReceivable> GetOneByIdAsync(long accountPayableReceivableId)
+        {
+            return await _context.Set<AccountPayableReceivable>().FindAsync(accountPayableReceivableId);
+        }
+
+        public async Task<AccountPayableReceivable> CreateAsync(AccountPayableReceivable entity)
+        {
+            await _context.Set<AccountPayableReceivable>().AddAsync(entity);
+            return entity;
+        }
+
+        public async Task<AccountPayableReceivable> UpdateByIdAsync(long accountPayableReceivableId, AccountPayableReceivable entity)
+        {
+            if (accountPayableReceivableId <= 0)
+                throw new ValidationException(nameof(accountPayableReceivableId), "AccountPayableReceivableId deve ser maior que zero.");
+
+            var existing = await _context.Set<AccountPayableReceivable>().FindAsync(accountPayableReceivableId);
+            
+            if (existing == null)
+                throw new EntityNotFoundException("AccountPayableReceivable", accountPayableReceivableId);
+
+            _context.Entry(existing).CurrentValues.SetValues(entity);
+            return existing;
+        }
+
+        public async Task<bool> DeleteByIdAsync(long accountPayableReceivableId)
+        {
+            if (accountPayableReceivableId <= 0)
+                throw new ValidationException(nameof(accountPayableReceivableId), "AccountPayableReceivableId deve ser maior que zero.");
+
+            var existing = await _context.Set<AccountPayableReceivable>().FindAsync(accountPayableReceivableId);
+            
+            if (existing == null)
+                throw new EntityNotFoundException("AccountPayableReceivable", accountPayableReceivableId);
+
+            _context.Set<AccountPayableReceivable>().Remove(existing);
+            return true;
+        }
+    }
+}
