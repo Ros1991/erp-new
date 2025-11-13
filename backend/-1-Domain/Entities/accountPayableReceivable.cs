@@ -16,6 +16,9 @@ namespace ERP.Domain.Entities
 		[Column("company_id")]
 		public long CompanyId { get; set; }
 
+		[Column("supplier_customer_id")]
+		public long? SupplierCustomerId { get; set; }
+
 		[Column("account_payable_receivable_description")]
 		public string Description { get; set; }
 
@@ -46,6 +49,8 @@ namespace ERP.Domain.Entities
 
 		//Criando Relação com a tabelas
 		public virtual Company Company { get; set; } = null!;
+		//Criando Relação com a tabelas
+		public virtual SupplierCustomer SupplierCustomer { get; set; } = null!;
 		//Parent Relations
 		public virtual ICollection<FinancialTransaction> FinancialTransactionList { get; set; } = new List<FinancialTransaction>();
 		// Construtor padrão para EF
@@ -54,6 +59,7 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public AccountPayableReceivable(
 			long Param_CompanyId, 
+			long? Param_SupplierCustomerId, 
 			string Param_Description, 
 			string Param_Type, 
 			long Param_Amount, 
@@ -66,6 +72,7 @@ namespace ERP.Domain.Entities
 		)
 		{
 			CompanyId = Param_CompanyId;
+			SupplierCustomerId = Param_SupplierCustomerId;
 			Description = Param_Description;
 			Type = Param_Type;
 			Amount = Param_Amount;

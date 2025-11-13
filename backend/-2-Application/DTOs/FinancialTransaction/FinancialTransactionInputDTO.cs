@@ -11,6 +11,8 @@ namespace ERP.Application.DTOs
 
         public long? AccountPayableReceivableId { get; set; }
 
+        public long? SupplierCustomerId { get; set; }
+
         [Required(ErrorMessage = "Descrição é obrigatória")]
         [StringLength(255, ErrorMessage = "Descrição deve ter no máximo 255 caracteres")]
         public string Description { get; set; }

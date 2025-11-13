@@ -25,6 +25,9 @@ namespace ERP.Domain.Entities
 		[Column("account_payable_receivable_id")]
 		public long? AccountPayableReceivableId { get; set; }
 
+		[Column("supplier_customer_id")]
+		public long? SupplierCustomerId { get; set; }
+
 		[Column("financial_transaction_description")]
 		public string Description { get; set; }
 
@@ -58,6 +61,8 @@ namespace ERP.Domain.Entities
         public virtual Company Company { get; set; } = null!;
 		//Criando Relação com a tabelas
         public virtual PurchaseOrder PurchaseOrder { get; set; } = null!;
+		//Criando Relação com a tabelas
+        public virtual SupplierCustomer SupplierCustomer { get; set; } = null!;
 		//Parent Relations
         public virtual ICollection<TransactionCostCenter> TransactionCostCenterList { get; set; } = new List<TransactionCostCenter>();
 		// Construtor padrão para EF
@@ -69,6 +74,7 @@ namespace ERP.Domain.Entities
 			long Param_AccountId, 
 			long? Param_PurchaseOrderId, 
 			long? Param_AccountPayableReceivableId, 
+			long? Param_SupplierCustomerId, 
 			string Param_Description, 
 			string Param_Type, 
 			long Param_Amount, 
@@ -83,6 +89,7 @@ namespace ERP.Domain.Entities
 			AccountId = Param_AccountId;
 			PurchaseOrderId = Param_PurchaseOrderId;
 			AccountPayableReceivableId = Param_AccountPayableReceivableId;
+			SupplierCustomerId = Param_SupplierCustomerId;
 			Description = Param_Description;
 			Type = Param_Type;
 			Amount = Param_Amount;
