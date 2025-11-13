@@ -5,9 +5,10 @@ export interface Location {
   companyId: number;
   name: string;
   address?: string;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+  isActive: boolean;
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
@@ -58,9 +59,10 @@ class LocationService {
   async createLocation(data: {
     name: string;
     address?: string;
-    latitude?: number;
-    longitude?: number;
-    radius?: number;
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+    isActive: boolean;
   }): Promise<Location> {
     const response = await api.post('/location/create', data);
     return response.data.data;
@@ -69,9 +71,10 @@ class LocationService {
   async updateLocation(id: number, data: {
     name: string;
     address?: string;
-    latitude?: number;
-    longitude?: number;
-    radius?: number;
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+    isActive: boolean;
   }): Promise<Location> {
     const response = await api.put(`/location/${id}`, data);
     return response.data.data;

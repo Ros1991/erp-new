@@ -7,7 +7,13 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Sidebar fechada por padrão no mobile, aberta no desktop
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024; // lg breakpoint do Tailwind
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -5,6 +5,7 @@ export interface CostCenter {
   companyId: number;
   name: string;
   description?: string;
+  isActive: boolean;
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;

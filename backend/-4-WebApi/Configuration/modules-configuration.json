@@ -118,7 +118,7 @@
     },
     {
       "key": "accountPayableReceivable",
-      "name": "Contas a Pagar/Receber",
+      "name": "Contas a Pagar e Receber",
       "description": "Gerenciar contas a pagar e a receber",
       "icon": "file-text",
       "isActive": true,
@@ -126,22 +126,22 @@
         {
           "key": "canView",
           "name": "Visualizar",
-          "description": "Visualizar lista e detalhes de contas a pagar/receber"
+          "description": "Visualizar lista e detalhes de contas a pagar e receber"
         },
         {
           "key": "canCreate",
           "name": "Criar",
-          "description": "Criar novas contas a pagar/receber"
+          "description": "Criar novas contas a Pagar e Receber"
         },
         {
           "key": "canEdit",
           "name": "Editar",
-          "description": "Editar contas a pagar/receber existentes"
+          "description": "Editar contas a Pagar e Receber existentes"
         },
         {
           "key": "canDelete",
           "name": "Excluir",
-          "description": "Excluir contas a pagar/receber"
+          "description": "Excluir contas a Pagar e Receber"
         }
       ]
     },

@@ -174,8 +174,8 @@ O script já exibe verificações automáticas. Você verá:
 - ✅ Lista das Foreign Keys criadas
 
 ### **Passo 4: Testar (Opcional)**
-```sql
--- Inserir um fornecedor/cliente de teste
+```sql   
+-- Inserir um fornecedor e cliente de teste
 INSERT INTO erp.tb_supplier_customer 
     (company_id, supplier_customer_name, supplier_customer_document, supplier_customer_is_active, criado_por, criado_em)
 VALUES 
@@ -260,7 +260,7 @@ Para completar o módulo, você precisará criar:
 - [x] DTOs de SupplierCustomer criados (Filter, Input, Output)
 - [x] DTOs de FinancialTransaction atualizados
 - [x] DTOs de AccountPayableReceivable atualizados
-- [x] Campo "Type" removido (design sem tipo, a transação define se é fornecedor/cliente)
+- [x] Campo "Type" removido (design sem tipo, a transação define se é fornecedor e cliente)
 - [x] Script de migração criado (004_add_supplier_customer.sql)
 - [x] Script de rollback criado (004_rollback_supplier_customer.sql)
 - [x] README de migrações atualizado

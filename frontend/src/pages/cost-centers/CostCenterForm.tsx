@@ -5,46 +5,46 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
-import accountService from '../../services/accountService';
+import costCenterService from '../../services/costCenterService';
 import { ArrowLeft, Save } from 'lucide-react';
 
-interface AccountFormData {
+interface CostCenterFormData {
   name: string;
-  type: string;
-  initialBalance: string;
+  description: string;
+  isActive: boolean;
 }
 
-export function AccountForm() {
+export function CostCenterForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showError, showSuccess, handleBackendError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [formData, setFormData] = useState<AccountFormData>({
+  const [formData, setFormData] = useState<CostCenterFormData>({
     name: '',
-    type: '',
-    initialBalance: '0',
+    description: '',
+    isActive: true,
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof AccountFormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof CostCenterFormData, string>>>({});
 
   const isEditing = !!id;
 
   useEffect(() => {
     if (isEditing) {
-      loadAccount();
+      loadCostCenter();
     }
   }, [id]);
 
-  const loadAccount = async () => {
+  const loadCostCenter = async () => {
     setIsLoading(true);
     try {
-      const account = await accountService.getAccountById(Number(id));
+      const costCenter = await costCenterService.getCostCenterById(Number(id));
       setFormData({
-        name: account.name,
-        type: account.type,
-        initialBalance: account.initialBalance.toString(),
+        name: costCenter.name,
+        description: costCenter.description || '',
+        isActive: costCenter.isActive,
       });
     } catch (err: any) {
       handleBackendError(err);
@@ -54,20 +54,10 @@ export function AccountForm() {
   };
 
   const validate = (): boolean => {
-    const newErrors: Partial<Record<keyof AccountFormData, string>> = {};
+    const newErrors: Partial<Record<keyof CostCenterFormData, string>> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
-    }
-
-    if (!formData.type.trim()) {
-      newErrors.type = 'Tipo é obrigatório';
-    }
-
-    if (!formData.initialBalance.trim()) {
-      newErrors.initialBalance = 'Saldo inicial é obrigatório';
-    } else if (isNaN(Number(formData.initialBalance))) {
-      newErrors.initialBalance = 'Saldo inicial deve ser um número válido';
     }
 
     setErrors(newErrors);
@@ -84,21 +74,21 @@ export function AccountForm() {
 
     setIsSaving(true);
     try {
-      const accountData = {
+      const costCenterData = {
         name: formData.name.trim(),
-        type: formData.type.trim(),
-        initialBalance: Number(formData.initialBalance),
+        description: formData.description.trim() || undefined,
+        isActive: formData.isActive,
       };
 
       if (isEditing) {
-        await accountService.updateAccount(Number(id), accountData);
-        showSuccess('Conta atualizada com sucesso!');
+        await costCenterService.updateCostCenter(Number(id), costCenterData);
+        showSuccess('Centro de custo atualizado com sucesso!');
       } else {
-        await accountService.createAccount(accountData);
-        showSuccess('Conta criada com sucesso!');
+        await costCenterService.createCostCenter(costCenterData);
+        showSuccess('Centro de custo criado com sucesso!');
       }
 
-      navigate('/accounts');
+      navigate('/cost-centers');
     } catch (err: any) {
       handleBackendError(err);
     } finally {
@@ -106,7 +96,7 @@ export function AccountForm() {
     }
   };
 
-  const handleChange = (field: keyof AccountFormData, value: string) => {
+  const handleChange = (field: keyof CostCenterFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -129,17 +119,17 @@ export function AccountForm() {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/accounts')}
+            onClick={() => navigate('/cost-centers')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? 'Editar Conta' : 'Nova Conta'}
+            {isEditing ? 'Editar Centro de Custo' : 'Novo Centro de Custo'}
           </h1>
           <p className="text-gray-600 mt-1">
-            {isEditing ? 'Atualize as informações da conta' : 'Preencha as informações para criar uma nova conta'}
+            {isEditing ? 'Atualize as informações do centro de custo' : 'Preencha as informações para criar um novo centro de custo'}
           </p>
         </div>
 
@@ -149,48 +139,44 @@ export function AccountForm() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome da Conta <span className="text-red-500">*</span>
+                    Nome <span className="text-red-500">*</span>
                   </label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Ex: Banco do Brasil - Conta Corrente"
+                    placeholder="Ex: Administrativo, Vendas, Marketing"
                     className={errors.name ? 'border-red-500' : ''}
                   />
                   {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipo <span className="text-red-500">*</span>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                    Descrição
                   </label>
-                  <Input
-                    id="type"
-                    type="text"
-                    value={formData.type}
-                    onChange={(e) => handleChange('type', e.target.value)}
-                    placeholder="Ex: Conta Corrente, Poupança, Caixa"
-                    className={errors.type ? 'border-red-500' : ''}
+                  <textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleChange('description', e.target.value)}
+                    placeholder="Descrição opcional do centro de custo"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    rows={3}
                   />
-                  {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
                 </div>
 
-                <div>
-                  <label htmlFor="initialBalance" className="block text-sm font-medium text-gray-700 mb-1">
-                    Saldo Inicial (R$) <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="initialBalance"
-                    type="text"
-                    value={formData.initialBalance}
-                    onChange={(e) => handleChange('initialBalance', e.target.value)}
-                    placeholder="0.00"
-                    className={errors.initialBalance ? 'border-red-500' : ''}
+                <div className="flex items-center">
+                  <input
+                    id="isActive"
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => handleChange('isActive', e.target.checked)}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
-                  {errors.initialBalance && <p className="text-sm text-red-600 mt-1">{errors.initialBalance}</p>}
-                  <p className="text-sm text-gray-500 mt-1">Digite o valor em centavos (ex: 1000 = R$ 10,00)</p>
+                  <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
+                    Centro de custo ativo
+                  </label>
                 </div>
               </div>
 
@@ -207,14 +193,14 @@ export function AccountForm() {
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      {isEditing ? 'Atualizar' : 'Criar'} Conta
+                      {isEditing ? 'Atualizar' : 'Criar'} Centro de Custo
                     </>
                   )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/accounts')}
+                  onClick={() => navigate('/cost-centers')}
                   disabled={isSaving}
                   className="flex-1 sm:flex-none"
                 >

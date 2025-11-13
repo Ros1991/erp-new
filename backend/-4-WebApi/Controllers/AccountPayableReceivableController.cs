@@ -31,7 +31,7 @@ public class AccountPayableReceivableController : BaseController
     public async Task<ActionResult<BaseResponse<List<AccountPayableReceivableOutputDTO>>>> GetAllAsync()
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Contas a pagar/receber listadas com sucesso");
+        return await ExecuteAsync(() => _service.GetAllAsync(companyId), "Contas a pagar e receber listadas com sucesso");
     }
 
     [HttpGet("getPaged")]
@@ -39,7 +39,7 @@ public class AccountPayableReceivableController : BaseController
     public async Task<ActionResult<BaseResponse<PagedResult<AccountPayableReceivableOutputDTO>>>> GetPagedAsync([FromQuery] AccountPayableReceivableFilterDTO filters)
     {
         var companyId = GetCompanyId();
-        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Contas a pagar/receber listadas com sucesso");
+        return await ExecuteAsync(() => _service.GetPagedAsync(companyId, filters), "Contas a pagar e receber listadas com sucesso");
     }
 
     [HttpGet("{id}")]
@@ -47,7 +47,7 @@ public class AccountPayableReceivableController : BaseController
     public async Task<ActionResult<BaseResponse<AccountPayableReceivableOutputDTO>>> GetOneByIdAsync(long id)
     {
         ValidateId(id, nameof(id));
-        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Conta a pagar/receber encontrada com sucesso");
+        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Conta a pagar e receber encontrada com sucesso");
     }
 
     [HttpPost("create")]
@@ -60,7 +60,7 @@ public class AccountPayableReceivableController : BaseController
             () => _service.CreateAsync(dto, companyId, currentUserId),
             nameof(GetOneByIdAsync),
             result => new { id = result.AccountPayableReceivableId },
-            "Conta a pagar/receber criada com sucesso"
+            "Conta a pagar e receber criada com sucesso"
         );
     }
 
@@ -70,7 +70,7 @@ public class AccountPayableReceivableController : BaseController
     {
         ValidateId(id, nameof(id));
         var currentUserId = GetCurrentUserId();
-        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Conta a pagar/receber atualizada com sucesso");
+        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Conta a pagar e receber atualizada com sucesso");
     }
 
     [HttpDelete("{id}")]
@@ -80,8 +80,8 @@ public class AccountPayableReceivableController : BaseController
         ValidateId(id, nameof(id));
         return await ExecuteBooleanAsync(
             () => _service.DeleteByIdAsync(id),
-            "Conta a pagar/receber deletada com sucesso",
-            "Conta a pagar/receber não encontrada ou não pôde ser deletada"
+            "Conta a pagar e receber deletada com sucesso",
+            "Conta a pagar e receber não encontrada ou não pôde ser deletada"
         );
     }
 }

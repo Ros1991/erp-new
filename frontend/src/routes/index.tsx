@@ -26,12 +26,19 @@ import { EmployeeForm } from '../pages/employees/EmployeeForm';
 import { Accounts } from '../pages/accounts/Accounts';
 import { AccountForm } from '../pages/accounts/AccountForm';
 import { AccountPayableReceivables } from '../pages/account-payable-receivable/AccountPayableReceivables';
+import { AccountPayableReceivableForm } from '../pages/account-payable-receivable/AccountPayableReceivableForm';
 import { CostCenters } from '../pages/cost-centers/CostCenters';
+import { CostCenterForm } from '../pages/cost-centers/CostCenterForm';
 import { LoanAdvances } from '../pages/loan-advances/LoanAdvances';
+import { LoanAdvanceForm } from '../pages/loan-advances/LoanAdvanceForm';
 import { Locations } from '../pages/locations/Locations';
+import { LocationForm } from '../pages/locations/LocationForm';
 import { PurchaseOrders } from '../pages/purchase-orders/PurchaseOrders';
+import { PurchaseOrderForm } from '../pages/purchase-orders/PurchaseOrderForm';
 import { SupplierCustomers } from '../pages/supplier-customers/SupplierCustomers';
+import { SupplierCustomerForm } from '../pages/supplier-customers/SupplierCustomerForm';
 import { Tasks } from '../pages/tasks/Tasks';
+import { TaskForm } from '../pages/tasks/TaskForm';
 import AccessDenied from '../pages/AccessDenied';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
@@ -272,6 +279,30 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/account-payable-receivable/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="accountPayableReceivable.canCreate">
+                <AccountPayableReceivableForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/account-payable-receivable/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="accountPayableReceivable.canEdit">
+                <AccountPayableReceivableForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Protected Routes - Cost Centers */}
       <Route
@@ -281,6 +312,30 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="costCenter.canView">
                 <CostCenters />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cost-centers/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="costCenter.canCreate">
+                <CostCenterForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cost-centers/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="costCenter.canEdit">
+                <CostCenterForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
@@ -300,6 +355,30 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/loan-advances/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="loanAdvance.canCreate">
+                <LoanAdvanceForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/loan-advances/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="loanAdvance.canEdit">
+                <LoanAdvanceForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Protected Routes - Locations */}
       <Route
@@ -309,6 +388,30 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="location.canView">
                 <Locations />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/locations/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="location.canCreate">
+                <LocationForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/locations/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="location.canEdit">
+                <LocationForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
@@ -328,6 +431,30 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/purchase-orders/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="purchaseOrder.canCreate">
+                <PurchaseOrderForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/purchase-orders/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="purchaseOrder.canEdit">
+                <PurchaseOrderForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Protected Routes - Supplier Customers */}
       <Route
@@ -342,6 +469,30 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/supplier-customers/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="supplierCustomer.canCreate">
+                <SupplierCustomerForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/supplier-customers/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="supplierCustomer.canEdit">
+                <SupplierCustomerForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
       
       {/* Protected Routes - Tasks */}
       <Route
@@ -351,6 +502,30 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="task.canView">
                 <Tasks />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="task.canCreate">
+                <TaskForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="task.canEdit">
+                <TaskForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

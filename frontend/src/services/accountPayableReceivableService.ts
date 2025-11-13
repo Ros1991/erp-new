@@ -8,7 +8,6 @@ export interface AccountPayableReceivable {
   type: string;
   amount: number;
   dueDate: string;
-  paymentDate?: string;
   isPaid: boolean;
   criadoPor: number;
   atualizadoPor?: number;
@@ -63,7 +62,6 @@ class AccountPayableReceivableService {
     type: string;
     amount: number;
     dueDate: string;
-    paymentDate?: string;
     isPaid: boolean;
   }): Promise<AccountPayableReceivable> {
     const response = await api.post('/account-payable-receivable/create', data);
@@ -76,7 +74,6 @@ class AccountPayableReceivableService {
     type: string;
     amount: number;
     dueDate: string;
-    paymentDate?: string;
     isPaid: boolean;
   }): Promise<AccountPayableReceivable> {
     const response = await api.put(`/account-payable-receivable/${id}`, data);

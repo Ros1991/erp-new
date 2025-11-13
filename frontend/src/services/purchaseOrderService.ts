@@ -3,11 +3,10 @@ import api from './api';
 export interface PurchaseOrder {
   purchaseOrderId: number;
   companyId: number;
-  orderNumber: string;
-  description?: string;
+  userIdRequester: number;
+  userIdApprover?: number;
+  description: string;
   totalAmount: number;
-  orderDate: string;
-  expectedDeliveryDate?: string;
   status: string;
   criadoPor: number;
   atualizadoPor?: number;
@@ -57,11 +56,10 @@ class PurchaseOrderService {
   }
 
   async createPurchaseOrder(data: {
-    orderNumber: string;
-    description?: string;
+    userIdRequester: number;
+    userIdApprover?: number;
+    description: string;
     totalAmount: number;
-    orderDate: string;
-    expectedDeliveryDate?: string;
     status: string;
   }): Promise<PurchaseOrder> {
     const response = await api.post('/purchase-order/create', data);
@@ -69,11 +67,10 @@ class PurchaseOrderService {
   }
 
   async updatePurchaseOrder(id: number, data: {
-    orderNumber: string;
-    description?: string;
+    userIdRequester: number;
+    userIdApprover?: number;
+    description: string;
     totalAmount: number;
-    orderDate: string;
-    expectedDeliveryDate?: string;
     status: string;
   }): Promise<PurchaseOrder> {
     const response = await api.put(`/purchase-order/${id}`, data);

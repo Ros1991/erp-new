@@ -18,7 +18,7 @@
 
 ### 2. Páginas de Listagem (8/8) ✅
 - `Accounts.tsx` - Contas Correntes ✅ **NOVO**
-- `AccountPayableReceivables.tsx` - Contas a Pagar/Receber
+- `AccountPayableReceivables.tsx` - Contas a Pagar e Receber
 - `CostCenters.tsx` - Centros de Custo
 - `LoanAdvances.tsx` - Empréstimos/Adiantamentos
 - `Locations.tsx` - Locais
@@ -100,7 +100,7 @@ Items adicionados:
 ```typescript
 {
   icon: FileText,
-  label: 'Contas a Pagar/Receber',
+  label: 'Contas a Pagar e Receber',
   path: '/account-payable-receivable',
   permission: 'accountPayableReceivable.canView'
 },

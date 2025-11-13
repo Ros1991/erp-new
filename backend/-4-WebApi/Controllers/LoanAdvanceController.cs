@@ -47,7 +47,7 @@ public class LoanAdvanceController : BaseController
     public async Task<ActionResult<BaseResponse<LoanAdvanceOutputDTO>>> GetOneByIdAsync(long id)
     {
         ValidateId(id, nameof(id));
-        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Empréstimo/Adiantamento encontrado com sucesso");
+        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Empréstimo e Adiantamento encontrado com sucesso");
     }
 
     [HttpPost("create")]
@@ -60,7 +60,7 @@ public class LoanAdvanceController : BaseController
             () => _service.CreateAsync(dto, companyId, currentUserId),
             nameof(GetOneByIdAsync),
             result => new { id = result.LoanAdvanceId },
-            "Empréstimo/Adiantamento criado com sucesso"
+            "Empréstimo e Adiantamento criado com sucesso"
         );
     }
 
@@ -70,7 +70,7 @@ public class LoanAdvanceController : BaseController
     {
         ValidateId(id, nameof(id));
         var currentUserId = GetCurrentUserId();
-        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Empréstimo/Adiantamento atualizado com sucesso");
+        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Empréstimo e Adiantamento atualizado com sucesso");
     }
 
     [HttpDelete("{id}")]
@@ -80,8 +80,8 @@ public class LoanAdvanceController : BaseController
         ValidateId(id, nameof(id));
         return await ExecuteBooleanAsync(
             () => _service.DeleteByIdAsync(id),
-            "Empréstimo/Adiantamento deletado com sucesso",
-            "Empréstimo/Adiantamento não encontrado ou não pôde ser deletado"
+            "Empréstimo e Adiantamento deletado com sucesso",
+            "Empréstimo e Adiantamento não encontrado ou não pôde ser deletado"
         );
     }
 }

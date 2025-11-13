@@ -11,7 +11,7 @@
 
 ## ✅ Módulos DTOs Criados (21 Novos)
 
-### 1. **AccountPayableReceivable** (Contas a Pagar/Receber)
+### 1. **AccountPayableReceivable** (Contas a Pagar e Receber)
 - ✅ `AccountPayableReceivableFilterDTO.cs`
 - ✅ `AccountPayableReceivableInputDTO.cs`
 - ✅ `AccountPayableReceivableOutputDTO.cs`
@@ -140,7 +140,7 @@
 
 ---
 
-### 10. **LoanAdvance** (Empréstimo/Adiantamento)
+### 10. **LoanAdvance** (Empréstimo e Adiantamento)
 - ✅ `LoanAdvanceFilterDTO.cs`
 - ✅ `LoanAdvanceInputDTO.cs`
 - ✅ `LoanAdvanceOutputDTO.cs`

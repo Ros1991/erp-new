@@ -3,11 +3,22 @@ import api from './api';
 export interface Task {
   taskId: number;
   companyId: number;
+  taskIdParent?: number;
+  taskIdBlocking?: number;
   title: string;
   description?: string;
   priority: string;
-  status: string;
-  dueDate?: string;
+  frequencyDays?: number;
+  allowSunday: boolean;
+  allowMonday: boolean;
+  allowTuesday: boolean;
+  allowWednesday: boolean;
+  allowThursday: boolean;
+  allowFriday: boolean;
+  allowSaturday: boolean;
+  startDate?: string;
+  endDate?: string;
+  overallStatus: string;
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
@@ -56,22 +67,44 @@ class TaskService {
   }
 
   async createTask(data: {
+    taskIdParent?: number;
+    taskIdBlocking?: number;
     title: string;
     description?: string;
     priority: string;
-    status: string;
-    dueDate?: string;
+    frequencyDays?: number;
+    allowSunday: boolean;
+    allowMonday: boolean;
+    allowTuesday: boolean;
+    allowWednesday: boolean;
+    allowThursday: boolean;
+    allowFriday: boolean;
+    allowSaturday: boolean;
+    startDate?: string;
+    endDate?: string;
+    overallStatus: string;
   }): Promise<Task> {
     const response = await api.post('/task/create', data);
     return response.data.data;
   }
 
   async updateTask(id: number, data: {
+    taskIdParent?: number;
+    taskIdBlocking?: number;
     title: string;
     description?: string;
     priority: string;
-    status: string;
-    dueDate?: string;
+    frequencyDays?: number;
+    allowSunday: boolean;
+    allowMonday: boolean;
+    allowTuesday: boolean;
+    allowWednesday: boolean;
+    allowThursday: boolean;
+    allowFriday: boolean;
+    allowSaturday: boolean;
+    startDate?: string;
+    endDate?: string;
+    overallStatus: string;
   }): Promise<Task> {
     const response = await api.put(`/task/${id}`, data);
     return response.data.data;

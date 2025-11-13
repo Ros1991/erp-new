@@ -3,12 +3,11 @@ import api from './api';
 export interface LoanAdvance {
   loanAdvanceId: number;
   employeeId: number;
-  type: string;
   amount: number;
   installments: number;
-  description?: string;
-  requestDate: string;
-  approvalDate?: string;
+  discountSource: string;
+  startDate: string;
+  isApproved: boolean;
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
@@ -58,12 +57,11 @@ class LoanAdvanceService {
 
   async createLoanAdvance(data: {
     employeeId: number;
-    type: string;
     amount: number;
     installments: number;
-    description?: string;
-    requestDate: string;
-    approvalDate?: string;
+    discountSource: string;
+    startDate: string;
+    isApproved: boolean;
   }): Promise<LoanAdvance> {
     const response = await api.post('/loan-advance/create', data);
     return response.data.data;
@@ -71,12 +69,11 @@ class LoanAdvanceService {
 
   async updateLoanAdvance(id: number, data: {
     employeeId: number;
-    type: string;
     amount: number;
     installments: number;
-    description?: string;
-    requestDate: string;
-    approvalDate?: string;
+    discountSource: string;
+    startDate: string;
+    isApproved: boolean;
   }): Promise<LoanAdvance> {
     const response = await api.put(`/loan-advance/${id}`, data);
     return response.data.data;

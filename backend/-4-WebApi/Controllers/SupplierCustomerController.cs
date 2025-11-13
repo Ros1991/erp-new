@@ -47,7 +47,7 @@ public class SupplierCustomerController : BaseController
     public async Task<ActionResult<BaseResponse<SupplierCustomerOutputDTO>>> GetOneByIdAsync(long id)
     {
         ValidateId(id, nameof(id));
-        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Fornecedor/Cliente encontrado com sucesso");
+        return await ExecuteAsync(() => _service.GetOneByIdAsync(id), "Fornecedor e Cliente encontrado com sucesso");
     }
 
     [HttpPost("create")]
@@ -60,7 +60,7 @@ public class SupplierCustomerController : BaseController
             () => _service.CreateAsync(dto, companyId, currentUserId),
             nameof(GetOneByIdAsync),
             result => new { id = result.SupplierCustomerId },
-            "Fornecedor/Cliente criado com sucesso"
+            "Fornecedor e Cliente criado com sucesso"
         );
     }
 
@@ -70,7 +70,7 @@ public class SupplierCustomerController : BaseController
     {
         ValidateId(id, nameof(id));
         var currentUserId = GetCurrentUserId();
-        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Fornecedor/Cliente atualizado com sucesso");
+        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Fornecedor e Cliente atualizado com sucesso");
     }
 
     [HttpDelete("{id}")]
@@ -80,8 +80,8 @@ public class SupplierCustomerController : BaseController
         ValidateId(id, nameof(id));
         return await ExecuteBooleanAsync(
             () => _service.DeleteByIdAsync(id),
-            "Fornecedor/Cliente deletado com sucesso",
-            "Fornecedor/Cliente não encontrado ou não pôde ser deletado"
+            "Fornecedor e Cliente deletado com sucesso",
+            "Fornecedor e Cliente não encontrado ou não pôde ser deletado"
         );
     }
 }
