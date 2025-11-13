@@ -18,6 +18,10 @@ namespace ERP.Application.Mappers
                 PayrollDay = entity.PayrollDay,
                 PayrollClosingDay = entity.PayrollClosingDay,
                 VacationDaysPerYear = entity.VacationDaysPerYear,
+                MinHoursForLunchBreak = entity.MinHoursForLunchBreak,
+                MaxOvertimeHoursPerMonth = entity.MaxOvertimeHoursPerMonth,
+                AllowWeekendWork = entity.AllowWeekendWork,
+                RequireJustificationAfterHours = entity.RequireJustificationAfterHours,
                 WeeklyHoursDefault = entity.WeeklyHoursDefault,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
@@ -45,6 +49,10 @@ namespace ERP.Application.Mappers
                 dto.PayrollDay,
                 dto.PayrollClosingDay,
                 dto.VacationDaysPerYear,
+                dto.MinHoursForLunchBreak,
+                dto.MaxOvertimeHoursPerMonth,
+                dto.AllowWeekendWork,
+                dto.RequireJustificationAfterHours,
                 dto.WeeklyHoursDefault,
                 userId,
                 null,
@@ -62,6 +70,10 @@ namespace ERP.Application.Mappers
             entity.PayrollDay = dto.PayrollDay;
             entity.PayrollClosingDay = dto.PayrollClosingDay;
             entity.VacationDaysPerYear = dto.VacationDaysPerYear;
+            entity.MinHoursForLunchBreak = dto.MinHoursForLunchBreak;
+            entity.MaxOvertimeHoursPerMonth = dto.MaxOvertimeHoursPerMonth;
+            entity.AllowWeekendWork = dto.AllowWeekendWork;
+            entity.RequireJustificationAfterHours = dto.RequireJustificationAfterHours;
             entity.WeeklyHoursDefault = dto.WeeklyHoursDefault;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;

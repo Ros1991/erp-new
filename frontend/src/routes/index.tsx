@@ -24,6 +24,14 @@ import { EditUser } from '../pages/users/EditUser';
 import { Employees } from '../pages/employees/Employees';
 import { EmployeeForm } from '../pages/employees/EmployeeForm';
 import { Accounts } from '../pages/accounts/Accounts';
+import { AccountForm } from '../pages/accounts/AccountForm';
+import { AccountPayableReceivables } from '../pages/account-payable-receivable/AccountPayableReceivables';
+import { CostCenters } from '../pages/cost-centers/CostCenters';
+import { LoanAdvances } from '../pages/loan-advances/LoanAdvances';
+import { Locations } from '../pages/locations/Locations';
+import { PurchaseOrders } from '../pages/purchase-orders/PurchaseOrders';
+import { SupplierCustomers } from '../pages/supplier-customers/SupplierCustomers';
+import { Tasks } from '../pages/tasks/Tasks';
 import AccessDenied from '../pages/AccessDenied';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
@@ -221,6 +229,128 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="account.canView">
                 <Accounts />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/accounts/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="account.canCreate">
+                <AccountForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/accounts/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="account.canEdit">
+                <AccountForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Account Payable Receivable */}
+      <Route
+        path="/account-payable-receivable"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="accountPayableReceivable.canView">
+                <AccountPayableReceivables />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Cost Centers */}
+      <Route
+        path="/cost-centers"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="costCenter.canView">
+                <CostCenters />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Loan Advances */}
+      <Route
+        path="/loan-advances"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="loanAdvance.canView">
+                <LoanAdvances />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Locations */}
+      <Route
+        path="/locations"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="location.canView">
+                <Locations />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Purchase Orders */}
+      <Route
+        path="/purchase-orders"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="purchaseOrder.canView">
+                <PurchaseOrders />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Supplier Customers */}
+      <Route
+        path="/supplier-customers"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="supplierCustomer.canView">
+                <SupplierCustomers />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Tasks */}
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="task.canView">
+                <Tasks />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

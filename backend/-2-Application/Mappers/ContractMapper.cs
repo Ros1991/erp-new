@@ -22,6 +22,7 @@ namespace ERP.Application.Mappers
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 WeeklyHours = entity.WeeklyHours,
+                IsActive = entity.IsActive,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -52,6 +53,7 @@ namespace ERP.Application.Mappers
                 dto.StartDate,
                 dto.EndDate,
                 dto.WeeklyHours,
+                dto.IsActive,
                 userId,
                 null,
                 now,
@@ -73,6 +75,7 @@ namespace ERP.Application.Mappers
             entity.StartDate = dto.StartDate;
             entity.EndDate = dto.EndDate;
             entity.WeeklyHours = dto.WeeklyHours;
+            entity.IsActive = dto.IsActive;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
         }

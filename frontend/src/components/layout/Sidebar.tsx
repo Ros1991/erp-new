@@ -5,7 +5,14 @@ import {
   Shield,
   Users,
   UserCheck,
-  Wallet
+  Wallet,
+  FileText,
+  PieChart,
+  DollarSign,
+  MapPin,
+  ShoppingCart,
+  Users as UsersIcon,
+  CheckSquare
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +36,13 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
     { icon: Users, label: 'Usuários', path: '/users', permission: 'user.canView' },
     { icon: UserCheck, label: 'Empregados', path: '/employees', permission: 'employee.canView' },
     { icon: Wallet, label: 'Conta Correntes', path: '/accounts', permission: 'account.canView' },
+    { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
+    { icon: PieChart, label: 'Centros de Custo', path: '/cost-centers', permission: 'costCenter.canView' },
+    { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },
+    { icon: MapPin, label: 'Locais', path: '/locations', permission: 'location.canView' },
+    { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
+    { icon: UsersIcon, label: 'Fornecedores e Clientes', path: '/supplier-customers', permission: 'supplierCustomer.canView' },
+    { icon: CheckSquare, label: 'Tarefas', path: '/tasks', permission: 'task.canView' },
   ];
   
   // Filtrar itens baseado nas permissões
