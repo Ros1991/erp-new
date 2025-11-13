@@ -1,3 +1,5 @@
+using ERP.Application.DTOs.FinancialTransaction;
+
 namespace ERP.Application.DTOs
 {
     public class FinancialTransactionOutputDTO
@@ -14,6 +16,7 @@ namespace ERP.Application.DTOs
         public string Type { get; set; }
         public long Amount { get; set; }
         public DateTime TransactionDate { get; set; }
+        public List<CostCenterDistributionDTO>? CostCenterDistributions { get; set; }
         public long CriadoPor { get; set; }
         public long? AtualizadoPor { get; set; }
         public DateTime CriadoEm { get; set; }

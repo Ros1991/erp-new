@@ -15,6 +15,7 @@ namespace ERP.Application.Mappers
                 FinancialTransactionId = entity.FinancialTransactionId,
                 CostCenterId = entity.CostCenterId,
                 Amount = entity.Amount,
+                Percentage = entity.Percentage,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -38,6 +39,7 @@ namespace ERP.Application.Mappers
                 dto.FinancialTransactionId,
                 dto.CostCenterId,
                 dto.Amount,
+                dto.Percentage,
                 userId,
                 null,
                 now,
@@ -52,6 +54,7 @@ namespace ERP.Application.Mappers
             entity.FinancialTransactionId = dto.FinancialTransactionId;
             entity.CostCenterId = dto.CostCenterId;
             entity.Amount = dto.Amount;
+            entity.Percentage = dto.Percentage;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
         }

@@ -682,6 +682,7 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "uk_task_employee_task_emplo
 	"financial_transaction_id"             bigint               DEFAULT 0 NOT NULL,
 	"cost_center_id"                       bigint               DEFAULT 0 NOT NULL,
 	"transaction_cost_center_amount"       decimal (15,2)       DEFAULT 0 NOT NULL,
+	"transaction_cost_center_percentage"   decimal (5,2)        DEFAULT 0 NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
 	"atualizado_por"                       bigint               NULL,
 	"criado_em"                            timestamptz          DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -689,7 +690,8 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "uk_task_employee_task_emplo
 		CONSTRAINT "pk_transaction_cost_center" PRIMARY KEY 
 		(
 			"transaction_cost_center_id"
-		) 
+		),
+		CONSTRAINT "chk_transaction_cost_center_percentage" CHECK (transaction_cost_center_percentage >= 0 AND transaction_cost_center_percentage <= 100)
 );
 
 ALTER TABLE "erp"."tb_transaction_cost_center" ADD CONSTRAINT "uk_transaction_cost_center_transaction_cost_center" UNIQUE("financial_transaction_id","cost_center_id");

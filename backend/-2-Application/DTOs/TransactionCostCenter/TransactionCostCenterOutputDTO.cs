@@ -6,6 +6,7 @@ namespace ERP.Application.DTOs
         public long FinancialTransactionId { get; set; }
         public long CostCenterId { get; set; }
         public long Amount { get; set; }
+        public decimal Percentage { get; set; }
         public long CriadoPor { get; set; }
         public long? AtualizadoPor { get; set; }
         public DateTime CriadoEm { get; set; }

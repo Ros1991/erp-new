@@ -7,6 +7,7 @@ import { Select } from '../../components/ui/Select';
 import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityPicker';
 import { Card, CardContent } from '../../components/ui/Card';
+import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
 import { useToast } from '../../contexts/ToastContext';
 import financialTransactionService from '../../services/financialTransactionService';
 import accountService from '../../services/accountService';
@@ -42,6 +43,7 @@ export function FinancialTransactionForm() {
     transactionDate: new Date().toISOString().split('T')[0],
   });
 
+  const [costCenterDistributions, setCostCenterDistributions] = useState<CostCenterDistributionItem[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FinancialTransactionFormData, string>>>({});
 
   const isEditing = !!id;
@@ -66,6 +68,17 @@ export function FinancialTransactionForm() {
         amount: transaction.amount.toString(),
         transactionDate: transaction.transactionDate.split('T')[0],
       });
+
+      // Carregar distribuições de centro de custo se houver
+      if (transaction.costCenterDistributions && transaction.costCenterDistributions.length > 0) {
+        const distributions = transaction.costCenterDistributions.map(d => ({
+          costCenterId: d.costCenterId.toString(),
+          costCenterName: d.costCenterName || '',
+          percentage: d.percentage,
+          amount: d.amount || 0,
+        }));
+        setCostCenterDistributions(distributions);
+      }
     } catch (err: any) {
       handleBackendError(err);
     } finally {
@@ -110,6 +123,23 @@ export function FinancialTransactionForm() {
       return;
     }
 
+    // Validar distribuições de centro de custo
+    if (costCenterDistributions.length > 0) {
+      const totalPercentage = costCenterDistributions.reduce((sum, d) => sum + d.percentage, 0);
+      
+      if (Math.abs(totalPercentage - 100) > 0.01) {
+        showError('A soma das porcentagens dos centros de custo deve ser 100%');
+        return;
+      }
+
+      // Verificar se todos têm centro de custo selecionado
+      const hasEmptyCostCenter = costCenterDistributions.some(d => !d.costCenterId);
+      if (hasEmptyCostCenter) {
+        showError('Selecione um centro de custo para todas as distribuições');
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const transactionData = {
@@ -119,6 +149,11 @@ export function FinancialTransactionForm() {
         type: formData.type.trim(),
         amount: Number(formData.amount),
         transactionDate: new Date(formData.transactionDate).toISOString(),
+        costCenterDistributions: costCenterDistributions.length > 0 ? costCenterDistributions.map(d => ({
+          costCenterId: Number(d.costCenterId),
+          percentage: d.percentage,
+          amount: d.amount
+        })) : undefined,
       };
 
       if (isEditing) {
@@ -340,6 +375,17 @@ export function FinancialTransactionForm() {
                 </div>
               </div>
 
+            </CardContent>
+          </Card>
+
+          {/* Distribuição por Centro de Custo */}
+          <Card>
+            <CardContent className="p-6">
+              <CostCenterDistribution
+                totalAmount={Number(formData.amount)}
+                distributions={costCenterDistributions}
+                onChange={setCostCenterDistributions}
+              />
             </CardContent>
           </Card>
 

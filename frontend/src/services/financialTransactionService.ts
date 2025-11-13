@@ -13,6 +13,7 @@ export interface FinancialTransaction {
   type: string;
   amount: number;
   transactionDate: string;
+  costCenterDistributions?: CostCenterDistribution[];
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
@@ -36,6 +37,13 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
+export interface CostCenterDistribution {
+  costCenterId: number;
+  costCenterName?: string;
+  percentage: number;
+  amount: number;
+}
+
 export interface FinancialTransactionInput {
   accountId: number;
   purchaseOrderId?: number;
@@ -45,6 +53,7 @@ export interface FinancialTransactionInput {
   type: string;
   amount: number;
   transactionDate: string;
+  costCenterDistributions?: CostCenterDistribution[];
 }
 
 const financialTransactionService = {

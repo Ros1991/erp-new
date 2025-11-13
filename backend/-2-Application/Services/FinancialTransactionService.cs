@@ -52,10 +52,45 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
+            // Validar distribuições se houver
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var totalPercentage = dto.CostCenterDistributions.Sum(d => d.Percentage);
+                if (Math.Abs(totalPercentage - 100) > 0.01m)
+                {
+                    throw new ValidationException("CostCenterDistributions", "A soma das porcentagens deve ser 100%");
+                }
+            }
+
             var entity = FinancialTransactionMapper.ToEntity(dto, companyId, currentUserId);
             
             var createdEntity = await _unitOfWork.FinancialTransactionRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
+
+            // Criar distribuições de centro de custo
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var now = DateTime.UtcNow;
+                foreach (var distribution in dto.CostCenterDistributions)
+                {
+                    var tcc = new Domain.Entities.TransactionCostCenter(
+                        createdEntity.FinancialTransactionId,
+                        distribution.CostCenterId,
+                        distribution.Amount ?? 0,
+                        distribution.Percentage,
+                        currentUserId,
+                        null,
+                        now,
+                        null
+                    );
+                    createdEntity.TransactionCostCenterList.Add(tcc);
+                }
+                await _unitOfWork.SaveChangesAsync();
+
+                // Recarregar a entidade com as distribuições
+                createdEntity = await _unitOfWork.FinancialTransactionRepository.GetOneByIdAsync(createdEntity.FinancialTransactionId);
+            }
+
             return FinancialTransactionMapper.ToFinancialTransactionOutputDTO(createdEntity);
         }
 
@@ -66,6 +101,16 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
+            // Validar distribuições se houver
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var totalPercentage = dto.CostCenterDistributions.Sum(d => d.Percentage);
+                if (Math.Abs(totalPercentage - 100) > 0.01m)
+                {
+                    throw new ValidationException("CostCenterDistributions", "A soma das porcentagens deve ser 100%");
+                }
+            }
+
             var existingEntity = await _unitOfWork.FinancialTransactionRepository.GetOneByIdAsync(financialTransactionId);
             if (existingEntity == null)
             {
@@ -73,6 +118,32 @@ namespace ERP.Application.Services
             }
 
             FinancialTransactionMapper.UpdateEntity(existingEntity, dto, currentUserId);
+
+            // Remover distribuições antigas
+            if (existingEntity.TransactionCostCenterList != null && existingEntity.TransactionCostCenterList.Any())
+            {
+                existingEntity.TransactionCostCenterList.Clear();
+            }
+
+            // Criar novas distribuições
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var now = DateTime.UtcNow;
+                foreach (var distribution in dto.CostCenterDistributions)
+                {
+                    var tcc = new Domain.Entities.TransactionCostCenter(
+                        financialTransactionId,
+                        distribution.CostCenterId,
+                        distribution.Amount ?? 0,
+                        distribution.Percentage,
+                        currentUserId,
+                        null,
+                        now,
+                        null
+                    );
+                    existingEntity.TransactionCostCenterList.Add(tcc);
+                }
+            }
             
             await _unitOfWork.SaveChangesAsync();
             return FinancialTransactionMapper.ToFinancialTransactionOutputDTO(existingEntity);

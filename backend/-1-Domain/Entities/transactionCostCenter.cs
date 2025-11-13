@@ -22,6 +22,9 @@ namespace ERP.Domain.Entities
 		[Column("transaction_cost_center_amount")]
 		public long Amount { get; set; }
 
+		[Column("transaction_cost_center_percentage")]
+		public decimal Percentage { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
@@ -47,6 +50,7 @@ namespace ERP.Domain.Entities
 			long Param_FinancialTransactionId, 
 			long Param_CostCenterId, 
 			long Param_Amount, 
+			decimal Param_Percentage, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 
@@ -56,6 +60,7 @@ namespace ERP.Domain.Entities
 			FinancialTransactionId = Param_FinancialTransactionId;
 			CostCenterId = Param_CostCenterId;
 			Amount = Param_Amount;
+			Percentage = Param_Percentage;
 			CriadoPor = Param_CriadoPor;
 			AtualizadoPor = Param_AtualizadoPor;
 			CriadoEm = Param_CriadoEm;

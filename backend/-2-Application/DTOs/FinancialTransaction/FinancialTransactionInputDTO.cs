@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ERP.Application.DTOs.FinancialTransaction;
 
 namespace ERP.Application.DTOs
 {
@@ -26,5 +27,8 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Data da transação é obrigatória")]
         public DateTime TransactionDate { get; set; }
+
+        // Lista de distribuição por centro de custo (opcional)
+        public List<CostCenterDistributionDTO>? CostCenterDistributions { get; set; }
     }
 }

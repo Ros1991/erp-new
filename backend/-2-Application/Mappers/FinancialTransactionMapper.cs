@@ -23,6 +23,13 @@ namespace ERP.Application.Mappers
                 Type = entity.Type,
                 Amount = entity.Amount,
                 TransactionDate = entity.TransactionDate,
+                CostCenterDistributions = entity.TransactionCostCenterList?.Select(tcc => new ERP.Application.DTOs.FinancialTransaction.CostCenterDistributionDTO
+                {
+                    CostCenterId = tcc.CostCenterId,
+                    CostCenterName = tcc.CostCenter?.Name,
+                    Percentage = tcc.Percentage,
+                    Amount = tcc.Amount
+                }).ToList(),
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,

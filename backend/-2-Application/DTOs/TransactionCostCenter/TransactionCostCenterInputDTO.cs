@@ -12,5 +12,9 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Valor é obrigatório")]
         public long Amount { get; set; }
+
+        [Required(ErrorMessage = "Porcentagem é obrigatória")]
+        [Range(0.01, 100, ErrorMessage = "Porcentagem deve estar entre 0.01 e 100")]
+        public decimal Percentage { get; set; }
     }
 }
