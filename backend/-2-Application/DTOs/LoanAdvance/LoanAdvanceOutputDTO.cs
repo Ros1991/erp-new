@@ -4,6 +4,7 @@ namespace ERP.Application.DTOs
     {
         public long LoanAdvanceId { get; set; }
         public long EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
         public long Amount { get; set; }
         public long Installments { get; set; }
         public string DiscountSource { get; set; }

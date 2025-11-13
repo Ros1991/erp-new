@@ -9,11 +9,14 @@ import { SwipeToDelete } from '../../components/ui/SwipeToDelete';
 import { Protected } from '../../components/permissions/Protected';
 import { usePermissions } from '../../contexts/PermissionContext';
 import { useToast } from '../../contexts/ToastContext';
-import supplierCustomerService, { type SupplierCustomer, type SupplierCustomerFilters } from '../../services/supplierCustomerService';
+import financialTransactionService, { 
+  type FinancialTransaction, 
+  type FinancialTransactionFilters 
+} from '../../services/financialTransactionService';
 import { 
   Plus, 
   Search, 
-  Users,
+  ArrowRightLeft,
   Edit,
   Trash2,
   ChevronDown,
@@ -25,35 +28,35 @@ import {
   Filter
 } from 'lucide-react';
 
-export function SupplierCustomers() {
+export function FinancialTransactions() {
   const navigate = useNavigate();
   const { showSuccess, handleBackendError } = useToast();
   const { hasPermission } = usePermissions();
-  const [items, setItems] = useState<SupplierCustomer[]>([]);
+  const [items, setItems] = useState<FinancialTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<SupplierCustomer | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<FinancialTransaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
   const loadItems = useCallback(async () => {
     setIsLoading(true);
     try {
-      const filters: SupplierCustomerFilters = {
+      const filters: FinancialTransactionFilters = {
         search: searchTerm || undefined,
         page: currentPage,
         pageSize,
-        orderBy: 'name',
+        orderBy: 'transactionDate',
         isAscending: sortDirection === 'asc'
       };
 
-      const result = await supplierCustomerService.getSupplierCustomers(filters);
+      const result = await financialTransactionService.getFinancialTransactions(filters);
       setItems(result.items);
       setTotalPages(result.totalPages);
       setTotalCount(result.total || result.totalCount || 0);
@@ -73,7 +76,7 @@ export function SupplierCustomers() {
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
   };
 
-  const handleDeleteClick = (item: SupplierCustomer) => {
+  const handleDeleteClick = (item: FinancialTransaction) => {
     setItemToDelete(item);
     setDeleteDialogOpen(true);
   };
@@ -83,8 +86,8 @@ export function SupplierCustomers() {
 
     setIsDeleting(true);
     try {
-      await supplierCustomerService.deleteSupplierCustomer(itemToDelete.supplierCustomerId);
-      showSuccess('Fornecedor e Cliente excluído com sucesso!');
+      await financialTransactionService.deleteFinancialTransaction(itemToDelete.financialTransactionId);
+      showSuccess('Transação excluída com sucesso!');
       setDeleteDialogOpen(false);
       setItemToDelete(null);
       loadItems();
@@ -100,6 +103,14 @@ export function SupplierCustomers() {
     setItemToDelete(null);
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value / 100);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
   return (
     <MainLayout>
       {/* Header */}
@@ -107,13 +118,13 @@ export function SupplierCustomers() {
         {/* Desktop Header with Button */}
         <div className="hidden sm:flex sm:items-start sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Fornecedores e Clientes</h1>
-            <p className="text-base text-gray-600 mt-1">Gerencie fornecedores e clientes</p>
+            <h1 className="text-3xl font-bold text-gray-900">Transações Financeiras</h1>
+            <p className="text-base text-gray-600 mt-1">Gerencie transações financeiras</p>
           </div>
-          <Protected requires="supplierCustomer.canCreate">
-            <Button onClick={() => navigate('/supplier-customers/new')}>
+          <Protected requires="financialTransaction.canCreate">
+            <Button onClick={() => navigate('/financial-transactions/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              Novo Fornecedor e Cliente
+              Nova Transação
             </Button>
           </Protected>
         </div>
@@ -122,8 +133,8 @@ export function SupplierCustomers() {
         <div className="sm:hidden mb-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900">Fornecedores e Clientes</h1>
-              <p className="text-sm text-gray-600 mt-1">Gerencie fornecedores e clientes</p>
+              <h1 className="text-2xl font-bold text-gray-900">Transações</h1>
+              <p className="text-sm text-gray-600 mt-1">Financeiras</p>
             </div>
             <Button
               variant="outline"
@@ -142,7 +153,7 @@ export function SupplierCustomers() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar por nome, email, telefone..."
+            placeholder="Buscar por descrição..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -158,7 +169,7 @@ export function SupplierCustomers() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Buscar por nome, email, telefone..."
+              placeholder="Buscar por descrição..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -171,11 +182,11 @@ export function SupplierCustomers() {
       </div>
 
       {/* Floating Action Button (Mobile only) */}
-      <Protected requires="supplierCustomer.canCreate">
+      <Protected requires="financialTransaction.canCreate">
         <button
-          onClick={() => navigate('/supplier-customers/new')}
+          onClick={() => navigate('/financial-transactions/new')}
           className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 active:scale-95 transition-all flex items-center justify-center z-50"
-          aria-label="Novo Fornecedor e Cliente"
+          aria-label="Nova Transação"
         >
           <Plus className="h-6 w-6" />
         </button>
@@ -188,26 +199,26 @@ export function SupplierCustomers() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Descrição
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Tipo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Valor
+                  </th>
                   <th className="px-6 py-3 text-left">
                     <button
                       onClick={handleSort}
                       className="flex items-center space-x-1 text-xs font-medium text-gray-700 uppercase tracking-wider hover:text-gray-900"
                     >
-                      <span>Nome</span>
+                      <span>Data</span>
                       {sortDirection === 'asc' ? 
                         <ChevronUp className="h-4 w-4" /> : 
                         <ChevronDown className="h-4 w-4" />
                       }
                     </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Telefone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Status
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Ações
@@ -226,49 +237,49 @@ export function SupplierCustomers() {
                 ) : items.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                      Nenhum fornecedor e cliente encontrado
+                      Nenhuma transação encontrada
                     </td>
                   </tr>
                 ) : (
                   items.map((item) => (
-                    <tr key={item.supplierCustomerId} className="hover:bg-gray-50 transition-colors">
+                    <tr key={item.financialTransactionId} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {item.email || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {item.phone || '-'}
+                        <div className="font-medium text-gray-900">{item.description}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          item.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
+                          item.type === 'Débito' || item.type === 'Saída'
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
                         }`}>
-                          {item.isActive ? 'Ativo' : 'Inativo'}
+                          {item.type}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatCurrency(item.amount)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatDate(item.transactionDate)}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Protected requires="supplierCustomer.canEdit">
+                          <Protected requires="financialTransaction.canEdit">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              title="Editar fornecedor e cliente"
-                              onClick={() => navigate(`/supplier-customers/${item.supplierCustomerId}/edit`)}
+                              title="Editar transação"
+                              onClick={() => navigate(`/financial-transactions/${item.financialTransactionId}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Protected>
-                          <Protected requires="supplierCustomer.canDelete">
+                          <Protected requires="financialTransaction.canDelete">
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDeleteClick(item)}
-                              title="Excluir fornecedor e cliente"
+                              title="Excluir transação"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -297,20 +308,20 @@ export function SupplierCustomers() {
         ) : items.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-gray-500">
-              Nenhum fornecedor e cliente encontrado
+              Nenhuma transação encontrada
             </CardContent>
           </Card>
         ) : (
           items.map((item) => {
-            const canEdit = hasPermission('supplierCustomer.canEdit');
-            const canDelete = hasPermission('supplierCustomer.canDelete');
+            const canEdit = hasPermission('financialTransaction.canEdit');
+            const canDelete = hasPermission('financialTransaction.canDelete');
             const isDisabled = !canEdit && !canDelete;
             
             return (
               <SwipeToDelete
-                key={item.supplierCustomerId}
+                key={item.financialTransactionId}
                 onDelete={canDelete ? () => handleDeleteClick(item) : () => {}}
-                onTap={canEdit ? () => navigate(`/supplier-customers/${item.supplierCustomerId}/edit`) : undefined}
+                onTap={canEdit ? () => navigate(`/financial-transactions/${item.financialTransactionId}/edit`) : undefined}
                 disabled={isDisabled}
                 showDeleteButton={canDelete}
               >
@@ -322,25 +333,31 @@ export function SupplierCustomers() {
                   <CardContent className="p-4 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0">
-                        <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-purple-600" />
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                          item.type === 'Débito' || item.type === 'Saída' ? 'bg-red-100' : 'bg-green-100'
+                        }`}>
+                          <ArrowRightLeft className={`h-5 w-5 ${
+                            item.type === 'Débito' || item.type === 'Saída' ? 'text-red-600' : 'text-green-600'
+                          }`} />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
-                        {item.email && (
-                          <p className="text-sm text-gray-600 truncate mt-1">{item.email}</p>
-                        )}
-                        {item.phone && (
-                          <p className="text-sm text-gray-500 mt-1">{item.phone}</p>
-                        )}
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-2 ${
-                          item.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {item.isActive ? 'Ativo' : 'Inativo'}
-                        </span>
+                        <h3 className="font-semibold text-gray-900 truncate">{item.description}</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Data: {formatDate(item.transactionDate)}
+                        </p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          <span className="text-sm font-medium text-gray-900">
+                            {formatCurrency(item.amount)}
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            item.type === 'Débito' || item.type === 'Saída'
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {item.type}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -357,7 +374,7 @@ export function SupplierCustomers() {
           <div className="flex flex-col gap-4">
             {/* Results Count */}
             <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
-              Exibindo {items.length} de {totalCount} fornecedor e cliente
+              Exibindo {items.length} de {totalCount} transação(ões)
               {totalPages > 1 && (
                 <span className="hidden sm:inline"> • Página {currentPage} de {totalPages}</span>
               )}
@@ -454,13 +471,13 @@ export function SupplierCustomers() {
         isOpen={deleteDialogOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Excluir Fornecedor e Cliente"
+        title="Excluir Transação"
         description={
           itemToDelete ? (
             <>
               <p className="text-base mb-2">
-                Tem certeza que deseja excluir{' '}
-                <span className="font-semibold text-gray-900">{itemToDelete.name}</span>?
+                Tem certeza que deseja excluir a transação{' '}
+                <span className="font-semibold text-gray-900">{itemToDelete.description}</span>?
               </p>
             </>
           ) : ''

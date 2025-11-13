@@ -56,7 +56,7 @@ export function PurchaseOrders() {
       const result = await purchaseOrderService.getPurchaseOrders(filters);
       setItems(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setItems([]);

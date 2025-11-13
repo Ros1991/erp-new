@@ -56,7 +56,7 @@ export function Tasks() {
       const result = await taskService.getTasks(filters);
       setItems(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setItems([]);

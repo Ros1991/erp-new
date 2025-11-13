@@ -16,7 +16,8 @@ import {
   CheckSquare,
   FolderOpen,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ArrowRightLeft
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -54,12 +55,13 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: Users, label: 'Usuários', path: '/users', permission: 'user.canView' },
         { icon: UserCheck, label: 'Empregados', path: '/employees', permission: 'employee.canView' },
         { icon: Wallet, label: 'Contas Correntes', path: '/accounts', permission: 'account.canView' },
-        { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
+        { icon: UsersIcon, label: 'Fornecedores e Clientes', path: '/supplier-customers', permission: 'supplierCustomer.canView' },
         { icon: PieChart, label: 'Centros de Custo', path: '/cost-centers', permission: 'costCenter.canView' },
+        { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
         { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },
+        { icon: ArrowRightLeft, label: 'Transações Financeiras', path: '/financial-transactions', permission: 'financialTransaction.canView' },
         { icon: MapPin, label: 'Locais', path: '/locations', permission: 'location.canView' },
         { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
-        { icon: UsersIcon, label: 'Fornecedores e Clientes', path: '/supplier-customers', permission: 'supplierCustomer.canView' },
         { icon: CheckSquare, label: 'Tarefas', path: '/tasks', permission: 'task.canView' },
       ]
     },

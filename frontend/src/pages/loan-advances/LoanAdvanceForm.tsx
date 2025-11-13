@@ -1,20 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
+import { CurrencyInput } from '../../components/ui/CurrencyInput';
+import { NumberInput } from '../../components/ui/NumberInput';
+import { Select } from '../../components/ui/Select';
+import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityPicker';
 import { useToast } from '../../contexts/ToastContext';
 import loanAdvanceService from '../../services/loanAdvanceService';
+import employeeService from '../../services/employeeService';
 import { ArrowLeft, Save } from 'lucide-react';
 
 interface LoanAdvanceFormData {
   employeeId: string;
+  employeeName: string;
   amount: string;
-  installments: string;
+  installments: number;
   discountSource: string;
   startDate: string;
-  isApproved: boolean;
 }
 
 export function LoanAdvanceForm() {
@@ -26,11 +31,11 @@ export function LoanAdvanceForm() {
   
   const [formData, setFormData] = useState<LoanAdvanceFormData>({
     employeeId: '',
+    employeeName: '',
     amount: '0',
-    installments: '1',
-    discountSource: '',
-    startDate: '',
-    isApproved: false,
+    installments: 1,
+    discountSource: 'Todos',
+    startDate: new Date().toISOString().split('T')[0], // Data de hoje
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof LoanAdvanceFormData, string>>>({});
@@ -49,11 +54,11 @@ export function LoanAdvanceForm() {
       const loanAdvance = await loanAdvanceService.getLoanAdvanceById(Number(id));
       setFormData({
         employeeId: loanAdvance.employeeId.toString(),
+        employeeName: loanAdvance.employeeName || '',
         amount: loanAdvance.amount.toString(),
-        installments: loanAdvance.installments.toString(),
+        installments: Number(loanAdvance.installments),
         discountSource: loanAdvance.discountSource,
         startDate: loanAdvance.startDate.split('T')[0],
-        isApproved: loanAdvance.isApproved,
       });
     } catch (err: any) {
       handleBackendError(err);
@@ -65,22 +70,16 @@ export function LoanAdvanceForm() {
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof LoanAdvanceFormData, string>> = {};
 
-    if (!formData.employeeId.trim()) {
-      newErrors.employeeId = 'ID do empregado é obrigatório';
-    } else if (isNaN(Number(formData.employeeId))) {
-      newErrors.employeeId = 'ID do empregado deve ser um número válido';
+    if (!formData.employeeId) {
+      newErrors.employeeId = 'Empregado é obrigatório';
     }
 
-    if (!formData.amount.trim()) {
-      newErrors.amount = 'Valor é obrigatório';
-    } else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
-      newErrors.amount = 'Valor deve ser um número positivo';
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      newErrors.amount = 'Valor é obrigatório e deve ser maior que zero';
     }
 
-    if (!formData.installments.trim()) {
-      newErrors.installments = 'Número de parcelas é obrigatório';
-    } else if (isNaN(Number(formData.installments)) || Number(formData.installments) <= 0) {
-      newErrors.installments = 'Parcelas deve ser um número positivo';
+    if (formData.installments <= 0) {
+      newErrors.installments = 'Número de parcelas deve ser maior que zero';
     }
 
     if (!formData.discountSource.trim()) {
@@ -108,10 +107,10 @@ export function LoanAdvanceForm() {
       const loanAdvanceData = {
         employeeId: Number(formData.employeeId),
         amount: Number(formData.amount),
-        installments: Number(formData.installments),
+        installments: formData.installments,
         discountSource: formData.discountSource.trim(),
         startDate: new Date(formData.startDate).toISOString(),
-        isApproved: formData.isApproved,
+        isApproved: true, // Sempre aprovado
       };
 
       if (isEditing) {
@@ -130,11 +129,63 @@ export function LoanAdvanceForm() {
     }
   };
 
-  const handleChange = (field: keyof LoanAdvanceFormData, value: string | boolean) => {
+  const handleChange = (field: keyof LoanAdvanceFormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const handleEmployeeChange = (item: EntityPickerItem | null) => {
+    setFormData(prev => ({
+      ...prev,
+      employeeId: item ? item.id.toString() : '',
+      employeeName: item ? item.displayText : ''
+    }));
+    if (errors.employeeId) {
+      setErrors(prev => ({ ...prev, employeeId: undefined }));
+    }
+  };
+
+  const handleSearchEmployee = async (searchTerm: string, page: number) => {
+    try {
+      const result = await employeeService.getEmployees({
+        search: searchTerm,
+        page: page,
+        pageSize: 10,
+      });
+
+      return {
+        items: result.items.map(item => ({
+          id: item.employeeId,
+          displayText: item.fullName,
+          secondaryText: item.email || item.phone || undefined
+        })),
+        totalPages: result.totalPages,
+        totalCount: result.totalCount
+      };
+    } catch (error) {
+      console.error('Erro ao buscar empregados:', error);
+      return {
+        items: [],
+        totalPages: 1,
+        totalCount: 0
+      };
+    }
+  };
+
+  // Calcular valor da parcela
+  const installmentValue = useMemo(() => {
+    const amount = Number(formData.amount) || 0;
+    const installments = formData.installments || 1;
+    return amount / installments;
+  }, [formData.amount, formData.installments]);
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value / 100);
   };
 
   if (isLoading) {
@@ -173,14 +224,15 @@ export function LoanAdvanceForm() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-1">
-                    ID do Empregado <span className="text-red-500">*</span>
+                    Empregado <span className="text-red-500">*</span>
                   </label>
-                  <Input
-                    id="employeeId"
-                    type="text"
-                    value={formData.employeeId}
-                    onChange={(e) => handleChange('employeeId', e.target.value)}
-                    placeholder="ID do empregado"
+                  <EntityPicker
+                    value={formData.employeeId ? Number(formData.employeeId) : null}
+                    selectedLabel={formData.employeeName}
+                    onChange={handleEmployeeChange}
+                    onSearch={handleSearchEmployee}
+                    placeholder="Selecione um empregado"
+                    label="Selecionar Empregado"
                     className={errors.employeeId ? 'border-red-500' : ''}
                   />
                   {errors.employeeId && <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>}
@@ -188,53 +240,61 @@ export function LoanAdvanceForm() {
 
                 <div>
                   <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                    Valor (R$) <span className="text-red-500">*</span>
+                    Valor <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <CurrencyInput
                     id="amount"
-                    type="text"
                     value={formData.amount}
-                    onChange={(e) => handleChange('amount', e.target.value)}
-                    placeholder="0.00"
+                    onChange={(value) => handleChange('amount', value)}
                     className={errors.amount ? 'border-red-500' : ''}
                   />
                   {errors.amount && <p className="text-sm text-red-600 mt-1">{errors.amount}</p>}
-                  <p className="text-sm text-gray-500 mt-1">Digite o valor em centavos (ex: 50000 = R$ 500,00)</p>
                 </div>
 
                 <div>
                   <label htmlFor="installments" className="block text-sm font-medium text-gray-700 mb-1">
                     Número de Parcelas <span className="text-red-500">*</span>
                   </label>
-                  <Input
-                    id="installments"
-                    type="text"
+                  <NumberInput
                     value={formData.installments}
-                    onChange={(e) => handleChange('installments', e.target.value)}
-                    placeholder="1"
+                    onChange={(value) => handleChange('installments', value)}
+                    min={1}
+                    max={999}
                     className={errors.installments ? 'border-red-500' : ''}
                   />
                   {errors.installments && <p className="text-sm text-red-600 mt-1">{errors.installments}</p>}
                 </div>
 
+                {/* Label indicativa do valor da parcela */}
+                {formData.amount && Number(formData.amount) > 0 && formData.installments > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm font-medium text-blue-900 text-center">
+                      {formData.installments}x de {formatCurrency(installmentValue)}
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="discountSource" className="block text-sm font-medium text-gray-700 mb-1">
                     Fonte de Desconto <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <Select
                     id="discountSource"
-                    type="text"
                     value={formData.discountSource}
                     onChange={(e) => handleChange('discountSource', e.target.value)}
-                    placeholder="Ex: Folha de Pagamento, Vale Alimentação"
                     className={errors.discountSource ? 'border-red-500' : ''}
-                  />
+                  >
+                    <option value="Todos">Todos</option>
+                    <option value="Mensal">Mensal</option>
+                    <option value="Férias">Férias</option>
+                    <option value="Décimo Terceiro">Décimo Terceiro</option>
+                  </Select>
                   {errors.discountSource && <p className="text-sm text-red-600 mt-1">{errors.discountSource}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Data de Início <span className="text-red-500">*</span>
+                    Data de Início da Cobrança <span className="text-red-500">*</span>
                   </label>
                   <Input
                     id="startDate"
@@ -244,19 +304,6 @@ export function LoanAdvanceForm() {
                     className={errors.startDate ? 'border-red-500' : ''}
                   />
                   {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    id="isApproved"
-                    type="checkbox"
-                    checked={formData.isApproved}
-                    onChange={(e) => handleChange('isApproved', e.target.checked)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="isApproved" className="ml-2 block text-sm text-gray-700">
-                    Empréstimo aprovado
-                  </label>
                 </div>
               </div>
             </CardContent>

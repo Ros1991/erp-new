@@ -3,6 +3,7 @@ import api from './api';
 export interface LoanAdvance {
   loanAdvanceId: number;
   employeeId: number;
+  employeeName?: string;
   amount: number;
   installments: number;
   discountSource: string;

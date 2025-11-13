@@ -78,7 +78,7 @@ export function Employees() {
       const result = await employeeService.getEmployees(filters);
       setEmployees(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setEmployees([]);

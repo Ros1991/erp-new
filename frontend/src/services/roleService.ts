@@ -39,6 +39,7 @@ export interface PagedResult<T> {
   page: number;
   pageSize: number;
   total: number;
+  totalCount: number;
   totalPages: number;
 }
 

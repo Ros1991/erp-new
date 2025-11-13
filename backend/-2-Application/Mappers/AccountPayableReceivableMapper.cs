@@ -14,6 +14,7 @@ namespace ERP.Application.Mappers
                 AccountPayableReceivableId = entity.AccountPayableReceivableId,
                 CompanyId = entity.CompanyId,
                 SupplierCustomerId = entity.SupplierCustomerId,
+                SupplierCustomerName = entity.SupplierCustomer?.Name,
                 Description = entity.Description,
                 Type = entity.Type,
                 Amount = entity.Amount,

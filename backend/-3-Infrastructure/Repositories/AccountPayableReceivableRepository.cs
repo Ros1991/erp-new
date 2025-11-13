@@ -22,6 +22,7 @@ namespace ERP.Infrastructure.Repositories
         {
             return await _context.Set<AccountPayableReceivable>()
                 .Where(a => a.CompanyId == companyId)
+                .Include(x => x.SupplierCustomer)
                 .ToListAsync();
         }
 
@@ -29,6 +30,7 @@ namespace ERP.Infrastructure.Repositories
         {
             var query = _context.Set<AccountPayableReceivable>()
                 .Where(a => a.CompanyId == companyId)
+                .Include(x => x.SupplierCustomer)
                 .AsQueryable();
 
             // Busca geral (Search)
@@ -63,7 +65,9 @@ namespace ERP.Infrastructure.Repositories
 
         public async Task<AccountPayableReceivable> GetOneByIdAsync(long accountPayableReceivableId)
         {
-            return await _context.Set<AccountPayableReceivable>().FindAsync(accountPayableReceivableId);
+            return await _context.Set<AccountPayableReceivable>()
+                .Include(x => x.SupplierCustomer)
+                .FirstOrDefaultAsync(x => x.AccountPayableReceivableId == accountPayableReceivableId);
         }
 
         public async Task<AccountPayableReceivable> CreateAsync(AccountPayableReceivable entity)

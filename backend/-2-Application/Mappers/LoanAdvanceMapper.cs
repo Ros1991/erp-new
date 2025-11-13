@@ -13,6 +13,7 @@ namespace ERP.Application.Mappers
             {
                 LoanAdvanceId = entity.LoanAdvanceId,
                 EmployeeId = entity.EmployeeId,
+                EmployeeName = entity.Employee?.Nickname,
                 Amount = entity.Amount,
                 Installments = entity.Installments,
                 DiscountSource = entity.DiscountSource,

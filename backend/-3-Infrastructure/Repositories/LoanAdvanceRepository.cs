@@ -64,7 +64,9 @@ namespace ERP.Infrastructure.Repositories
 
         public async Task<LoanAdvance> GetOneByIdAsync(long loanAdvanceId)
         {
-            return await _context.Set<LoanAdvance>().FindAsync(loanAdvanceId);
+            return await _context.Set<LoanAdvance>()
+                .Include(x => x.Employee)
+                .FirstOrDefaultAsync(x => x.LoanAdvanceId == loanAdvanceId);
         }
 
         public async Task<LoanAdvance> CreateAsync(LoanAdvance entity)

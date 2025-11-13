@@ -204,6 +204,35 @@
       ]
     },
     {
+      "key": "financialTransaction",
+      "name": "Transações Financeiras",
+      "description": "Gerenciar transações financeiras",
+      "icon": "arrow-right-left",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de transações financeiras"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar novas transações financeiras"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar transações financeiras existentes"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir transações financeiras"
+        }
+      ]
+    },
+    {
       "key": "location",
       "name": "Locais",
       "description": "Gerenciar locais de trabalho",

@@ -26,9 +26,10 @@ export interface CompanyUserFilters {
 
 export interface PagedResult<T> {
   items: T[];
-  totalCount: number;
   page: number;
   pageSize: number;
+  total: number;
+  totalCount: number;
   totalPages: number;
 }
 

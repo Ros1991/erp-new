@@ -66,7 +66,7 @@ export function Users() {
       const result = await companyUserService.getPaged(filters);
       setUsers(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setUsers([]);

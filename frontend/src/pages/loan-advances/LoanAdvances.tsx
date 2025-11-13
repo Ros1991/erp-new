@@ -19,8 +19,6 @@ import {
   DollarSign,
   Edit,
   Trash2,
-  ChevronDown,
-  ChevronUp,
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
@@ -35,7 +33,7 @@ export function LoanAdvances() {
   const [items, setItems] = useState<LoanAdvance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const sortDirection = 'asc'; // Ordenação fixa por enquanto
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -59,22 +57,18 @@ export function LoanAdvances() {
       const result = await loanAdvanceService.getLoanAdvances(filters);
       setItems(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setItems([]);
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, sortDirection, currentPage, pageSize, handleBackendError]);
+  }, [searchTerm, currentPage, handleBackendError]);
 
   useEffect(() => {
     loadItems();
   }, [loadItems]);
-
-  const handleSort = () => {
-    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-  };
 
   const handleDeleteClick = (item: LoanAdvance) => {
     setItemToDelete(item);
@@ -234,7 +228,7 @@ export function LoanAdvances() {
                   items.map((item) => (
                     <tr key={item.loanAdvanceId} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">ID: {item.employeeId}</div>
+                        <div className="font-medium text-gray-900">{item.employeeName || `ID: ${item.employeeId}`}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {formatCurrency(item.amount)}
@@ -331,7 +325,7 @@ export function LoanAdvances() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900">Funcionário ID: {item.employeeId}</h3>
+                        <h3 className="font-semibold text-gray-900">{item.employeeName || `ID: ${item.employeeId}`}</h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {formatCurrency(item.amount)} • {item.installments}x
                         </p>
@@ -363,7 +357,7 @@ export function LoanAdvances() {
           <div className="flex flex-col gap-4">
             {/* Results Count */}
             <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
-              Exibindo {items.length} de {totalCount} empréstimo(s)/adiantamento(s)
+              Mostrando {items.length} de {totalCount} {totalCount === 1 ? 'registro' : 'registros'}
               {totalPages > 1 && (
                 <span className="hidden sm:inline"> • Página {currentPage} de {totalPages}</span>
               )}

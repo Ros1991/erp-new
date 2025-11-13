@@ -8,59 +8,63 @@ import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityPicker';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
-import accountPayableReceivableService from '../../services/accountPayableReceivableService';
+import financialTransactionService from '../../services/financialTransactionService';
+import accountService from '../../services/accountService';
 import supplierCustomerService from '../../services/supplierCustomerService';
 import { ArrowLeft, Save } from 'lucide-react';
 
-interface AccountPayableReceivableFormData {
+interface FinancialTransactionFormData {
+  accountId: string;
+  accountName: string;
   supplierCustomerId: string;
   supplierCustomerName: string;
   description: string;
   type: string;
   amount: string;
-  dueDate: string;
-  isPaid: boolean;
+  transactionDate: string;
 }
 
-export function AccountPayableReceivableForm() {
+export function FinancialTransactionForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showError, showSuccess, handleBackendError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [formData, setFormData] = useState<AccountPayableReceivableFormData>({
+  const [formData, setFormData] = useState<FinancialTransactionFormData>({
+    accountId: '',
+    accountName: '',
     supplierCustomerId: '',
     supplierCustomerName: '',
     description: '',
-    type: 'Pagar',
+    type: 'Entrada',
     amount: '0',
-    dueDate: '',
-    isPaid: false,
+    transactionDate: new Date().toISOString().split('T')[0],
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof AccountPayableReceivableFormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FinancialTransactionFormData, string>>>({});
 
   const isEditing = !!id;
 
   useEffect(() => {
     if (isEditing) {
-      loadAccountPayableReceivable();
+      loadFinancialTransaction();
     }
   }, [id]);
 
-  const loadAccountPayableReceivable = async () => {
+  const loadFinancialTransaction = async () => {
     setIsLoading(true);
     try {
-      const account = await accountPayableReceivableService.getAccountPayableReceivableById(Number(id));
+      const transaction = await financialTransactionService.getFinancialTransactionById(Number(id));
       setFormData({
-        supplierCustomerId: account.supplierCustomerId?.toString() || '',
-        supplierCustomerName: account.supplierCustomerName || '',
-        description: account.description,
-        type: account.type,
-        amount: account.amount.toString(),
-        dueDate: account.dueDate.split('T')[0],
-        isPaid: account.isPaid,
+        accountId: transaction.accountId.toString(),
+        accountName: transaction.accountName || '',
+        supplierCustomerId: transaction.supplierCustomerId?.toString() || '',
+        supplierCustomerName: transaction.supplierCustomerName || '',
+        description: transaction.description,
+        type: transaction.type,
+        amount: transaction.amount.toString(),
+        transactionDate: transaction.transactionDate.split('T')[0],
       });
     } catch (err: any) {
       handleBackendError(err);
@@ -70,7 +74,11 @@ export function AccountPayableReceivableForm() {
   };
 
   const validate = (): boolean => {
-    const newErrors: Partial<Record<keyof AccountPayableReceivableFormData, string>> = {};
+    const newErrors: Partial<Record<keyof FinancialTransactionFormData, string>> = {};
+
+    if (!formData.accountId) {
+      newErrors.accountId = 'Conta é obrigatória';
+    }
 
     if (!formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
@@ -86,8 +94,8 @@ export function AccountPayableReceivableForm() {
       newErrors.amount = 'Valor deve ser um número válido';
     }
 
-    if (!formData.dueDate) {
-      newErrors.dueDate = 'Data de vencimento é obrigatória';
+    if (!formData.transactionDate) {
+      newErrors.transactionDate = 'Data da transação é obrigatória';
     }
 
     setErrors(newErrors);
@@ -104,28 +112,66 @@ export function AccountPayableReceivableForm() {
 
     setIsSaving(true);
     try {
-      const accountData = {
+      const transactionData = {
+        accountId: Number(formData.accountId),
         supplierCustomerId: formData.supplierCustomerId ? Number(formData.supplierCustomerId) : undefined,
         description: formData.description.trim(),
         type: formData.type.trim(),
         amount: Number(formData.amount),
-        dueDate: new Date(formData.dueDate).toISOString(),
-        isPaid: formData.isPaid,
+        transactionDate: new Date(formData.transactionDate).toISOString(),
       };
 
       if (isEditing) {
-        await accountPayableReceivableService.updateAccountPayableReceivable(Number(id), accountData);
-        showSuccess('Conta atualizada com sucesso!');
+        await financialTransactionService.updateFinancialTransaction(Number(id), transactionData);
+        showSuccess('Transação atualizada com sucesso!');
       } else {
-        await accountPayableReceivableService.createAccountPayableReceivable(accountData);
-        showSuccess('Conta criada com sucesso!');
+        await financialTransactionService.createFinancialTransaction(transactionData);
+        showSuccess('Transação criada com sucesso!');
       }
 
-      navigate('/account-payable-receivable');
+      navigate('/financial-transactions');
     } catch (err: any) {
       handleBackendError(err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSearchAccount = async (searchTerm: string, page: number) => {
+    try {
+      const result = await accountService.getAccounts({
+        search: searchTerm,
+        page: page,
+        pageSize: 10,
+      });
+
+      return {
+        items: result.items.map(item => ({
+          id: item.accountId,
+          displayText: item.name,
+          secondaryText: item.type || undefined
+        })),
+        totalPages: result.totalPages,
+        totalCount: result.totalCount
+      };
+    } catch (error) {
+      console.error('Erro ao buscar contas:', error);
+      return {
+        items: [],
+        totalPages: 1,
+        totalCount: 0
+      };
+    }
+  };
+
+  const handleAccountChange = (item: EntityPickerItem | null) => {
+    setFormData(prev => ({
+      ...prev,
+      accountId: item ? item.id.toString() : '',
+      accountName: item ? item.displayText : ''
+    }));
+    if (errors.accountId) {
+      setErrors(prev => ({ ...prev, accountId: undefined }));
     }
   };
 
@@ -164,7 +210,7 @@ export function AccountPayableReceivableForm() {
     }));
   };
 
-  const handleChange = (field: keyof AccountPayableReceivableFormData, value: string | boolean) => {
+  const handleChange = (field: keyof FinancialTransactionFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -187,17 +233,17 @@ export function AccountPayableReceivableForm() {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/account-payable-receivable')}
+            onClick={() => navigate('/financial-transactions')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? 'Editar Conta a Pagar e Receber' : 'Nova Conta a Pagar e Receber'}
+            {isEditing ? 'Editar Transação Financeira' : 'Nova Transação Financeira'}
           </h1>
           <p className="text-gray-600 mt-1">
-            {isEditing ? 'Atualize as informações da conta' : 'Preencha as informações para criar uma nova conta'}
+            {isEditing ? 'Atualize as informações da transação' : 'Preencha as informações para criar uma nova transação'}
           </p>
         </div>
 
@@ -205,6 +251,22 @@ export function AccountPayableReceivableForm() {
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
+                <div>
+                  <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Conta Corrente <span className="text-red-500">*</span>
+                  </label>
+                  <EntityPicker
+                    value={formData.accountId ? Number(formData.accountId) : null}
+                    selectedLabel={formData.accountName}
+                    onChange={handleAccountChange}
+                    onSearch={handleSearchAccount}
+                    placeholder="Selecione uma conta"
+                    label="Selecionar Conta Corrente"
+                    className={errors.accountId ? 'border-red-500' : ''}
+                  />
+                  {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
+                </div>
+
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                     Descrição <span className="text-red-500">*</span>
@@ -214,7 +276,7 @@ export function AccountPayableReceivableForm() {
                     type="text"
                     value={formData.description}
                     onChange={(e) => handleChange('description', e.target.value)}
-                    placeholder="Ex: Aluguel, Fornecedor XYZ"
+                    placeholder="Ex: Pagamento de fornecedor, Recebimento de cliente"
                     className={errors.description ? 'border-red-500' : ''}
                   />
                   {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
@@ -230,8 +292,8 @@ export function AccountPayableReceivableForm() {
                     onChange={(e) => handleChange('type', e.target.value)}
                     className={errors.type ? 'border-red-500' : ''}
                   >
-                    <option value="Pagar">Pagar</option>
-                    <option value="Receber">Receber</option>
+                    <option value="Entrada">Entrada</option>
+                    <option value="Saída">Saída</option>
                   </Select>
                   {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
                 </div>
@@ -250,17 +312,17 @@ export function AccountPayableReceivableForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Data de Vencimento <span className="text-red-500">*</span>
+                  <label htmlFor="transactionDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Data da Transação <span className="text-red-500">*</span>
                   </label>
                   <Input
-                    id="dueDate"
+                    id="transactionDate"
                     type="date"
-                    value={formData.dueDate}
-                    onChange={(e) => handleChange('dueDate', e.target.value)}
-                    className={errors.dueDate ? 'border-red-500' : ''}
+                    value={formData.transactionDate}
+                    onChange={(e) => handleChange('transactionDate', e.target.value)}
+                    className={errors.transactionDate ? 'border-red-500' : ''}
                   />
-                  {errors.dueDate && <p className="text-sm text-red-600 mt-1">{errors.dueDate}</p>}
+                  {errors.transactionDate && <p className="text-sm text-red-600 mt-1">{errors.transactionDate}</p>}
                 </div>
 
                 <div>
@@ -275,19 +337,6 @@ export function AccountPayableReceivableForm() {
                     placeholder="Selecione um fornecedor ou cliente"
                     label="Selecionar Fornecedor ou Cliente"
                   />
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    id="isPaid"
-                    type="checkbox"
-                    checked={formData.isPaid}
-                    onChange={(e) => handleChange('isPaid', e.target.checked)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="isPaid" className="ml-2 block text-sm text-gray-700">
-                    Conta paga
-                  </label>
                 </div>
               </div>
 
@@ -304,14 +353,14 @@ export function AccountPayableReceivableForm() {
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      {isEditing ? 'Atualizar' : 'Criar'} Conta
+                      {isEditing ? 'Atualizar' : 'Criar'} Transação
                     </>
                   )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/account-payable-receivable')}
+                  onClick={() => navigate('/financial-transactions')}
                   disabled={isSaving}
                   className="flex-1 sm:flex-none"
                 >

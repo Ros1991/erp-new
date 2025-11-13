@@ -56,7 +56,7 @@ export function CostCenters() {
       const result = await costCenterService.getCostCenters(filters);
       setCostCenters(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setCostCenters([]);

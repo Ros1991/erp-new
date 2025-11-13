@@ -4,6 +4,7 @@ export interface AccountPayableReceivable {
   accountPayableReceivableId: number;
   companyId: number;
   supplierCustomerId?: number;
+  supplierCustomerName?: string;
   description: string;
   type: string;
   amount: number;

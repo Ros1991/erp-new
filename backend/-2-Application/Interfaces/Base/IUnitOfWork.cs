@@ -19,6 +19,7 @@ namespace ERP.Application.Interfaces
         IPurchaseOrderRepository PurchaseOrderRepository { get; }
         ISupplierCustomerRepository SupplierCustomerRepository { get; }
         ITaskRepository TaskRepository { get; }
+        IFinancialTransactionRepository FinancialTransactionRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();

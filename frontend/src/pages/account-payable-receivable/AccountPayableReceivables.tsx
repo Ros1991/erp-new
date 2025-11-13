@@ -59,7 +59,7 @@ export function AccountPayableReceivables() {
       const result = await accountPayableReceivableService.getAccountPayableReceivables(filters);
       setItems(result.items);
       setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
+      setTotalCount(result.total || result.totalCount || 0);
     } catch (err: any) {
       handleBackendError(err);
       setItems([]);
@@ -109,6 +109,14 @@ export function AccountPayableReceivables() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const isOverdue = (dateString: string, isPaid: boolean) => {
+    if (isPaid) return false; // Se já está pago, não está vencido
+    const dueDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate < today;
   };
 
   return (
@@ -261,7 +269,11 @@ export function AccountPayableReceivables() {
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {formatCurrency(item.amount)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className={`px-6 py-4 text-sm ${
+                        isOverdue(item.dueDate, item.isPaid) 
+                          ? 'text-red-600 font-semibold' 
+                          : 'text-gray-900'
+                      }`}>
                         {formatDate(item.dueDate)}
                       </td>
                       <td className="px-6 py-4">
@@ -355,8 +367,10 @@ export function AccountPayableReceivables() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{item.description}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Vencimento: {formatDate(item.dueDate)}
+                        <p className="text-sm mt-1">
+                          Vencimento: <span className={isOverdue(item.dueDate, item.isPaid) ? 'text-red-600 font-semibold' : 'text-gray-600'}>
+                            {formatDate(item.dueDate)}
+                          </span>
                         </p>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           <span className="text-sm font-medium text-gray-900">

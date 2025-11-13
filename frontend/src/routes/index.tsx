@@ -31,6 +31,8 @@ import { CostCenters } from '../pages/cost-centers/CostCenters';
 import { CostCenterForm } from '../pages/cost-centers/CostCenterForm';
 import { LoanAdvances } from '../pages/loan-advances/LoanAdvances';
 import { LoanAdvanceForm } from '../pages/loan-advances/LoanAdvanceForm';
+import { FinancialTransactions } from '../pages/financial-transactions/FinancialTransactions';
+import { FinancialTransactionForm } from '../pages/financial-transactions/FinancialTransactionForm';
 import { Locations } from '../pages/locations/Locations';
 import { LocationForm } from '../pages/locations/LocationForm';
 import { PurchaseOrders } from '../pages/purchase-orders/PurchaseOrders';
@@ -374,6 +376,44 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="loanAdvance.canEdit">
                 <LoanAdvanceForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Financial Transactions */}
+      <Route
+        path="/financial-transactions"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="financialTransaction.canView">
+                <FinancialTransactions />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financial-transactions/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="financialTransaction.canCreate">
+                <FinancialTransactionForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financial-transactions/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="financialTransaction.canEdit">
+                <FinancialTransactionForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
