@@ -58,12 +58,12 @@ const accountService = {
   },
 
   async updateAccount(id: number, data: AccountInput): Promise<Account> {
-    const response = await api.put(`/account/update/${id}`, data);
+    const response = await api.put(`/account/${id}`, data);
     return response.data.data;
   },
 
   async deleteAccount(id: number): Promise<void> {
-    await api.delete(`/account/delete/${id}`);
+    await api.delete(`/account/${id}`);
   },
 };
 

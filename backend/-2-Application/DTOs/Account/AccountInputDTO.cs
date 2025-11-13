@@ -4,9 +4,6 @@ namespace ERP.Application.DTOs
 {
     public class AccountInputDTO
     {
-		[Required(ErrorMessage = "CompanyId é obrigatório")]
-		public long CompanyId { get; set; }
-	
 		[Required(ErrorMessage = "Name é obrigatório")]
 		[StringLength(255, ErrorMessage = "Name deve ter no máximo 255 caracteres")]
 		public string Name { get; set; }

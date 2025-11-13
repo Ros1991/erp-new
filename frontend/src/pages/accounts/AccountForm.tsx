@@ -4,6 +4,7 @@ import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import accountService from '../../services/accountService';
@@ -182,18 +183,15 @@ export function AccountForm() {
 
                 <div>
                   <label htmlFor="initialBalance" className="block text-sm font-medium text-gray-700 mb-1">
-                    Saldo Inicial (R$) <span className="text-red-500">*</span>
+                    Saldo Inicial <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <CurrencyInput
                     id="initialBalance"
-                    type="text"
                     value={formData.initialBalance}
-                    onChange={(e) => handleChange('initialBalance', e.target.value)}
-                    placeholder="0.00"
+                    onChange={(value) => handleChange('initialBalance', value)}
                     className={errors.initialBalance ? 'border-red-500' : ''}
                   />
                   {errors.initialBalance && <p className="text-sm text-red-600 mt-1">{errors.initialBalance}</p>}
-                  <p className="text-sm text-gray-500 mt-1">Digite o valor em centavos (ex: 1000 = R$ 10,00)</p>
                 </div>
               </div>
 

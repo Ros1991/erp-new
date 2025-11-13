@@ -52,9 +52,7 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
-            var entity = AccountMapper.ToEntity(dto, currentUserId);
-            // ✅ Força CompanyId do contexto (segurança)
-            entity.CompanyId = companyId;
+            var entity = AccountMapper.ToEntity(dto, companyId, currentUserId);
             
             var createdEntity = await _unitOfWork.AccountRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

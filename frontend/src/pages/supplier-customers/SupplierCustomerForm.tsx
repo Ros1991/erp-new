@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { PhoneInput } from '../../components/ui/PhoneInput';
+import { DocumentInput, sanitizeDocument } from '../../components/ui/DocumentInput';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import supplierCustomerService from '../../services/supplierCustomerService';
@@ -85,9 +87,9 @@ export function SupplierCustomerForm() {
     try {
       const supplierCustomerData = {
         name: formData.name.trim(),
-        document: formData.document.trim() || undefined,
+        document: formData.document ? sanitizeDocument(formData.document) : undefined,
         email: formData.email.trim() || undefined,
-        phone: formData.phone.trim() || undefined,
+        phone: formData.phone || undefined,
         address: formData.address.trim() || undefined,
         isActive: formData.isActive,
       };
@@ -168,13 +170,12 @@ export function SupplierCustomerForm() {
                   <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-1">
                     Documento (CPF/CNPJ)
                   </label>
-                  <Input
+                  <DocumentInput
                     id="document"
-                    type="text"
                     value={formData.document}
-                    onChange={(e) => handleChange('document', e.target.value)}
-                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                    onChange={(value) => handleChange('document', value)}
                   />
+                  <p className="text-xs text-gray-500 mt-1">Digite com ou sem formatação (pontos e barras serão removidos)</p>
                 </div>
 
                 <div>
@@ -194,12 +195,10 @@ export function SupplierCustomerForm() {
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     Telefone
                   </label>
-                  <Input
+                  <PhoneInput
                     id="phone"
-                    type="text"
                     value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="(00) 00000-0000"
+                    onChange={(value) => handleChange('phone', value)}
                   />
                 </div>
 

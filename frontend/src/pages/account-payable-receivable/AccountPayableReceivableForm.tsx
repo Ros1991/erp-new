@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import accountPayableReceivableService from '../../services/accountPayableReceivableService';
@@ -27,7 +29,7 @@ export function AccountPayableReceivableForm() {
   const [formData, setFormData] = useState<AccountPayableReceivableFormData>({
     supplierCustomerId: '',
     description: '',
-    type: '',
+    type: 'Pagar',
     amount: '0',
     dueDate: '',
     isPaid: false,
@@ -182,31 +184,29 @@ export function AccountPayableReceivableForm() {
                   <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
                     Tipo <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <Select
                     id="type"
-                    type="text"
                     value={formData.type}
                     onChange={(e) => handleChange('type', e.target.value)}
-                    placeholder="Ex: Pagar, Receber"
                     className={errors.type ? 'border-red-500' : ''}
-                  />
+                  >
+                    <option value="Pagar">Pagar</option>
+                    <option value="Receber">Receber</option>
+                  </Select>
                   {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                    Valor (R$) <span className="text-red-500">*</span>
+                    Valor <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <CurrencyInput
                     id="amount"
-                    type="text"
                     value={formData.amount}
-                    onChange={(e) => handleChange('amount', e.target.value)}
-                    placeholder="0.00"
+                    onChange={(value) => handleChange('amount', value)}
                     className={errors.amount ? 'border-red-500' : ''}
                   />
                   {errors.amount && <p className="text-sm text-red-600 mt-1">{errors.amount}</p>}
-                  <p className="text-sm text-gray-500 mt-1">Digite o valor em centavos (ex: 10000 = R$ 100,00)</p>
                 </div>
 
                 <div>

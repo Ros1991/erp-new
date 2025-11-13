@@ -63,7 +63,7 @@ public class AccountController : BaseController
         return await ValidateAndExecuteCreateAsync(
             () => _accountService.CreateAsync(dto, companyId, currentUserId),
             nameof(GetOneByIdAsync),
-            result => new { account_id = result.AccountId },
+            result => new { accountId = result.AccountId },
             "Conta criada com sucesso"
         );
     }

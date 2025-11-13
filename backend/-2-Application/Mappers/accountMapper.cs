@@ -29,14 +29,14 @@ namespace ERP.Application.Mappers
             return entities.Select(ToAccountOutputDTO).ToList();
         }
 
-        public static Account ToEntity(AccountInputDTO dto, long userId)
+        public static Account ToEntity(AccountInputDTO dto, long companyId, long userId)
         {
             if (dto == null) return null;
 
             var now = DateTime.UtcNow;
 
             return new Account(
-                dto.CompanyId,
+                companyId,
                 dto.Name,
                 dto.Type,
                 dto.InitialBalance,
@@ -50,7 +50,7 @@ namespace ERP.Application.Mappers
         public static void UpdateEntity(Account entity, AccountInputDTO dto, long userId)
         {
             if (entity == null || dto == null) return;
-            entity.CompanyId = dto.CompanyId;
+            // CompanyId não é alterado (mantém o da entidade existente)
             entity.Name = dto.Name;
             entity.Type = dto.Type;
             entity.InitialBalance = dto.InitialBalance;
