@@ -42,6 +42,19 @@ export function SupplierCustomers() {
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
+  // Formatar telefone para exibição
+  const formatPhone = (phone?: string): string => {
+    if (!phone) return '-';
+    const numbers = phone.replace(/\D/g, '');
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    if (numbers.length === 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return phone;
+  };
+
   const loadItems = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -239,7 +252,7 @@ export function SupplierCustomers() {
                         {item.email || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {item.phone || '-'}
+                        {formatPhone(item.phone)}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -332,7 +345,7 @@ export function SupplierCustomers() {
                           <p className="text-sm text-gray-600 truncate mt-1">{item.email}</p>
                         )}
                         {item.phone && (
-                          <p className="text-sm text-gray-500 mt-1">{item.phone}</p>
+                          <p className="text-sm text-gray-500 mt-1">{formatPhone(item.phone)}</p>
                         )}
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-2 ${
                           item.isActive 
