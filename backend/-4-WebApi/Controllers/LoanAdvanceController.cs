@@ -77,8 +77,9 @@ public class LoanAdvanceController : BaseController
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long id)
     {
         ValidateId(id, nameof(id));
+        var companyId = GetCompanyId();
         return await ExecuteBooleanAsync(
-            () => _service.DeleteByIdAsync(id),
+            () => _service.DeleteByIdAsync(id, companyId),
             "Empréstimo e Adiantamento deletado com sucesso",
             "Empréstimo e Adiantamento não encontrado ou não pôde ser deletado"
         );

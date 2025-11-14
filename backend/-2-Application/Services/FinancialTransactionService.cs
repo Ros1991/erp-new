@@ -150,6 +150,34 @@ namespace ERP.Application.Services
 
         public async Task<bool> DeleteByIdAsync(long financialTransactionId)
         {
+            // Buscar a transação para validar relacionamentos
+            var transaction = await _unitOfWork.FinancialTransactionRepository.GetOneByIdAsync(financialTransactionId);
+            
+            if (transaction == null)
+            {
+                throw new ValidationException("FinancialTransaction", "Transação financeira não encontrada.");
+            }
+
+            // Validar se a transação está associada a algum registro de origem
+            if (transaction.LoanAdvanceId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível deletar esta transação pois ela está associada a um Empréstimo ou Adiantamento. Delete o empréstimo primeiro.");
+            }
+
+            if (transaction.AccountPayableReceivableId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível deletar esta transação pois ela está associada a uma Conta a Pagar/Receber. Delete a conta primeiro.");
+            }
+
+            if (transaction.PurchaseOrderId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível deletar esta transação pois ela está associada a um Pedido de Compra. Delete o pedido primeiro.");
+            }
+
+            // Se não tem nenhum relacionamento, pode deletar
             var result = await _unitOfWork.FinancialTransactionRepository.DeleteByIdAsync(financialTransactionId);
             await _unitOfWork.SaveChangesAsync();
             return result;

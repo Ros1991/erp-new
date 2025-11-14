@@ -146,26 +146,16 @@ namespace ERP.Application.Services
             return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(existingEntity);
         }
 
-        public async Task<bool> DeleteByIdAsync(long loanAdvanceId)
+        public async Task<bool> DeleteByIdAsync(long loanAdvanceId, long companyId)
         {
             // Buscar e deletar transações financeiras relacionadas ao empréstimo
-            var transactions = await _unitOfWork.FinancialTransactionRepository.GetAllAsync();
+            var transactions = await _unitOfWork.FinancialTransactionRepository.GetAllAsync(companyId);
             var relatedTransactions = transactions.Where(t => t.LoanAdvanceId == loanAdvanceId).ToList();
             
             foreach (var transaction in relatedTransactions)
             {
-                // Deletar centros de custo da transação primeiro
-                var transactionCostCenters = await _unitOfWork.TransactionCostCenterRepository.GetAllAsync();
-                var relatedCostCenters = transactionCostCenters
-                    .Where(tcc => tcc.FinancialTransactionId == transaction.FinancialTransactionId)
-                    .ToList();
-                
-                foreach (var tcc in relatedCostCenters)
-                {
-                    await _unitOfWork.TransactionCostCenterRepository.DeleteByIdAsync(tcc.TransactionCostCenterId);
-                }
-                
                 // Deletar a transação financeira
+                // Os TransactionCostCenter serão deletados automaticamente via CASCADE no banco
                 await _unitOfWork.FinancialTransactionRepository.DeleteByIdAsync(transaction.FinancialTransactionId);
             }
             

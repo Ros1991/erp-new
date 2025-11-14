@@ -1037,7 +1037,8 @@ ALTER TABLE "erp"."tb_transaction_cost_center" ADD CONSTRAINT "fk_transaction_co
 	FOREIGN KEY
 		("financial_transaction_id")
 	REFERENCES "erp"."tb_financial_transaction"
-		("financial_transaction_id");
+		("financial_transaction_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_user_token" ADD CONSTRAINT "fk_user_token_user"
 	FOREIGN KEY

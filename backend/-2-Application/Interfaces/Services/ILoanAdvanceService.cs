@@ -9,6 +9,6 @@ namespace ERP.Application.Interfaces.Services
         Task<LoanAdvanceOutputDTO> GetOneByIdAsync(long loanAdvanceId);
         Task<LoanAdvanceOutputDTO> CreateAsync(LoanAdvanceInputDTO dto, long companyId, long currentUserId);
         Task<LoanAdvanceOutputDTO> UpdateByIdAsync(long loanAdvanceId, LoanAdvanceInputDTO dto, long currentUserId);
-        Task<bool> DeleteByIdAsync(long loanAdvanceId);
+        Task<bool> DeleteByIdAsync(long loanAdvanceId, long companyId);
     }
 }
