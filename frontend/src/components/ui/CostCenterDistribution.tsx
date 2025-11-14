@@ -17,13 +17,15 @@ interface CostCenterDistributionProps {
   distributions: CostCenterDistributionItem[];
   onChange: (distributions: CostCenterDistributionItem[]) => void;
   className?: string;
+  readonly?: boolean; // Se true, desabilita todas as edições
 }
 
 export function CostCenterDistribution({
   totalAmount,
   distributions,
   onChange,
-  className = ''
+  className = '',
+  readonly = false
 }: CostCenterDistributionProps) {
   const [usedCostCenterIds, setUsedCostCenterIds] = useState<Set<string>>(new Set());
 
@@ -142,18 +144,22 @@ export function CostCenterDistribution({
         <div>
           <h3 className="text-sm font-medium text-gray-900">Distribuição por Centro de Custo</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Divida o valor entre centros de custo (total deve ser 100%)
+            {readonly 
+              ? 'Centro de custo selecionado automaticamente (único disponível)'
+              : 'Divida o valor entre centros de custo (total deve ser 100%)'}
           </p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAdd}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Adicionar
-        </Button>
+        {!readonly && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAdd}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar
+          </Button>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -216,6 +222,7 @@ export function CostCenterDistribution({
                       onSearch={(term, page) => handleSearchCostCenter(term, page, item.costCenterId)}
                       placeholder="Selecione um centro de custo"
                       label="Selecionar Centro de Custo"
+                      disabled={readonly}
                     />
                   </div>
 
@@ -233,8 +240,9 @@ export function CostCenterDistribution({
                         value={item.percentage}
                         onChange={(e) => handlePercentageChange(index, parseFloat(e.target.value) || 0)}
                         className="flex-1"
+                        disabled={readonly}
                       />
-                      {distributions.length > 1 && (
+                      {distributions.length > 1 && !readonly && (
                         <Button
                           type="button"
                           variant="ghost"
@@ -259,6 +267,7 @@ export function CostCenterDistribution({
                     value={item.percentage}
                     onChange={(e) => handlePercentageChange(index, parseFloat(e.target.value))}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    disabled={readonly}
                   />
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">

@@ -465,6 +465,7 @@ export function FinancialTransactionForm() {
                   totalAmount={Number(formData.amount)}
                   distributions={costCenterDistributions}
                   onChange={setCostCenterDistributions}
+                  readonly={availableCostCenters.length === 1}
                 />
               </CardContent>
             </Card>

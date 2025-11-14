@@ -524,6 +524,7 @@ export function LoanAdvanceForm() {
                   totalAmount={Number(formData.amount) / 100} // Converter de centavos para reais
                   distributions={costCenters}
                   onChange={setCostCenters}
+                  readonly={availableCostCenters.length === 1}
                 />
                 {costCenters.length === 0 && (
                   <div className="text-sm text-muted-foreground text-center py-4">

@@ -435,6 +435,7 @@ export function ContractForm() {
                 totalAmount={Number(formData.value) / 100} // Converter de centavos para reais
                 distributions={costCenters}
                 onChange={setCostCenters}
+                readonly={availableCostCenters.length === 1}
               />
             </CardContent>
           </Card>
