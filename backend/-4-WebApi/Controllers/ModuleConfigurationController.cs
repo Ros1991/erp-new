@@ -1,9 +1,9 @@
-using ERP.Application.DTOs.Base;
 using ERP.CrossCutting.Services;
 using ERP.Domain.Models;
 using ERP.WebApi.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ERP.Application.DTOs;
 
 namespace ERP.WebApi.Controllers
 {

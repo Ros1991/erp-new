@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using ERP.CrossCutting.Services;
 using System.Security.Claims;
-using ERP.Application.DTOs.Base;
+using ERP.Application.DTOs;
 
 namespace ERP.WebApi.Attributes
 {

@@ -1,5 +1,4 @@
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 using ERP.Domain.Entities;
 
 namespace ERP.Application.Interfaces.Repositories

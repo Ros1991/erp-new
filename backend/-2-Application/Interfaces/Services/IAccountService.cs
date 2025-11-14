@@ -1,5 +1,4 @@
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 
 namespace ERP.Application.Interfaces.Services
 {

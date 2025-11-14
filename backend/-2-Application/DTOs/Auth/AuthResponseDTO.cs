@@ -1,4 +1,4 @@
-namespace ERP.Application.DTOs.Auth
+namespace ERP.Application.DTOs
 {
     public class AuthResponseDTO
     {

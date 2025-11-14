@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using ERP.Application.DTOs.FinancialTransaction;
 
 namespace ERP.Application.DTOs
 {

@@ -1,4 +1,4 @@
-namespace ERP.Application.DTOs.Base
+namespace ERP.Application.DTOs
 {
     /// <summary>
     /// Parâmetros de paginação e filtros para requisições

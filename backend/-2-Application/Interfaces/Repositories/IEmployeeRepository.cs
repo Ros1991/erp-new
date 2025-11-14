@@ -1,5 +1,4 @@
-using ERP.Application.DTOs.Employee;
-using ERP.Application.DTOs.Base;
+using ERP.Application.DTOs;
 using ERP.Domain.Entities;
 
 namespace ERP.Application.Interfaces.Repositories

@@ -16,6 +16,7 @@ import {
   UserCheck,
   Edit,
   Trash2,
+  FileText,
   ChevronDown,
   ChevronUp,
   ChevronsLeft,
@@ -294,6 +295,16 @@ export function Employees() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Protected requires="employee.canView">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Ver contratos"
+                              onClick={() => navigate(`/employees/${employee.employeeId}/contracts`)}
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          </Protected>
                           <Protected requires="employee.canEdit">
                             <Button 
                               variant="ghost" 
@@ -378,6 +389,22 @@ export function Employees() {
                         {employee.cpf && (
                           <p className="text-sm text-gray-500 mt-1">CPF: {formatCpf(employee.cpf)}</p>
                         )}
+                        <div className="mt-3 pt-3 border-t">
+                          <Protected requires="employee.canView">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/employees/${employee.employeeId}/contracts`);
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Ver Contratos
+                            </Button>
+                          </Protected>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

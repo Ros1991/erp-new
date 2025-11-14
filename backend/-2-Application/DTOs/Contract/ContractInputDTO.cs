@@ -12,7 +12,7 @@ namespace ERP.Application.DTOs
         public string Type { get; set; }
 
         [Required(ErrorMessage = "Valor é obrigatório")]
-        public long Value { get; set; }
+        public decimal Value { get; set; }
 
         [Required(ErrorMessage = "IsPayroll é obrigatório")]
         public bool IsPayroll { get; set; }
@@ -35,5 +35,8 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Status ativo é obrigatório")]
         public bool IsActive { get; set; }
+
+        public List<ContractBenefitDiscountDTO>? BenefitsDiscounts { get; set; }
+        public List<ContractCostCenterDTO>? CostCenters { get; set; }
     }
 }

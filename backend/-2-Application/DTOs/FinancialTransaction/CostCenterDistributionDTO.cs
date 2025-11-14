@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ERP.Application.DTOs.FinancialTransaction
+namespace ERP.Application.DTOs
 {
     public class CostCenterDistributionDTO
     {

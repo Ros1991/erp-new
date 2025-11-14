@@ -30,6 +30,7 @@ namespace ERP.Infrastructure.UnitOfWork
         private ISupplierCustomerRepository _SupplierCustomerRepository;
         private ITaskRepository _TaskRepository;
         private IFinancialTransactionRepository _FinancialTransactionRepository;
+        private IContractRepository _ContractRepository;
 
         public UnitOfWork(ErpContext context)
         {
@@ -80,6 +81,9 @@ namespace ERP.Infrastructure.UnitOfWork
 
         public IFinancialTransactionRepository FinancialTransactionRepository =>
             _FinancialTransactionRepository ??= new FinancialTransactionRepository(_context);
+
+        public IContractRepository ContractRepository =>
+            _ContractRepository ??= new ContractRepository(_context);
 
         // Transaction Management
         public bool HasActiveTransaction => _transaction != null;

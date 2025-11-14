@@ -1,5 +1,6 @@
 using ERP.Application.DTOs;
 using ERP.Domain.Entities;
+using ERP.CrossCutting.Helpers;
 
 namespace ERP.Application.Mappers
 {
@@ -13,6 +14,7 @@ namespace ERP.Application.Mappers
             {
                 ContractId = entity.ContractId,
                 EmployeeId = entity.EmployeeId,
+                EmployeeName = entity.Employee?.FullName,
                 Type = entity.Type,
                 Value = entity.Value,
                 IsPayroll = entity.IsPayroll,
@@ -23,6 +25,21 @@ namespace ERP.Application.Mappers
                 EndDate = entity.EndDate,
                 WeeklyHours = entity.WeeklyHours,
                 IsActive = entity.IsActive,
+                BenefitsDiscounts = entity.ContractBenefitDiscountList?.Select(b => new ContractBenefitDiscountDTO
+                {
+                    ContractBenefitDiscountId = b.ContractBenefitDiscountId,
+                    Description = b.Description,
+                    Type = b.Type,
+                    Application = b.Application,
+                    Amount = b.Amount
+                }).ToList(),
+                CostCenters = entity.ContractCostCenterList?.Select(c => new ContractCostCenterDTO
+                {
+                    ContractCostCenterId = c.ContractCostCenterId,
+                    CostCenterId = c.CostCenterId,
+                    CostCenterName = c.CostCenter?.Name,
+                    Percentage = c.Percentage
+                }).ToList(),
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -50,8 +67,8 @@ namespace ERP.Application.Mappers
                 dto.HasInss,
                 dto.HasIrrf,
                 dto.HasFgts,
-                dto.StartDate,
-                dto.EndDate,
+                DateTimeHelper.ToUtc(dto.StartDate),
+                dto.EndDate.HasValue ? DateTimeHelper.ToUtc(dto.EndDate.Value) : null,
                 dto.WeeklyHours,
                 dto.IsActive,
                 userId,
@@ -72,8 +89,8 @@ namespace ERP.Application.Mappers
             entity.HasInss = dto.HasInss;
             entity.HasIrrf = dto.HasIrrf;
             entity.HasFgts = dto.HasFgts;
-            entity.StartDate = dto.StartDate;
-            entity.EndDate = dto.EndDate;
+            entity.StartDate = DateTimeHelper.ToUtc(dto.StartDate);
+            entity.EndDate = dto.EndDate.HasValue ? DateTimeHelper.ToUtc(dto.EndDate.Value) : null;
             entity.WeeklyHours = dto.WeeklyHours;
             entity.IsActive = dto.IsActive;
             entity.AtualizadoPor = userId;

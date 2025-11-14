@@ -20,7 +20,7 @@ namespace ERP.Domain.Entities
 		public long CostCenterId { get; set; }
 
 		[Column("contract_cost_center_percentage")]
-		public long Percentage { get; set; }
+		public decimal Percentage { get; set; }
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
@@ -46,7 +46,7 @@ namespace ERP.Domain.Entities
 		public ContractCostCenter(
 			long Param_ContractId, 
 			long Param_CostCenterId, 
-			long Param_Percentage, 
+			decimal Param_Percentage, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 

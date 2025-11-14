@@ -11,6 +11,6 @@ namespace ERP.Application.DTOs
         public long CostCenterId { get; set; }
 
         [Required(ErrorMessage = "Percentual é obrigatório")]
-        public long Percentage { get; set; }
+        public decimal Percentage { get; set; }
     }
 }

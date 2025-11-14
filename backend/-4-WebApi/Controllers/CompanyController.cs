@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Services;
 using ERP.WebApi.Controllers.Base;
 using ERP.Configuration;

@@ -1,5 +1,4 @@
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 using Task = ERP.Domain.Entities.Task;
 
 namespace ERP.Application.Interfaces.Repositories

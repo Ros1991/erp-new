@@ -4,8 +4,9 @@ namespace ERP.Application.DTOs
     {
         public long ContractId { get; set; }
         public long EmployeeId { get; set; }
+        public string? EmployeeName { get; set; }
         public string Type { get; set; }
-        public long Value { get; set; }
+        public decimal Value { get; set; }
         public bool IsPayroll { get; set; }
         public bool HasInss { get; set; }
         public bool HasIrrf { get; set; }
@@ -14,9 +15,28 @@ namespace ERP.Application.DTOs
         public DateTime? EndDate { get; set; }
         public long? WeeklyHours { get; set; }
         public bool IsActive { get; set; }
+        public List<ContractBenefitDiscountDTO>? BenefitsDiscounts { get; set; }
+        public List<ContractCostCenterDTO>? CostCenters { get; set; }
         public long CriadoPor { get; set; }
         public long? AtualizadoPor { get; set; }
         public DateTime CriadoEm { get; set; }
         public DateTime? AtualizadoEm { get; set; }
+    }
+
+    public class ContractBenefitDiscountDTO
+    {
+        public long? ContractBenefitDiscountId { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+        public string Application { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class ContractCostCenterDTO
+    {
+        public long? ContractCostCenterId { get; set; }
+        public long CostCenterId { get; set; }
+        public string? CostCenterName { get; set; }
+        public decimal Percentage { get; set; }
     }
 }

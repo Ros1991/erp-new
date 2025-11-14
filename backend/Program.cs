@@ -4,6 +4,7 @@ using ERP.CrossCutting.Filters;
 using Microsoft.OpenApi.Models;
 using ERP.CrossCutting.IoC;
 using ERP.Configuration; // ADICIONADO: Nossa configuração personalizada do Swagger
+using ERP.Application.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +38,7 @@ builder.Services.AddControllers(options =>
 				kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
 			);
 
-		var response = new ERP.Application.DTOs.Base.BaseResponse<object>(
+		var response = new BaseResponse<object>(
 			code: 400,
 			message: "One or more validation errors occurred.",
 			errors: errors

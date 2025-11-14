@@ -1,5 +1,4 @@
-using ERP.Application.DTOs.Employee;
-using ERP.Application.DTOs.Base;
+using ERP.Application.DTOs;
 
 namespace ERP.Application.Interfaces.Services
 {

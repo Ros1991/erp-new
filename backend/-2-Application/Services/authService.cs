@@ -1,4 +1,4 @@
-using ERP.Application.DTOs.Auth;
+using ERP.Application.DTOs;
 using ERP.Application.Interfaces;
 using ERP.Application.Interfaces.Services;
 using ERP.CrossCutting.Exceptions;

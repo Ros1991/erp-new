@@ -1,4 +1,4 @@
-namespace ERP.Application.DTOs.Employee
+namespace ERP.Application.DTOs
 {
     public class EmployeeOutputDTO
     {

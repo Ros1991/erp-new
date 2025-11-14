@@ -1,9 +1,8 @@
-using ERP.Application.DTOs.Employee;
+using ERP.Application.DTOs;
 using ERP.Application.Interfaces;
 using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
 using ERP.CrossCutting.Exceptions;
-using ERP.Application.DTOs.Base;
 
 namespace ERP.Application.Services
 {

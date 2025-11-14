@@ -23,6 +23,8 @@ import { AddUser } from '../pages/users/AddUser';
 import { EditUser } from '../pages/users/EditUser';
 import { Employees } from '../pages/employees/Employees';
 import { EmployeeForm } from '../pages/employees/EmployeeForm';
+import { EmployeeContracts } from '../pages/contracts/EmployeeContracts';
+import { ContractForm } from '../pages/contracts/ContractForm';
 import { Accounts } from '../pages/accounts/Accounts';
 import { AccountForm } from '../pages/accounts/AccountForm';
 import { AccountPayableReceivables } from '../pages/account-payable-receivable/AccountPayableReceivables';
@@ -224,6 +226,42 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="employee.canEdit">
                 <EmployeeForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:employeeId/contracts"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canView">
+                <EmployeeContracts />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:employeeId/contracts/new"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canEdit">
+                <ContractForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:employeeId/contracts/:contractId"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="employee.canEdit">
+                <ContractForm />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

@@ -1,4 +1,4 @@
-namespace ERP.Application.DTOs.Base
+namespace ERP.Application.DTOs
 {
     /// <summary>
     /// Resposta padronizada para todos os endpoints da API

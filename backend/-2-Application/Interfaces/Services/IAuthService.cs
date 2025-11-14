@@ -1,4 +1,4 @@
-using ERP.Application.DTOs.Auth;
+using ERP.Application.DTOs;
 
 namespace ERP.Application.Interfaces.Services
 {

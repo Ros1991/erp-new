@@ -1,5 +1,3 @@
-using ERP.Application.DTOs.FinancialTransaction;
-
 namespace ERP.Application.DTOs
 {
     public class FinancialTransactionOutputDTO

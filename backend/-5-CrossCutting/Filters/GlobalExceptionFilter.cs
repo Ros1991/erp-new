@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using ERP.CrossCutting.Exceptions;
-using ERP.Application.DTOs.Base;
+using ERP.Application.DTOs;
 using System.Net;
 
 namespace ERP.CrossCutting.Filters

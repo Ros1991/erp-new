@@ -4,7 +4,6 @@ using ERP.Application.Interfaces;
 using ERP.Application.Mappers;
 using ERP.CrossCutting.Exceptions;
 using ERP.Domain.Entities;
-using ERP.Application.DTOs.Base;
 
 namespace ERP.Application.Services
 {

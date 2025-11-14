@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ERP.CrossCutting.Exceptions;
-using ERP.Application.DTOs.Base;
 using ERP.WebApi.Extensions;
 using System.Diagnostics;
+using ERP.Application.DTOs;
 
 namespace ERP.WebApi.Controllers.Base
 {

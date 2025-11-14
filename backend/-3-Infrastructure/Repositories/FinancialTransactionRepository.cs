@@ -1,5 +1,4 @@
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Repositories;
 using ERP.Domain.Entities;
 using ERP.Infrastructure.Data;

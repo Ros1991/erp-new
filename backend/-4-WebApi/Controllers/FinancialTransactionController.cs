@@ -1,5 +1,4 @@
 using ERP.Application.DTOs;
-using ERP.Application.DTOs.Base;
 using ERP.Application.Interfaces.Services;
 using ERP.CrossCutting.Helpers;
 using ERP.WebApi.Attributes;
