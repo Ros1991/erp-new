@@ -12,9 +12,8 @@ namespace ERP.Application.DTOs
         [StringLength(255, ErrorMessage = "Apelido deve ter no máximo 255 caracteres")]
         public string Nickname { get; set; }
         
-        [Required(ErrorMessage = "Nome completo é obrigatório")]
         [StringLength(255, ErrorMessage = "Nome completo deve ter no máximo 255 caracteres")]
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
         
         [StringLength(255, ErrorMessage = "Email deve ter no máximo 255 caracteres")]
         [EmailAddress(ErrorMessage = "Email inválido")]

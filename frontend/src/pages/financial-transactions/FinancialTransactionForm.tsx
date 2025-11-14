@@ -9,10 +9,12 @@ import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityP
 import { Card, CardContent } from '../../components/ui/Card';
 import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
 import { useToast } from '../../contexts/ToastContext';
+import { useAutoSelect } from '../../hooks/useAutoSelect';
 import financialTransactionService from '../../services/financialTransactionService';
 import accountService from '../../services/accountService';
 import supplierCustomerService from '../../services/supplierCustomerService';
-import { ArrowLeft, Save } from 'lucide-react';
+import costCenterService from '../../services/costCenterService';
+import { ArrowLeft, Save, Info } from 'lucide-react';
 
 interface FinancialTransactionFormData {
   accountId: string;
@@ -45,8 +47,32 @@ export function FinancialTransactionForm() {
 
   const [costCenterDistributions, setCostCenterDistributions] = useState<CostCenterDistributionItem[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FinancialTransactionFormData, string>>>({});
+  
+  // Estados para auto-seleção
+  const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
+  const [availableCostCenters, setAvailableCostCenters] = useState<any[]>([]);
 
   const isEditing = !!id;
+
+  // Auto-select hooks
+  const accountAutoSelect = useAutoSelect(
+    availableAccounts.length,
+    'conta',
+    formData.accountId && availableAccounts.length > 0
+      ? availableAccounts.find(a => a.accountId.toString() === formData.accountId) || null
+      : null
+  );
+
+  const costCenterAutoSelect = useAutoSelect(
+    availableCostCenters.length,
+    'centro de custo',
+    null
+  );
+
+  // Carregar contas e centros de custo ao montar
+  useEffect(() => {
+    loadAccountsAndCostCenters();
+  }, []);
 
   useEffect(() => {
     if (isEditing) {
@@ -54,12 +80,45 @@ export function FinancialTransactionForm() {
     }
   }, [id]);
 
+  const loadAccountsAndCostCenters = async () => {
+    try {
+      const [accountsData, costCentersData] = await Promise.all([
+        accountService.getAccounts({ page: 1, pageSize: 100 }),
+        costCenterService.getCostCenters({ page: 1, pageSize: 100 })
+      ]);
+      
+      setAvailableAccounts(accountsData.items);
+      setAvailableCostCenters(costCentersData.items);
+      
+      // Auto-selecionar se houver apenas 1 conta e não estiver editando
+      if (accountsData.items.length === 1 && !isEditing) {
+        setFormData(prev => ({
+          ...prev,
+          accountId: accountsData.items[0].accountId.toString(),
+          accountName: accountsData.items[0].name
+        }));
+      }
+      
+      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
+      if (costCentersData.items.length === 1 && !isEditing) {
+        setCostCenterDistributions([{
+          costCenterId: costCentersData.items[0].costCenterId.toString(),
+          costCenterName: costCentersData.items[0].name,
+          percentage: 100,
+          amount: 0
+        }]);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar opções:', err);
+    }
+  };
+
   const loadFinancialTransaction = async () => {
     setIsLoading(true);
     try {
       const transaction = await financialTransactionService.getFinancialTransactionById(Number(id));
       setFormData({
-        accountId: transaction.accountId.toString(),
+        accountId: transaction.accountId ? transaction.accountId.toString() : '',
         accountName: transaction.accountName || '',
         supplierCustomerId: transaction.supplierCustomerId?.toString() || '',
         supplierCustomerName: transaction.supplierCustomerName || '',
@@ -89,9 +148,10 @@ export function FinancialTransactionForm() {
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof FinancialTransactionFormData, string>> = {};
 
-    if (!formData.accountId) {
-      newErrors.accountId = 'Conta é obrigatória';
-    }
+    // accountId agora é opcional
+    // if (!formData.accountId) {
+    //   newErrors.accountId = 'Conta é obrigatória';
+    // }
 
     if (!formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
@@ -143,7 +203,7 @@ export function FinancialTransactionForm() {
     setIsSaving(true);
     try {
       const transactionData = {
-        accountId: Number(formData.accountId),
+        accountId: formData.accountId ? Number(formData.accountId) : null, // null se não houver conta
         supplierCustomerId: formData.supplierCustomerId ? Number(formData.supplierCustomerId) : undefined,
         description: formData.description.trim(),
         type: formData.type.trim(),
@@ -286,21 +346,32 @@ export function FinancialTransactionForm() {
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
-                    Conta Corrente <span className="text-red-500">*</span>
-                  </label>
-                  <EntityPicker
-                    value={formData.accountId ? Number(formData.accountId) : null}
-                    selectedLabel={formData.accountName}
-                    onChange={handleAccountChange}
-                    onSearch={handleSearchAccount}
-                    placeholder="Selecione uma conta"
-                    label="Selecionar Conta Corrente"
-                    className={errors.accountId ? 'border-red-500' : ''}
-                  />
-                  {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
-                </div>
+                {/* Conta - Mostrar apenas se houver 2+ contas */}
+                {accountAutoSelect.shouldShow && (
+                  <div>
+                    <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
+                      Conta Corrente
+                    </label>
+                    <EntityPicker
+                      value={formData.accountId ? Number(formData.accountId) : null}
+                      selectedLabel={formData.accountName}
+                      onChange={handleAccountChange}
+                      onSearch={handleSearchAccount}
+                      placeholder="Selecione uma conta"
+                      label="Selecionar Conta Corrente"
+                      className={errors.accountId ? 'border-red-500' : ''}
+                    />
+                    {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
+                  </div>
+                )}
+
+                {/* Mensagem informativa sobre conta - apenas quando auto-selecionada */}
+                {accountAutoSelect.message && accountAutoSelect.autoSelected && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-900">{accountAutoSelect.message}</p>
+                  </div>
+                )}
 
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -378,16 +449,26 @@ export function FinancialTransactionForm() {
             </CardContent>
           </Card>
 
-          {/* Distribuição por Centro de Custo */}
-          <Card>
-            <CardContent className="p-6">
-              <CostCenterDistribution
-                totalAmount={Number(formData.amount)}
-                distributions={costCenterDistributions}
-                onChange={setCostCenterDistributions}
-              />
-            </CardContent>
-          </Card>
+          {/* Distribuição por Centro de Custo - Mostrar apenas se houver centros disponíveis */}
+          {availableCostCenters.length > 0 && (
+            <Card>
+              <CardContent className="p-6">
+                {/* Mensagem informativa sobre centros de custo - apenas quando auto-selecionado */}
+                {costCenterAutoSelect.message && costCenterDistributions.length === 1 && costCenterAutoSelect.autoSelected && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 mb-4">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-900">{costCenterAutoSelect.message}</p>
+                  </div>
+                )}
+                
+                <CostCenterDistribution
+                  totalAmount={Number(formData.amount)}
+                  distributions={costCenterDistributions}
+                  onChange={setCostCenterDistributions}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex gap-3 justify-end">
                 <Button type="submit" disabled={isSaving} className="flex-1 sm:flex-none">

@@ -63,7 +63,7 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
-    accountId: number;
+    accountId: number | null;
     costCenterDistributions?: Array<{
       costCenterId: number;
       percentage: number;
@@ -81,7 +81,7 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
-    accountId: number;
+    accountId: number | null;
     costCenterDistributions?: Array<{
       costCenterId: number;
       percentage: number;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Info } from 'lucide-react';
 import { MainLayout } from '../../components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -9,8 +9,10 @@ import { Label } from '../../components/ui/Label';
 import { Select } from '../../components/ui/Select';
 import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { useToast } from '../../contexts/ToastContext';
+import { useAutoSelect } from '../../hooks/useAutoSelect';
 import contractService, { type ContractInput } from '../../services/contractService';
 import employeeService from '../../services/employeeService';
+import costCenterService from '../../services/costCenterService';
 import { BenefitDiscountList, type BenefitDiscountItem } from '../../components/ui/BenefitDiscountList';
 import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
 import { toUTCString } from '../../utils/dateUtils';
@@ -52,8 +54,23 @@ export function ContractForm() {
   const [benefitsDiscounts, setBenefitsDiscounts] = useState<BenefitDiscountItem[]>([]);
   const [costCenters, setCostCenters] = useState<CostCenterDistributionItem[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof ContractFormData, string>>>({});
+  
+  // Estados para auto-seleção
+  const [availableCostCenters, setAvailableCostCenters] = useState<any[]>([]);
 
   const isEditing = !!contractId;
+
+  // Auto-select hook para centros de custo
+  const costCenterAutoSelect = useAutoSelect(
+    availableCostCenters.length,
+    'centro de custo',
+    null
+  );
+
+  // Carregar centros de custo ao montar
+  useEffect(() => {
+    loadCostCenters();
+  }, []);
 
   useEffect(() => {
     if (employeeId) {
@@ -64,10 +81,30 @@ export function ContractForm() {
     }
   }, [employeeId, contractId]);
 
+  const loadCostCenters = async () => {
+    try {
+      const costCentersData = await costCenterService.getCostCenters({ page: 1, pageSize: 100 });
+      
+      setAvailableCostCenters(costCentersData.items);
+      
+      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
+      if (costCentersData.items.length === 1 && !isEditing) {
+        setCostCenters([{
+          costCenterId: costCentersData.items[0].costCenterId.toString(),
+          costCenterName: costCentersData.items[0].name,
+          percentage: 100,
+          amount: 0
+        }]);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar centros de custo:', err);
+    }
+  };
+
   const loadEmployee = async () => {
     try {
       const employee = await employeeService.getEmployeeById(Number(employeeId));
-      setEmployeeName(employee.fullName);
+      setEmployeeName(employee.fullName || employee.nickname);
     } catch (err: any) {
       handleBackendError(err);
     }
@@ -382,16 +419,26 @@ export function ContractForm() {
           </CardContent>
         </Card>
 
-        {/* Centros de Custo */}
-        <Card>
-          <CardContent className="p-6">
-            <CostCenterDistribution
-              totalAmount={Number(formData.value) / 100} // Converter de centavos para reais
-              distributions={costCenters}
-              onChange={setCostCenters}
-            />
-          </CardContent>
-        </Card>
+        {/* Centros de Custo - Mostrar apenas se houver centros disponíveis */}
+        {availableCostCenters.length > 0 && (
+          <Card>
+            <CardContent className="p-6">
+              {/* Mensagem informativa sobre centros de custo - apenas quando auto-selecionado */}
+              {costCenterAutoSelect.message && costCenters.length === 1 && costCenterAutoSelect.autoSelected && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 mb-4">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-900">{costCenterAutoSelect.message}</p>
+                </div>
+              )}
+              
+              <CostCenterDistribution
+                totalAmount={Number(formData.value) / 100} // Converter de centavos para reais
+                distributions={costCenters}
+                onChange={setCostCenters}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Botões */}
         <div className="flex gap-3 justify-end">

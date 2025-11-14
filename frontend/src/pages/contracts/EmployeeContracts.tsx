@@ -29,7 +29,7 @@ export function EmployeeContracts() {
   const loadEmployee = async () => {
     try {
       const employee = await employeeService.getEmployeeById(Number(employeeId));
-      setEmployeeName(employee.fullName);
+      setEmployeeName(employee.fullName || employee.nickname);
     } catch (err: any) {
       handleBackendError(err);
     }

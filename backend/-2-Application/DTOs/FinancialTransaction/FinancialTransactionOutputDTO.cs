@@ -4,7 +4,7 @@ namespace ERP.Application.DTOs
     {
         public long FinancialTransactionId { get; set; }
         public long CompanyId { get; set; }
-        public long AccountId { get; set; }
+        public long? AccountId { get; set; }
         public string AccountName { get; set; }
         public long? PurchaseOrderId { get; set; }
         public long? AccountPayableReceivableId { get; set; }

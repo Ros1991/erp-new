@@ -60,9 +60,9 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
         { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },
         { icon: ArrowRightLeft, label: 'Transações Financeiras', path: '/financial-transactions', permission: 'financialTransaction.canView' },
-        { icon: MapPin, label: 'Locais', path: '/locations', permission: 'location.canView' },
-        { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
-        { icon: CheckSquare, label: 'Tarefas', path: '/tasks', permission: 'task.canView' },
+        // { icon: MapPin, label: 'Locais', path: '/locations', permission: 'location.canView' },
+        // { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
+        // { icon: CheckSquare, label: 'Tarefas', path: '/tasks', permission: 'task.canView' },
       ]
     },
   ];

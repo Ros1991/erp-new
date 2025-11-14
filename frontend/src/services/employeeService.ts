@@ -6,7 +6,7 @@ export interface Employee {
   userId?: number;
   employeeIdManager?: number;
   nickname: string;
-  fullName: string;
+  fullName?: string;
   email?: string;
   phone?: string;
   cpf?: string;
@@ -79,7 +79,7 @@ class EmployeeService {
     userId?: number;
     employeeIdManager?: number;
     nickname: string;
-    fullName: string;
+    fullName?: string;
     email?: string;
     phone?: string;
     cpf?: string;
@@ -93,7 +93,7 @@ class EmployeeService {
     userId?: number;
     employeeIdManager?: number;
     nickname: string;
-    fullName: string;
+    fullName?: string;
     email?: string;
     phone?: string;
     cpf?: string;

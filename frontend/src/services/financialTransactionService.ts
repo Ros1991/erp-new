@@ -3,7 +3,7 @@ import api from './api';
 export interface FinancialTransaction {
   financialTransactionId: number;
   companyId: number;
-  accountId: number;
+  accountId: number | null;
   accountName?: string;
   purchaseOrderId?: number;
   accountPayableReceivableId?: number;
@@ -45,7 +45,7 @@ export interface CostCenterDistribution {
 }
 
 export interface FinancialTransactionInput {
-  accountId: number;
+  accountId: number | null;
   purchaseOrderId?: number;
   accountPayableReceivableId?: number;
   supplierCustomerId?: number;

@@ -4,8 +4,7 @@ namespace ERP.Application.DTOs
 {
     public class FinancialTransactionInputDTO
     {
-        [Required(ErrorMessage = "AccountId é obrigatório")]
-        public long AccountId { get; set; }
+        public long? AccountId { get; set; }
 
         public long? PurchaseOrderId { get; set; }
 

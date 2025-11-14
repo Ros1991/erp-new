@@ -17,7 +17,7 @@ namespace ERP.Domain.Entities
 		public long CompanyId { get; set; }
 
 		[Column("account_id")]
-		public long AccountId { get; set; }
+		public long? AccountId { get; set; }
 
 		[Column("purchase_order_id")]
 		public long? PurchaseOrderId { get; set; }
@@ -76,7 +76,7 @@ namespace ERP.Domain.Entities
 		// Construtor com parâmetros
 		public FinancialTransaction(
 			long Param_CompanyId, 
-			long Param_AccountId, 
+			long? Param_AccountId, 
 			long? Param_PurchaseOrderId, 
 			long? Param_AccountPayableReceivableId, 
 			long? Param_SupplierCustomerId, 

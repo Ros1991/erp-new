@@ -26,16 +26,16 @@ namespace ERP.Domain.Entities
 		public string Nickname { get; set; }
 
 		[Column("employee_full_name")]
-		public string FullName { get; set; }
+		public string? FullName { get; set; }
 
 		[Column("employee_email")]
-		public string Email { get; set; }
+		public string? Email { get; set; }
 
 		[Column("employee_phone")]
-		public string Phone { get; set; }
+		public string? Phone { get; set; }
 
 		[Column("employee_cpf")]
-	public string Cpf { get; set; }
+	public string? Cpf { get; set; }
 
 	[Column("employee_profile_image")]
 	public byte[]? ProfileImage { get; set; }
@@ -84,10 +84,10 @@ namespace ERP.Domain.Entities
 		long? Param_UserId, 
 		long? Param_EmployeeIdManager, 
 			string Param_Nickname, 
-			string Param_FullName, 
-			string Param_Email, 
-			string Param_Phone, 
-			string Param_Cpf,
+			string? Param_FullName, 
+			string? Param_Email, 
+			string? Param_Phone, 
+			string? Param_Cpf,
 			byte[]? Param_ProfileImage,
 			long Param_CriadoPor, 
 		long? Param_AtualizadoPor, 

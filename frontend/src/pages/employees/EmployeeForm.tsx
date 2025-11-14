@@ -67,7 +67,7 @@ export function EmployeeForm() {
       const employee = await employeeService.getEmployeeById(Number(id));
       setFormData({
         nickname: employee.nickname,
-        fullName: employee.fullName,
+        fullName: employee.fullName || '',
         email: employee.email || '',
         phone: employee.phone || '',
         cpf: employee.cpf || '',
@@ -178,9 +178,10 @@ export function EmployeeForm() {
       newErrors.nickname = 'Apelido é obrigatório';
     }
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Nome completo é obrigatório';
-    }
+    // fullName agora é opcional
+    // if (!formData.fullName.trim()) {
+    //   newErrors.fullName = 'Nome completo é obrigatório';
+    // }
 
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
@@ -219,7 +220,7 @@ export function EmployeeForm() {
 
       const dataToSend = {
         nickname: formData.nickname.trim(),
-        fullName: formData.fullName.trim(),
+        fullName: formData.fullName.trim() || undefined,
         email: formData.email.trim() || undefined,
         phone: cleanPhone,
         cpf: cleanCpf,
@@ -352,7 +353,7 @@ export function EmployeeForm() {
                 {/* Nome Completo */}
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nome Completo <span className="text-red-500">*</span>
+                    Nome Completo
                   </label>
                   <Input
                     id="fullName"
