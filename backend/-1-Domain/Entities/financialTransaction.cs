@@ -28,6 +28,9 @@ namespace ERP.Domain.Entities
 		[Column("supplier_customer_id")]
 		public long? SupplierCustomerId { get; set; }
 
+		[Column("loan_advance_id")]
+		public long? LoanAdvanceId { get; set; }
+
 		[Column("financial_transaction_description")]
 		public string Description { get; set; }
 
@@ -63,6 +66,8 @@ namespace ERP.Domain.Entities
         public virtual PurchaseOrder PurchaseOrder { get; set; } = null!;
 		//Criando Relação com a tabelas
         public virtual SupplierCustomer SupplierCustomer { get; set; } = null!;
+		//Criando Relação com a tabelas
+        public virtual LoanAdvance LoanAdvance { get; set; } = null!;
 		//Parent Relations
         public virtual ICollection<TransactionCostCenter> TransactionCostCenterList { get; set; } = new List<TransactionCostCenter>();
 		// Construtor padrão para EF
@@ -75,6 +80,7 @@ namespace ERP.Domain.Entities
 			long? Param_PurchaseOrderId, 
 			long? Param_AccountPayableReceivableId, 
 			long? Param_SupplierCustomerId, 
+			long? Param_LoanAdvanceId, 
 			string Param_Description, 
 			string Param_Type, 
 			long Param_Amount, 
@@ -90,6 +96,7 @@ namespace ERP.Domain.Entities
 			PurchaseOrderId = Param_PurchaseOrderId;
 			AccountPayableReceivableId = Param_AccountPayableReceivableId;
 			SupplierCustomerId = Param_SupplierCustomerId;
+			LoanAdvanceId = Param_LoanAdvanceId;
 			Description = Param_Description;
 			Type = Param_Type;
 			Amount = Param_Amount;

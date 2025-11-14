@@ -19,6 +19,7 @@ namespace ERP.Application.Mappers
                 AccountPayableReceivableId = entity.AccountPayableReceivableId,
                 SupplierCustomerId = entity.SupplierCustomerId,
                 SupplierCustomerName = entity.SupplierCustomer?.Name,
+                LoanAdvanceId = entity.LoanAdvanceId,
                 Description = entity.Description,
                 Type = entity.Type,
                 Amount = entity.Amount,
@@ -55,6 +56,7 @@ namespace ERP.Application.Mappers
                 dto.PurchaseOrderId,
                 dto.AccountPayableReceivableId,
                 dto.SupplierCustomerId,
+                null, // LoanAdvanceId - não vem do DTO, apenas de empréstimos
                 dto.Description,
                 dto.Type,
                 dto.Amount,

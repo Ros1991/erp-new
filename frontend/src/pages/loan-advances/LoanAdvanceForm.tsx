@@ -3,19 +3,25 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { NumberInput } from '../../components/ui/NumberInput';
 import { Select } from '../../components/ui/Select';
 import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityPicker';
+import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
 import { useToast } from '../../contexts/ToastContext';
 import loanAdvanceService from '../../services/loanAdvanceService';
 import employeeService from '../../services/employeeService';
+import accountService from '../../services/accountService';
+import contractService from '../../services/contractService';
+import { toUTCString } from '../../utils/dateUtils';
 import { ArrowLeft, Save } from 'lucide-react';
 
 interface LoanAdvanceFormData {
   employeeId: string;
   employeeName: string;
+  accountId: string;
+  accountName: string;
   amount: string;
   installments: number;
   discountSource: string;
@@ -32,12 +38,15 @@ export function LoanAdvanceForm() {
   const [formData, setFormData] = useState<LoanAdvanceFormData>({
     employeeId: '',
     employeeName: '',
+    accountId: '',
+    accountName: '',
     amount: '0',
     installments: 1,
     discountSource: 'Todos',
     startDate: new Date().toISOString().split('T')[0], // Data de hoje
   });
 
+  const [costCenters, setCostCenters] = useState<CostCenterDistributionItem[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof LoanAdvanceFormData, string>>>({});
 
   const isEditing = !!id;
@@ -55,6 +64,8 @@ export function LoanAdvanceForm() {
       setFormData({
         employeeId: loanAdvance.employeeId.toString(),
         employeeName: loanAdvance.employeeName || '',
+        accountId: '', // Não retornado pelo backend na edição
+        accountName: '',
         amount: loanAdvance.amount.toString(),
         installments: Number(loanAdvance.installments),
         discountSource: loanAdvance.discountSource,
@@ -72,6 +83,10 @@ export function LoanAdvanceForm() {
 
     if (!formData.employeeId) {
       newErrors.employeeId = 'Empregado é obrigatório';
+    }
+
+    if (!formData.accountId) {
+      newErrors.accountId = 'Conta é obrigatória';
     }
 
     if (!formData.amount || Number(formData.amount) <= 0) {
@@ -102,6 +117,22 @@ export function LoanAdvanceForm() {
       return;
     }
 
+    // Validar centros de custo se houver
+    if (costCenters.length > 0) {
+      const totalPercentage = costCenters.reduce((sum, c) => sum + c.percentage, 0);
+      
+      if (Math.abs(totalPercentage - 100) > 0.01) {
+        showError('A soma das porcentagens dos centros de custo deve ser 100%');
+        return;
+      }
+
+      const hasEmptyCostCenter = costCenters.some((c) => !c.costCenterId);
+      if (hasEmptyCostCenter) {
+        showError('Selecione um centro de custo para todas as distribuições');
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const loanAdvanceData = {
@@ -109,8 +140,17 @@ export function LoanAdvanceForm() {
         amount: Number(formData.amount),
         installments: formData.installments,
         discountSource: formData.discountSource.trim(),
-        startDate: new Date(formData.startDate).toISOString(),
+        startDate: toUTCString(new Date(formData.startDate))!,
         isApproved: true, // Sempre aprovado
+        accountId: Number(formData.accountId),
+        costCenterDistributions:
+          costCenters.length > 0
+            ? costCenters.map((c) => ({
+                costCenterId: Number(c.costCenterId),
+                percentage: c.percentage,
+                amount: c.amount,
+              }))
+            : undefined,
       };
 
       if (isEditing) {
@@ -136,7 +176,7 @@ export function LoanAdvanceForm() {
     }
   };
 
-  const handleEmployeeChange = (item: EntityPickerItem | null) => {
+  const handleEmployeeChange = async (item: EntityPickerItem | null) => {
     setFormData(prev => ({
       ...prev,
       employeeId: item ? item.id.toString() : '',
@@ -144,6 +184,40 @@ export function LoanAdvanceForm() {
     }));
     if (errors.employeeId) {
       setErrors(prev => ({ ...prev, employeeId: undefined }));
+    }
+
+    // Buscar contrato ativo do funcionário para carregar centros de custo automaticamente
+    if (item) {
+      try {
+        const contract = await contractService.getActiveByEmployeeId(item.id);
+        if (contract && contract.costCenters && contract.costCenters.length > 0) {
+          const costCenterItems: CostCenterDistributionItem[] = contract.costCenters.map(cc => ({
+            costCenterId: cc.costCenterId.toString(),
+            costCenterName: cc.costCenterName || '',
+            percentage: cc.percentage,
+            amount: 0, // Será calculado automaticamente pelo componente
+          }));
+          setCostCenters(costCenterItems);
+        } else {
+          setCostCenters([]);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar contrato ativo:', error);
+        setCostCenters([]);
+      }
+    } else {
+      setCostCenters([]);
+    }
+  };
+
+  const handleAccountChange = (item: EntityPickerItem | null) => {
+    setFormData(prev => ({
+      ...prev,
+      accountId: item ? item.id.toString() : '',
+      accountName: item ? item.displayText : ''
+    }));
+    if (errors.accountId) {
+      setErrors(prev => ({ ...prev, accountId: undefined }));
     }
   };
 
@@ -166,6 +240,33 @@ export function LoanAdvanceForm() {
       };
     } catch (error) {
       console.error('Erro ao buscar empregados:', error);
+      return {
+        items: [],
+        totalPages: 1,
+        totalCount: 0
+      };
+    }
+  };
+
+  const handleSearchAccount = async (searchTerm: string, page: number) => {
+    try {
+      const result = await accountService.getAccounts({
+        search: searchTerm,
+        page: page,
+        pageSize: 10,
+      });
+
+      return {
+        items: result.items.map(item => ({
+          id: item.accountId,
+          displayText: item.name,
+          secondaryText: item.type || undefined
+        })),
+        totalPages: result.totalPages,
+        totalCount: result.totalCount
+      };
+    } catch (error) {
+      console.error('Erro ao buscar contas:', error);
       return {
         items: [],
         totalPages: 1,
@@ -220,6 +321,9 @@ export function LoanAdvanceForm() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
+            <CardHeader>
+              <CardTitle>Dados do Empréstimo/Adiantamento</CardTitle>
+            </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div>
@@ -236,6 +340,27 @@ export function LoanAdvanceForm() {
                     className={errors.employeeId ? 'border-red-500' : ''}
                   />
                   {errors.employeeId && <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>}
+                  {formData.employeeId && costCenters.length > 0 && (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Centros de custo carregados automaticamente do contrato ativo
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Conta <span className="text-red-500">*</span>
+                  </label>
+                  <EntityPicker
+                    value={formData.accountId ? Number(formData.accountId) : null}
+                    selectedLabel={formData.accountName}
+                    onChange={handleAccountChange}
+                    onSearch={handleSearchAccount}
+                    placeholder="Selecione a conta de saída"
+                    label="Selecionar Conta"
+                    className={errors.accountId ? 'border-red-500' : ''}
+                  />
+                  {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
                 </div>
 
                 <div>
@@ -306,6 +431,27 @@ export function LoanAdvanceForm() {
                   {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Centros de Custo */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Centros de Custo</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <CostCenterDistribution
+                totalAmount={Number(formData.amount) / 100} // Converter de centavos para reais
+                distributions={costCenters}
+                onChange={setCostCenters}
+              />
+              {costCenters.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  {formData.employeeId 
+                    ? 'Nenhum centro de custo carregado. Você pode adicionar manualmente ou o funcionário não possui contrato ativo.'
+                    : 'Selecione um funcionário para carregar automaticamente os centros de custo do contrato ativo.'}
+                </div>
+              )}
             </CardContent>
           </Card>
 

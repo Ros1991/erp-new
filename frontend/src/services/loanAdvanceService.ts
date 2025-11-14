@@ -63,6 +63,12 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
+    accountId: number;
+    costCenterDistributions?: Array<{
+      costCenterId: number;
+      percentage: number;
+      amount?: number;
+    }>;
   }): Promise<LoanAdvance> {
     const response = await api.post('/loan-advance/create', data);
     return response.data.data;
@@ -75,6 +81,12 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
+    accountId: number;
+    costCenterDistributions?: Array<{
+      costCenterId: number;
+      percentage: number;
+      amount?: number;
+    }>;
   }): Promise<LoanAdvance> {
     const response = await api.put(`/loan-advance/${id}`, data);
     return response.data.data;

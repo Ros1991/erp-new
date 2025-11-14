@@ -22,5 +22,11 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Status de aprovação é obrigatório")]
         public bool IsApproved { get; set; }
+
+        [Required(ErrorMessage = "AccountId é obrigatório")]
+        public long AccountId { get; set; }
+
+        // Lista de distribuição por centro de custo (opcional)
+        public List<CostCenterDistributionDTO>? CostCenterDistributions { get; set; }
     }
 }

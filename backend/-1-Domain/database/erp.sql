@@ -318,6 +318,7 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"purchase_order_id"                    bigint               NULL,
 	"account_payable_receivable_id"        bigint               NULL,
 	"supplier_customer_id"                 bigint               NULL,
+	"loan_advance_id"                      bigint               NULL,
 	"financial_transaction_description"    varchar (255)        NOT NULL,
 	"financial_transaction_type"           varchar (10)         NOT NULL,
 	"financial_transaction_amount"         decimal (15,2)       DEFAULT 0 NOT NULL,
@@ -886,6 +887,13 @@ ALTER TABLE "erp"."tb_financial_transaction" ADD CONSTRAINT "fk_financial_transa
 		("supplier_customer_id")
 	REFERENCES "erp"."tb_supplier_customer"
 		("supplier_customer_id");
+
+ALTER TABLE "erp"."tb_financial_transaction" ADD CONSTRAINT "fk_financial_transaction_loan_advance"
+	FOREIGN KEY
+		("loan_advance_id")
+	REFERENCES "erp"."tb_loan_advance"
+		("loan_advance_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_justification" ADD CONSTRAINT "fk_justification_employee"
 	FOREIGN KEY

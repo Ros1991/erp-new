@@ -3,6 +3,7 @@ using ERP.Application.Interfaces;
 using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
 using ERP.CrossCutting.Exceptions;
+using ERP.CrossCutting.Helpers;
 
 namespace ERP.Application.Services
 {
@@ -51,10 +52,78 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
+            // Validar distribuições de centros de custo se houver
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var totalPercentage = dto.CostCenterDistributions.Sum(d => d.Percentage);
+                if (Math.Abs(totalPercentage - 100) > 0.01m)
+                {
+                    throw new ValidationException("CostCenterDistributions", "A soma das porcentagens deve ser 100%");
+                }
+            }
+
+            // Criar o empréstimo
             var entity = LoanAdvanceMapper.ToEntity(dto, currentUserId);
-            
             var createdEntity = await _unitOfWork.LoanAdvanceRepository.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
+
+            // Buscar o apelido do empregado para a descrição
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(dto.EmployeeId);
+            var employeeNickname = employee?.Nickname ?? employee?.FullName ?? "Empregado";
+
+            // Determinar se é Empréstimo ou Adiantamento
+            var now = DateTimeHelper.UtcNow;
+            var startDate = DateTimeHelper.ToUtc(dto.StartDate);
+            var isToday = startDate.Date == now.Date;
+            var isSingleInstallment = dto.Installments == 1;
+            
+            // Se tem mais de 1 parcela OU não começa hoje = Empréstimo
+            // Se tem 1 parcela E começa hoje = Adiantamento
+            var transactionType = (isSingleInstallment && isToday) ? "Adiantamento" : "Empréstimo";
+            var description = $"{transactionType} - {employeeNickname}";
+
+            // Criar transação financeira automaticamente (Saída de dinheiro)
+            // A data da transação é sempre HOJE, independente do início da cobrança
+            var financialTransaction = new Domain.Entities.FinancialTransaction(
+                companyId,
+                dto.AccountId,
+                null, // PurchaseOrderId
+                null, // AccountPayableReceivableId
+                null, // SupplierCustomerId
+                createdEntity.LoanAdvanceId, // LoanAdvanceId - vincula transação ao empréstimo
+                description,
+                "Saída",
+                dto.Amount,
+                now, // Data da transação é HOJE
+                currentUserId,
+                null,
+                now,
+                null
+            );
+
+            var createdTransaction = await _unitOfWork.FinancialTransactionRepository.CreateAsync(financialTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Criar distribuições de centro de custo
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                foreach (var distribution in dto.CostCenterDistributions)
+                {
+                    var tcc = new Domain.Entities.TransactionCostCenter(
+                        createdTransaction.FinancialTransactionId,
+                        distribution.CostCenterId,
+                        distribution.Amount ?? 0,
+                        distribution.Percentage,
+                        currentUserId,
+                        null,
+                        now,
+                        null
+                    );
+                    createdTransaction.TransactionCostCenterList.Add(tcc);
+                }
+                await _unitOfWork.SaveChangesAsync();
+            }
+
             return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(createdEntity);
         }
 
@@ -79,6 +148,28 @@ namespace ERP.Application.Services
 
         public async Task<bool> DeleteByIdAsync(long loanAdvanceId)
         {
+            // Buscar e deletar transações financeiras relacionadas ao empréstimo
+            var transactions = await _unitOfWork.FinancialTransactionRepository.GetAllAsync();
+            var relatedTransactions = transactions.Where(t => t.LoanAdvanceId == loanAdvanceId).ToList();
+            
+            foreach (var transaction in relatedTransactions)
+            {
+                // Deletar centros de custo da transação primeiro
+                var transactionCostCenters = await _unitOfWork.TransactionCostCenterRepository.GetAllAsync();
+                var relatedCostCenters = transactionCostCenters
+                    .Where(tcc => tcc.FinancialTransactionId == transaction.FinancialTransactionId)
+                    .ToList();
+                
+                foreach (var tcc in relatedCostCenters)
+                {
+                    await _unitOfWork.TransactionCostCenterRepository.DeleteByIdAsync(tcc.TransactionCostCenterId);
+                }
+                
+                // Deletar a transação financeira
+                await _unitOfWork.FinancialTransactionRepository.DeleteByIdAsync(transaction.FinancialTransactionId);
+            }
+            
+            // Agora deletar o empréstimo
             var result = await _unitOfWork.LoanAdvanceRepository.DeleteByIdAsync(loanAdvanceId);
             await _unitOfWork.SaveChangesAsync();
             return result;
