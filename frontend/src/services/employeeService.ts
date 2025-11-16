@@ -44,6 +44,17 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
+export interface UserSearchResult {
+  userId?: number;
+  email?: string;
+  phone?: string;
+  cpf?: string;
+  hasCompanyAccess: boolean;
+  currentRoleId?: number;
+  currentRoleName?: string;
+  currentRoleIsSystem?: boolean;
+}
+
 class EmployeeService {
   async getEmployees(filters?: EmployeeFilters): Promise<PagedResult<Employee>> {
     const params = new URLSearchParams();
@@ -120,6 +131,44 @@ class EmployeeService {
       };
       reader.onerror = error => reject(error);
     });
+  }
+
+  // ==================== MÉTODOS DE ASSOCIAÇÃO DE USUÁRIO ====================
+
+  // Busca automaticamente um usuário para associar ao empregado
+  async searchUserForEmployee(employeeId: number): Promise<UserSearchResult> {
+    const response = await api.post(`/employee/${employeeId}/searchUser`);
+    return response.data.data;
+  }
+
+  // Associa um usuário existente ao empregado
+  async associateUser(employeeId: number, data: {
+    userId: number;
+    roleId?: number;
+    createCompanyUser: boolean;
+  }): Promise<Employee> {
+    const response = await api.post(`/employee/${employeeId}/associateUser`, data);
+    return response.data.data;
+  }
+
+  // Cria um novo usuário e associa ao empregado
+  async createAndAssociateUser(employeeId: number, data: {
+    email?: string;
+    phone?: string;
+    cpf?: string;
+    password: string;
+    roleId: number;
+  }): Promise<Employee> {
+    const response = await api.post(`/employee/${employeeId}/createAndAssociateUser`, data);
+    return response.data.data;
+  }
+
+  // Desassocia o usuário do empregado
+  async disassociateUser(employeeId: number, removeCompanyAccess: boolean): Promise<Employee> {
+    const response = await api.post(`/employee/${employeeId}/disassociateUser`, {
+      removeCompanyAccess
+    });
+    return response.data.data;
   }
 }
 

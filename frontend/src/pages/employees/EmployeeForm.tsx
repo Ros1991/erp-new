@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { PhoneInput } from '../../components/ui/PhoneInput';
+import { CpfInput } from '../../components/ui/CpfInput';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import employeeService, { type Employee } from '../../services/employeeService';
@@ -88,27 +90,6 @@ export function EmployeeForm() {
     }
   };
 
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2');
-    }
-    return value;
-  };
-
-  const formatCpf = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    }
-    return value;
-  };
-
   const handleInputChange = (field: keyof EmployeeFormData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Limpar erro do campo ao digitar
@@ -121,15 +102,7 @@ export function EmployeeForm() {
     }
   };
 
-  const handlePhoneChange = (value: string) => {
-    const formatted = formatPhone(value);
-    handleInputChange('phone', formatted);
-  };
-
-  const handleCpfChange = (value: string) => {
-    const formatted = formatCpf(value);
-    handleInputChange('cpf', formatted);
-  };
+  // PhoneInput e CpfInput já fazem a formatação e retornam apenas números
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -390,11 +363,10 @@ export function EmployeeForm() {
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                     Telefone
                   </label>
-                  <Input
+                  <PhoneInput
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="(11) 99999-9999"
+                    onChange={(value) => handleInputChange('phone', value)}
                     className={errors.phone ? 'border-red-500' : ''}
                   />
                   {errors.phone && (
@@ -407,11 +379,10 @@ export function EmployeeForm() {
                   <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-2">
                     CPF
                   </label>
-                  <Input
+                  <CpfInput
                     id="cpf"
                     value={formData.cpf}
-                    onChange={(e) => handleCpfChange(e.target.value)}
-                    placeholder="000.000.000-00"
+                    onChange={(value) => handleInputChange('cpf', value)}
                     className={errors.cpf ? 'border-red-500' : ''}
                   />
                   {errors.cpf && (

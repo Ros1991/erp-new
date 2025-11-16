@@ -71,6 +71,33 @@ namespace ERP.Infrastructure.Repositories
             return await _context.Set<User>().FindAsync(UserId);
         }
 
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+                
+            return await _context.Set<User>()
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task<User?> GetByPhoneAsync(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return null;
+                
+            return await _context.Set<User>()
+                .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
+        }
+
+        public async Task<User?> GetByCpfAsync(string cpf)
+        {
+            if (string.IsNullOrWhiteSpace(cpf))
+                return null;
+                
+            return await _context.Set<User>()
+                .FirstOrDefaultAsync(u => u.Cpf != null && u.Cpf == cpf);
+        }
+
 	    public async Task<User> CreateAsync(User entity) 
         {
             await _context.Set<User>().AddAsync(entity);

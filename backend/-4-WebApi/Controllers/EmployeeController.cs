@@ -87,4 +87,91 @@ public class EmployeeController : BaseController
             "Empregado não encontrado ou não pôde ser deletado"
         );
     }
+
+    // ==================== ENDPOINTS DE ASSOCIAÇÃO DE USUÁRIO ====================
+
+    /// <summary>
+    /// Busca automaticamente um usuário para associar ao empregado
+    /// </summary>
+    /// <remarks>
+    /// Busca por email, telefone ou CPF do empregado.
+    /// Retorna informações do usuário encontrado e se já tem acesso à empresa.
+    /// </remarks>
+    [HttpPost("{employeeId}/searchUser")]
+    [RequirePermissions("employee.canEdit")]
+    public async Task<ActionResult<BaseResponse<UserSearchResultDTO>>> SearchUserForEmployeeAsync(long employeeId)
+    {
+        ValidateId(employeeId, nameof(employeeId));
+        var companyId = GetCompanyId();
+        return await ExecuteAsync(
+            () => _employeeService.SearchUserForEmployeeAsync(employeeId, companyId),
+            "Busca de usuário concluída"
+        );
+    }
+
+    /// <summary>
+    /// Associa um usuário existente ao empregado
+    /// </summary>
+    /// <remarks>
+    /// Associa o usuário ao empregado. Se o usuário não tiver acesso à empresa,
+    /// pode criar automaticamente o vínculo com cargo.
+    /// </remarks>
+    [HttpPost("{employeeId}/associateUser")]
+    [RequirePermissions("employee.canEdit")]
+    public async Task<ActionResult<BaseResponse<EmployeeOutputDTO>>> AssociateUserAsync(
+        long employeeId,
+        [FromBody] AssociateUserDTO dto)
+    {
+        ValidateId(employeeId, nameof(employeeId));
+        var companyId = GetCompanyId();
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _employeeService.AssociateUserAsync(employeeId, dto, companyId, currentUserId),
+            "Usuário associado ao empregado com sucesso"
+        );
+    }
+
+    /// <summary>
+    /// Cria um novo usuário e associa ao empregado
+    /// </summary>
+    /// <remarks>
+    /// Cria um novo usuário com os dados fornecidos, vincula à empresa com cargo,
+    /// e associa ao empregado.
+    /// </remarks>
+    [HttpPost("{employeeId}/createAndAssociateUser")]
+    [RequirePermissions("employee.canEdit")]
+    public async Task<ActionResult<BaseResponse<EmployeeOutputDTO>>> CreateAndAssociateUserAsync(
+        long employeeId,
+        [FromBody] CreateUserAndAssociateDTO dto)
+    {
+        ValidateId(employeeId, nameof(employeeId));
+        var companyId = GetCompanyId();
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _employeeService.CreateAndAssociateUserAsync(employeeId, dto, companyId, currentUserId),
+            "Usuário criado e associado com sucesso"
+        );
+    }
+
+    /// <summary>
+    /// Desassocia o usuário do empregado
+    /// </summary>
+    /// <remarks>
+    /// Remove a associação entre usuário e empregado.
+    /// Opcionalmente, pode remover também o acesso do usuário à empresa.
+    /// </remarks>
+    [HttpPost("{employeeId}/disassociateUser")]
+    [RequirePermissions("employee.canEdit")]
+    public async Task<ActionResult<BaseResponse<EmployeeOutputDTO>>> DisassociateUserAsync(
+        long employeeId,
+        [FromBody] DisassociateUserDTO dto)
+    {
+        ValidateId(employeeId, nameof(employeeId));
+        var companyId = GetCompanyId();
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _employeeService.DisassociateUserAsync(employeeId, dto, companyId, currentUserId),
+            "Usuário desassociado do empregado com sucesso"
+        );
+    }
 }

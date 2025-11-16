@@ -47,6 +47,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         value={formatPhone(value || '')}
         onChange={handleChange}
         placeholder="(00) 00000-0000"
+        maxLength={15}
         {...props}
       />
     )

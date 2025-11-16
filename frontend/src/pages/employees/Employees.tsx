@@ -9,7 +9,10 @@ import { SwipeToDelete } from '../../components/ui/SwipeToDelete';
 import { Protected } from '../../components/permissions/Protected';
 import { usePermissions } from '../../contexts/PermissionContext';
 import { useToast } from '../../contexts/ToastContext';
-import employeeService, { type Employee, type EmployeeFilters } from '../../services/employeeService';
+import employeeService, { type Employee, type EmployeeFilters, type UserSearchResult } from '../../services/employeeService';
+import { AssociateUserDialog } from '../../components/employees/AssociateUserDialog';
+import { CreateUserDialog } from '../../components/employees/CreateUserDialog';
+import { DisassociateUserDialog } from '../../components/employees/DisassociateUserDialog';
 import { 
   Plus, 
   Search, 
@@ -23,7 +26,10 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  UserPlus,
+  UserMinus,
+  Link
 } from 'lucide-react';
 
 // Funções de formatação
@@ -64,6 +70,14 @@ export function Employees() {
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
+
+  // Estados para associação de usuário
+  const [isSearchingUser, setIsSearchingUser] = useState(false);
+  const [userSearchResult, setUserSearchResult] = useState<UserSearchResult | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [associateDialogOpen, setAssociateDialogOpen] = useState(false);
+  const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
+  const [disassociateDialogOpen, setDisassociateDialogOpen] = useState(false);
 
   const loadEmployees = useCallback(async () => {
     setIsLoading(true);
@@ -121,6 +135,95 @@ export function Employees() {
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
     setEmployeeToDelete(null);
+  };
+
+  // ==================== HANDLERS DE ASSOCIAÇÃO DE USUÁRIO ====================
+
+  const handleAssociateClick = async (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsSearchingUser(true);
+
+    try {
+      const result = await employeeService.searchUserForEmployee(employee.employeeId);
+      setUserSearchResult(result);
+
+      // Se encontrou usuário, abre dialog de associação
+      if (result.userId) {
+        setAssociateDialogOpen(true);
+      } else {
+        // Não encontrou usuário, abre dialog de criação
+        setCreateUserDialogOpen(true);
+      }
+    } catch (err: any) {
+      handleBackendError(err);
+    } finally {
+      setIsSearchingUser(false);
+    }
+  };
+
+  const handleConfirmAssociate = async (roleId?: number) => {
+    if (!selectedEmployee || !userSearchResult?.userId) return;
+
+    try {
+      await employeeService.associateUser(selectedEmployee.employeeId, {
+        userId: userSearchResult.userId,
+        roleId,
+        createCompanyUser: !userSearchResult.hasCompanyAccess
+      });
+      showSuccess('Usuário associado com sucesso!');
+      setAssociateDialogOpen(false);
+      loadEmployees();
+    } catch (err: any) {
+      handleBackendError(err);
+      throw err;
+    }
+  };
+
+  const handleConfirmCreateUser = async (data: {
+    email?: string;
+    phone?: string;
+    cpf?: string;
+    password: string;
+    roleId: number;
+  }) => {
+    if (!selectedEmployee) return;
+
+    try {
+      await employeeService.createAndAssociateUser(selectedEmployee.employeeId, data);
+      showSuccess('Usuário criado e associado com sucesso!');
+      setCreateUserDialogOpen(false);
+      loadEmployees();
+    } catch (err: any) {
+      handleBackendError(err);
+      throw err;
+    }
+  };
+
+  const handleDisassociateClick = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setDisassociateDialogOpen(true);
+  };
+
+  const handleConfirmDisassociate = async (removeCompanyAccess: boolean) => {
+    if (!selectedEmployee) return;
+
+    try {
+      await employeeService.disassociateUser(selectedEmployee.employeeId, removeCompanyAccess);
+      showSuccess(
+        removeCompanyAccess 
+          ? 'Usuário desassociado e acesso removido!' 
+          : 'Usuário desassociado com sucesso!'
+      );
+      setDisassociateDialogOpen(false);
+      loadEmployees();
+    } catch (err: any) {
+      handleBackendError(err);
+    }
+  };
+
+  const getUserIdentifier = (employee: Employee) => {
+    if (employee.userEmail) return employee.userEmail;
+    return 'Usuário vinculado';
   };
 
   const renderProfileImage = (employee: Employee) => {
@@ -252,6 +355,9 @@ export function Employees() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     CPF
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Usuário
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Ações
                   </th>
@@ -260,7 +366,7 @@ export function Employees() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={7} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                       </div>
@@ -268,7 +374,7 @@ export function Employees() {
                   </tr>
                 ) : employees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       Nenhum empregado encontrado
                     </td>
                   </tr>
@@ -293,6 +399,16 @@ export function Employees() {
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {formatCpf(employee.cpf)}
                       </td>
+                      <td className="px-6 py-4">
+                        {employee.userId ? (
+                          <div className="flex items-center gap-2">
+                            <Link className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-gray-900">{getUserIdentifier(employee)}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Protected requires="employee.canView">
@@ -304,6 +420,34 @@ export function Employees() {
                             >
                               <FileText className="h-4 w-4" />
                             </Button>
+                          </Protected>
+                          <Protected requires="employee.canEdit">
+                            {employee.userId ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                onClick={() => handleDisassociateClick(employee)}
+                                title="Desassociar usuário"
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => handleAssociateClick(employee)}
+                                title="Associar usuário"
+                                disabled={isSearchingUser}
+                              >
+                                {isSearchingUser && selectedEmployee?.employeeId === employee.employeeId ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                ) : (
+                                  <UserPlus className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
                           </Protected>
                           <Protected requires="employee.canEdit">
                             <Button 
@@ -389,7 +533,52 @@ export function Employees() {
                         {employee.cpf && (
                           <p className="text-sm text-gray-500 mt-1">CPF: {formatCpf(employee.cpf)}</p>
                         )}
-                        <div className="mt-3 pt-3 border-t">
+                        {employee.userId && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <Link className="h-3 w-3 text-green-600" />
+                            <span className="text-xs text-green-700 font-medium">{getUserIdentifier(employee)}</span>
+                          </div>
+                        )}
+                        <div className="mt-3 pt-3 border-t space-y-2">
+                          <Protected requires="employee.canEdit">
+                            {employee.userId ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDisassociateClick(employee);
+                                }}
+                              >
+                                <UserMinus className="h-4 w-4 mr-2" />
+                                Desassociar Usuário
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAssociateClick(employee);
+                                }}
+                                disabled={isSearchingUser}
+                              >
+                                {isSearchingUser && selectedEmployee?.employeeId === employee.employeeId ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                                    Buscando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Associar Usuário
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </Protected>
                           <Protected requires="employee.canView">
                             <Button
                               variant="outline"
@@ -533,6 +722,44 @@ export function Employees() {
         cancelText="Cancelar"
         variant="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Associate User Dialog */}
+      <AssociateUserDialog
+        open={associateDialogOpen}
+        onOpenChange={setAssociateDialogOpen}
+        userSearchResult={userSearchResult}
+        employeeNickname={selectedEmployee?.nickname || ''}
+        onConfirm={handleConfirmAssociate}
+      />
+
+      {/* Create User Dialog */}
+      <CreateUserDialog
+        open={createUserDialogOpen}
+        onOpenChange={setCreateUserDialogOpen}
+        employeeData={{
+          nickname: selectedEmployee?.nickname || '',
+          email: selectedEmployee?.email,
+          phone: selectedEmployee?.phone,
+          cpf: selectedEmployee?.cpf
+        }}
+        onConfirm={handleConfirmCreateUser}
+      />
+
+      {/* Disassociate User Dialog */}
+      <DisassociateUserDialog
+        open={disassociateDialogOpen}
+        onOpenChange={setDisassociateDialogOpen}
+        employeeData={{
+          nickname: selectedEmployee?.nickname || '',
+          fullName: selectedEmployee?.fullName
+        }}
+        userData={{
+          email: selectedEmployee?.userEmail,
+          phone: selectedEmployee?.phone,
+          cpf: selectedEmployee?.cpf
+        }}
+        onConfirm={handleConfirmDisassociate}
       />
     </MainLayout>
   );
