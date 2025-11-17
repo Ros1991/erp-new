@@ -31,6 +31,15 @@ namespace ERP.Domain.Entities
 		[Column("loan_advance_is_approved")]
 		public bool IsApproved { get; set; }
 
+		[Column("loan_advance_installments_paid")]
+		public int InstallmentsPaid { get; set; }
+
+		[Column("loan_advance_remaining_amount")]
+		public decimal RemainingAmount { get; set; }
+
+		[Column("loan_advance_is_fully_paid")]
+		public bool IsFullyPaid { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 

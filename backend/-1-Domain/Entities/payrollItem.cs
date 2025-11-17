@@ -37,6 +37,21 @@ namespace ERP.Domain.Entities
 		[Column("payroll_item_calculation_details")]
 		public string? CalculationDetails { get; set; }
 
+		[Column("payroll_item_is_manual")]
+		public bool IsManual { get; set; }
+
+		[Column("payroll_item_is_active")]
+		public bool IsActive { get; set; } = true;
+
+		[Column("payroll_item_source_type")]
+		public string? SourceType { get; set; }
+
+		[Column("payroll_item_installment_number")]
+		public int? InstallmentNumber { get; set; }
+
+		[Column("payroll_item_installment_total")]
+		public int? InstallmentTotal { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 

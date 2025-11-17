@@ -34,6 +34,18 @@ namespace ERP.Domain.Entities
 		[Column("payroll_is_closed")]
 		public bool IsClosed { get; set; }
 
+		[Column("payroll_closed_at")]
+		public DateTime? ClosedAt { get; set; }
+
+		[Column("payroll_closed_by")]
+		public long? ClosedBy { get; set; }
+
+		[Column("payroll_notes")]
+		public string? Notes { get; set; }
+
+		[Column("payroll_snapshot")]
+		public string? Snapshot { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
@@ -49,6 +61,7 @@ namespace ERP.Domain.Entities
 
 		//Criando Relação com a tabelas
         public virtual Company Company { get; set; } = null!;
+		public virtual User? ClosedByUser { get; set; }
 		//Parent Relations
         public virtual ICollection<PayrollEmployee> PayrollEmployeeList { get; set; } = new List<PayrollEmployee>();
 		// Construtor padrão para EF

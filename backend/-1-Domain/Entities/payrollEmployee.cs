@@ -19,6 +19,12 @@ namespace ERP.Domain.Entities
 		[Column("employee_id")]
 		public long EmployeeId { get; set; }
 
+		[Column("contract_id")]
+		public long? ContractId { get; set; }
+
+		[Column("payroll_employee_base_salary")]
+		public decimal BaseSalary { get; set; }
+
 		[Column("payroll_employee_is_on_vacation")]
 		public bool IsOnVacation { get; set; }
 
@@ -27,6 +33,33 @@ namespace ERP.Domain.Entities
 
 		[Column("payroll_employee_vacation_advance_amount")]
 		public long? VacationAdvanceAmount { get; set; }
+
+		[Column("payroll_employee_vacation_advance_paid")]
+		public bool VacationAdvancePaid { get; set; }
+
+		[Column("payroll_employee_vacation_start_date")]
+		public DateTime? VacationStartDate { get; set; }
+
+		[Column("payroll_employee_vacation_end_date")]
+		public DateTime? VacationEndDate { get; set; }
+
+		[Column("payroll_employee_vacation_notes")]
+		public string? VacationNotes { get; set; }
+
+		[Column("payroll_employee_has_13th")]
+		public bool Has13th { get; set; }
+
+		[Column("payroll_employee_13th_type")]
+		public string? ThirteenthType { get; set; }
+
+		[Column("payroll_employee_13th_amount")]
+		public decimal? ThirteenthAmount { get; set; }
+
+		[Column("payroll_employee_13th_tax_option")]
+		public string? ThirteenthTaxOption { get; set; }
+
+		[Column("payroll_employee_notes")]
+		public string? Notes { get; set; }
 
 		[Column("payroll_employee_total_gross_pay")]
 		public long TotalGrossPay { get; set; }
@@ -52,6 +85,7 @@ namespace ERP.Domain.Entities
 
 		//Criando Relação com a tabelas
         public virtual Employee Employee { get; set; } = null!;
+		public virtual Contract? Contract { get; set; }
 		//Criando Relação com a tabelas
         public virtual Payroll Payroll { get; set; } = null!;
 		//Parent Relations
