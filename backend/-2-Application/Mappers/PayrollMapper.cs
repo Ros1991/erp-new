@@ -5,7 +5,7 @@ namespace ERP.Application.Mappers
 {
     public static class PayrollMapper
     {
-        public static PayrollOutputDTO ToPayrollOutputDTO(Payroll entity)
+        public static PayrollOutputDTO ToPayrollOutputDTO(Payroll entity, int employeeCount = 0, bool isLastPayroll = false)
         {
             if (entity == null) return null;
 
@@ -19,17 +19,25 @@ namespace ERP.Application.Mappers
                 TotalDeductions = entity.TotalDeductions,
                 TotalNetPay = entity.TotalNetPay,
                 IsClosed = entity.IsClosed,
+                ClosedAt = entity.ClosedAt,
+                ClosedBy = entity.ClosedBy,
+                ClosedByName = null, // Pode ser preenchido no repository se necessário
+                Notes = entity.Notes,
+                Snapshot = entity.Snapshot,
+                EmployeeCount = employeeCount,
+                IsLastPayroll = isLastPayroll,
                 CriadoPor = entity.CriadoPor,
+                CriadoPorNome = "Sistema",
                 AtualizadoPor = entity.AtualizadoPor,
+                AtualizadoPorNome = null, // Será preenchido no repository se necessário
                 CriadoEm = entity.CriadoEm,
                 AtualizadoEm = entity.AtualizadoEm
             };
         }
 
-        public static List<PayrollOutputDTO> ToPayrollOutputDTOList(List<Payroll> entities)
+        public static List<PayrollOutputDTO> ToPayrollOutputDTOList(IEnumerable<Payroll> entities)
         {
-            if (entities == null) return new List<PayrollOutputDTO>();
-            return entities.Select(ToPayrollOutputDTO).ToList();
+            return entities?.Select(e => ToPayrollOutputDTO(e)).ToList() ?? new List<PayrollOutputDTO>();
         }
 
         public static Payroll ToEntity(PayrollInputDTO dto, long companyId, long userId)
@@ -40,16 +48,16 @@ namespace ERP.Application.Mappers
 
             return new Payroll(
                 companyId,
-                dto.PeriodStartDate,
-                dto.PeriodEndDate,
-                dto.TotalGrossPay,
-                dto.TotalDeductions,
-                dto.TotalNetPay,
-                dto.IsClosed,
-                userId,
-                null,
-                now,
-                null
+                DateTime.SpecifyKind(dto.PeriodStartDate, DateTimeKind.Utc),
+                DateTime.SpecifyKind(dto.PeriodEndDate, DateTimeKind.Utc),
+                0,             // TotalGrossPay (será calculado)
+                0,             // TotalDeductions (será calculado)
+                0,             // TotalNetPay (será calculado)
+                false,         // IsClosed (sempre começa aberta)
+                userId,        // CriadoPor
+                null,          // AtualizadoPor
+                now,           // CriadoEm
+                null           // AtualizadoEm
             );
         }
 
@@ -57,14 +65,14 @@ namespace ERP.Application.Mappers
         {
             if (entity == null || dto == null) return;
             
-            entity.PeriodStartDate = dto.PeriodStartDate;
-            entity.PeriodEndDate = dto.PeriodEndDate;
-            entity.TotalGrossPay = dto.TotalGrossPay;
-            entity.TotalDeductions = dto.TotalDeductions;
-            entity.TotalNetPay = dto.TotalNetPay;
-            entity.IsClosed = dto.IsClosed;
+            entity.PeriodStartDate = DateTime.SpecifyKind(dto.PeriodStartDate, DateTimeKind.Utc);
+            entity.PeriodEndDate = DateTime.SpecifyKind(dto.PeriodEndDate, DateTimeKind.Utc);
+            entity.Notes = dto.Notes;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
+            // ✅ CriadoPor e CriadoEm NÃO são alterados
+            // ✅ Totais são calculados automaticamente pelo service
+            // ✅ IsClosed não é alterado aqui (método específico para fechar/reabrir)
         }
     }
 }

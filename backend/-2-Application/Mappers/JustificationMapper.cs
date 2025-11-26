@@ -40,7 +40,7 @@ namespace ERP.Application.Mappers
 
             return new Justification(
                 dto.EmployeeId,
-                dto.ReferenceDate,
+                DateTime.SpecifyKind(dto.ReferenceDate, DateTimeKind.Utc),
                 dto.Reason,
                 dto.AttachmentUrl,
                 dto.HoursGranted,
@@ -58,7 +58,7 @@ namespace ERP.Application.Mappers
             if (entity == null || dto == null) return;
             
             entity.EmployeeId = dto.EmployeeId;
-            entity.ReferenceDate = dto.ReferenceDate;
+            entity.ReferenceDate = DateTime.SpecifyKind(dto.ReferenceDate, DateTimeKind.Utc);
             entity.Reason = dto.Reason;
             entity.AttachmentUrl = dto.AttachmentUrl;
             entity.HoursGranted = dto.HoursGranted;

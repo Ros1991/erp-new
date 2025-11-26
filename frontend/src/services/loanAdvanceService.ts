@@ -1,14 +1,25 @@
 import api from './api';
 
+export interface CostCenterDistribution {
+  costCenterId: number;
+  costCenterName?: string;
+  amount: number;
+  percentage: number;
+}
+
 export interface LoanAdvance {
   loanAdvanceId: number;
   employeeId: number;
   employeeName?: string;
+  accountId?: number;
+  accountName?: string;
   amount: number;
   installments: number;
   discountSource: string;
   startDate: string;
+  description?: string;
   isApproved: boolean;
+  costCenterDistributions?: CostCenterDistribution[];
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;

@@ -45,7 +45,7 @@ namespace ERP.Application.Mappers
                 dto.Description,
                 dto.Type,
                 dto.Amount,
-                dto.DueDate,
+                DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc),
                 dto.IsPaid,
                 userId,        // CriadoPor
                 null,          // AtualizadoPor
@@ -62,7 +62,7 @@ namespace ERP.Application.Mappers
             entity.Description = dto.Description;
             entity.Type = dto.Type;
             entity.Amount = dto.Amount;
-            entity.DueDate = dto.DueDate;
+            entity.DueDate = DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc);
             entity.IsPaid = dto.IsPaid;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;

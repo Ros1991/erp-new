@@ -39,6 +39,20 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<Contract>> GetActivePayrollContractsByCompanyAsync(long companyId)
+        {
+            return await _context.Set<Contract>()
+                .Include(c => c.Employee)
+                .Include(c => c.ContractBenefitDiscountList)
+                .Include(c => c.ContractCostCenterList)
+                    .ThenInclude(ccc => ccc.CostCenter)
+                .Where(c => c.Employee.CompanyId == companyId &&
+                           c.IsActive == true &&
+                           c.IsPayroll == true)
+                .OrderBy(c => c.Employee.Nickname)
+                .ToListAsync();
+        }
+
         public async Task<Contract> GetOneByIdAsync(long contractId)
         {
             return await _context.Set<Contract>()

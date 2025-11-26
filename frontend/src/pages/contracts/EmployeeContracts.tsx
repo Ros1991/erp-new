@@ -8,6 +8,7 @@ import { useToast } from '../../contexts/ToastContext';
 import contractService, { type Contract } from '../../services/contractService';
 import employeeService from '../../services/employeeService';
 import { Protected } from '../../components/permissions/Protected';
+import { getApplicationTypeLabel } from '../../constants/applicationType';
 
 export function EmployeeContracts() {
   const { employeeId } = useParams<{ employeeId: string }>();
@@ -205,7 +206,7 @@ export function EmployeeContracts() {
                       <div className="flex-1">
                         <p className="font-medium">{item.description}</p>
                         <p className="text-sm text-muted-foreground">
-                          {item.type} • {item.application}
+                          {item.type} • {getApplicationTypeLabel(item.application)}
                         </p>
                       </div>
                       <p className={`font-semibold ${item.type === 'Benefício' ? 'text-green-600' : 'text-red-600'}`}>

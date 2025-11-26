@@ -68,6 +68,25 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.LoanAdvanceId == loanAdvanceId);
         }
 
+        public async Task<List<LoanAdvance>> GetPendingLoansByEmployeeAsync(long employeeId, DateTime? referenceDate = null)
+        {
+            var query = _context.Set<LoanAdvance>()
+                .Where(la => la.EmployeeId == employeeId &&
+                            la.IsApproved == true &&
+                            la.IsFullyPaid == false);
+
+            // Se há data de referência (período final da folha), não incluir empréstimos
+            // cuja data de início seja posterior, pois ainda não devem começar a ser descontados
+            if (referenceDate.HasValue)
+            {
+                query = query.Where(la => la.StartDate <= referenceDate.Value);
+            }
+
+            return await query
+                .OrderBy(la => la.StartDate)
+                .ToListAsync();
+        }
+
         public async Task<LoanAdvance> CreateAsync(LoanAdvance entity)
         {
             await _context.Set<LoanAdvance>().AddAsync(entity);

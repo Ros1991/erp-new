@@ -28,6 +28,9 @@ namespace ERP.Domain.Entities
 		[Column("loan_advance_start_date")]
 		public DateTime StartDate { get; set; }
 
+		[Column("loan_advance_description")]
+		public string? Description { get; set; }
+
 		[Column("loan_advance_is_approved")]
 		public bool IsApproved { get; set; }
 

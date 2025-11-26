@@ -34,7 +34,7 @@ namespace ERP.Domain.Entities
 		[Column("payroll_item_calculation_basis")]
 		public long? CalculationBasis { get; set; }
 
-		[Column("payroll_item_calculation_details")]
+		[Column("payroll_item_calculation_details", TypeName = "jsonb")]
 		public string? CalculationDetails { get; set; }
 
 		[Column("payroll_item_is_manual")]

@@ -4,11 +4,12 @@ import { Input } from './Input';
 import { Label } from './Label';
 import { Select } from './Select';
 import { CurrencyInput } from './CurrencyInput';
+import { APPLICATION_TYPE_OPTIONS, ApplicationTypeCode, migrateApplicationTypeValue } from '../../constants/applicationType';
 
 export interface BenefitDiscountItem {
   description: string;
   type: string; // 'Benefício' ou 'Desconto'
-  application: string; // 'Anual', 'Mensal', 'Férias', 'Décimo Terceiro', 'Tudo'
+  application: string; // Códigos curtos: SALARIO, 13SAL, FERIAS, TODOS, BONUS, COMISSAO
   amount: number; // Valor em centavos
 }
 
@@ -22,14 +23,6 @@ const TYPES = [
   { value: 'Desconto', label: 'Desconto' },
 ];
 
-const APPLICATIONS = [
-  { value: 'Anual', label: 'Anual' },
-  { value: 'Mensal', label: 'Mensal' },
-  { value: 'Férias', label: 'Férias' },
-  { value: 'Décimo Terceiro', label: 'Décimo Terceiro' },
-  { value: 'Tudo', label: 'Tudo' },
-];
-
 export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProps) {
   const handleAdd = () => {
     onChange([
@@ -37,7 +30,7 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
       {
         description: '',
         type: 'Benefício',
-        application: 'Mensal',
+        application: ApplicationTypeCode.SALARY,
         amount: 0,
       },
     ]);
@@ -50,6 +43,10 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
 
   const handleChange = (index: number, field: keyof BenefitDiscountItem, value: string | number) => {
     const newItems = [...items];
+    // Migrar valores antigos de application para códigos novos
+    if (field === 'application' && typeof value === 'string') {
+      value = migrateApplicationTypeValue(value);
+    }
     newItems[index] = {
       ...newItems[index],
       [field]: value,
@@ -131,10 +128,10 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
                 <Label htmlFor={`application-${index}`}>Aplicação</Label>
                 <Select
                   id={`application-${index}`}
-                  value={item.application}
+                  value={migrateApplicationTypeValue(item.application)}
                   onChange={(e) => handleChange(index, 'application', e.target.value)}
                 >
-                  {APPLICATIONS.map((app) => (
+                  {APPLICATION_TYPE_OPTIONS.map((app) => (
                     <option key={app.value} value={app.value}>
                       {app.label}
                     </option>

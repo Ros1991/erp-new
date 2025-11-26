@@ -60,7 +60,7 @@ namespace ERP.Application.Mappers
                 dto.Description,
                 dto.Type,
                 dto.Amount,
-                dto.TransactionDate,
+                DateTime.SpecifyKind(dto.TransactionDate, DateTimeKind.Utc),
                 userId,
                 null,
                 now,
@@ -79,7 +79,7 @@ namespace ERP.Application.Mappers
             entity.Description = dto.Description;
             entity.Type = dto.Type;
             entity.Amount = dto.Amount;
-            entity.TransactionDate = dto.TransactionDate;
+            entity.TransactionDate = DateTime.SpecifyKind(dto.TransactionDate, DateTimeKind.Utc);
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
         }

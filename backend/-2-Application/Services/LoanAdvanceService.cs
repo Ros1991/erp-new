@@ -42,7 +42,11 @@ namespace ERP.Application.Services
             {
                 throw new EntityNotFoundException("LoanAdvance", loanAdvanceId);
             }
-            return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(entity);
+
+            // Buscar a transação financeira relacionada ao empréstimo (para edição)
+            var transaction = await _unitOfWork.FinancialTransactionRepository.GetByLoanAdvanceIdAsync(loanAdvanceId);
+            
+            return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(entity, transaction);
         }
 
         public async Task<LoanAdvanceOutputDTO> CreateAsync(LoanAdvanceInputDTO dto, long companyId, long currentUserId)
@@ -134,16 +138,71 @@ namespace ERP.Application.Services
                 throw new ValidationException(nameof(dto), "Dados são obrigatórios.");
             }
 
+            // Validar distribuições de centros de custo se houver
+            if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+            {
+                var totalPercentage = dto.CostCenterDistributions.Sum(d => d.Percentage);
+                if (Math.Abs(totalPercentage - 100) > 0.01m)
+                {
+                    throw new ValidationException("CostCenterDistributions", "A soma das porcentagens deve ser 100%");
+                }
+            }
+
             var existingEntity = await _unitOfWork.LoanAdvanceRepository.GetOneByIdAsync(loanAdvanceId);
             if (existingEntity == null)
             {
                 throw new EntityNotFoundException("LoanAdvance", loanAdvanceId);
             }
 
+            // Atualizar dados do empréstimo
             LoanAdvanceMapper.UpdateEntity(existingEntity, dto, currentUserId);
             
+            // Buscar e atualizar a transação financeira relacionada
+            var transaction = await _unitOfWork.FinancialTransactionRepository.GetByLoanAdvanceIdAsync(loanAdvanceId);
+            if (transaction != null)
+            {
+                // Atualizar conta corrente
+                transaction.AccountId = dto.AccountId;
+                
+                // Atualizar valor da transação
+                transaction.Amount = dto.Amount;
+                
+                // Sempre deletar cost centers antigos primeiro
+                if (transaction.TransactionCostCenterList != null && transaction.TransactionCostCenterList.Any())
+                {
+                    var oldCostCenters = transaction.TransactionCostCenterList.ToList();
+                    foreach (var oldCc in oldCostCenters)
+                    {
+                        transaction.TransactionCostCenterList.Remove(oldCc);
+                    }
+                }
+
+                // Adicionar novos cost centers se houver
+                if (dto.CostCenterDistributions != null && dto.CostCenterDistributions.Any())
+                {
+                    var now = DateTimeHelper.UtcNow;
+                    foreach (var distribution in dto.CostCenterDistributions)
+                    {
+                        var tcc = new Domain.Entities.TransactionCostCenter(
+                            transaction.FinancialTransactionId,
+                            distribution.CostCenterId,
+                            distribution.Amount ?? 0,
+                            distribution.Percentage,
+                            currentUserId,
+                            null,
+                            now,
+                            null
+                        );
+                        transaction.TransactionCostCenterList.Add(tcc);
+                    }
+                }
+            }
+            
             await _unitOfWork.SaveChangesAsync();
-            return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(existingEntity);
+            
+            // Buscar novamente com a transação atualizada para retornar
+            var updatedTransaction = await _unitOfWork.FinancialTransactionRepository.GetByLoanAdvanceIdAsync(loanAdvanceId);
+            return LoanAdvanceMapper.ToLoanAdvanceOutputDTO(existingEntity, updatedTransaction);
         }
 
         public async Task<bool> DeleteByIdAsync(long loanAdvanceId, long companyId)

@@ -43,7 +43,7 @@ namespace ERP.Domain.Entities
 		[Column("payroll_notes")]
 		public string? Notes { get; set; }
 
-		[Column("payroll_snapshot")]
+		[Column("payroll_snapshot", TypeName = "jsonb")]
 		public string? Snapshot { get; set; }
 
 		[Column("criado_por")]
@@ -61,8 +61,10 @@ namespace ERP.Domain.Entities
 
 		//Criando Relação com a tabelas
         public virtual Company Company { get; set; } = null!;
-		public virtual User? ClosedByUser { get; set; }
-		//Parent Relations
+	
+	[ForeignKey("ClosedBy")]
+	public virtual User? ClosedByUser { get; set; }
+	//Parent Relations
         public virtual ICollection<PayrollEmployee> PayrollEmployeeList { get; set; } = new List<PayrollEmployee>();
 		// Construtor padrão para EF
 		public Payroll() { }

@@ -44,8 +44,8 @@ namespace ERP.Application.Mappers
                 dto.Status,
                 dto.EstimatedHours,
                 dto.ActualHours,
-                dto.StartDate,
-                dto.EndDate,
+                dto.StartDate.HasValue ? DateTime.SpecifyKind(dto.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null,
+                dto.EndDate.HasValue ? DateTime.SpecifyKind(dto.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null,
                 userId,
                 null,
                 now,
@@ -62,8 +62,8 @@ namespace ERP.Application.Mappers
             entity.Status = dto.Status;
             entity.EstimatedHours = dto.EstimatedHours;
             entity.ActualHours = dto.ActualHours;
-            entity.StartDate = dto.StartDate;
-            entity.EndDate = dto.EndDate;
+            entity.StartDate = dto.StartDate.HasValue ? DateTime.SpecifyKind(dto.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+            entity.EndDate = dto.EndDate.HasValue ? DateTime.SpecifyKind(dto.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
         }

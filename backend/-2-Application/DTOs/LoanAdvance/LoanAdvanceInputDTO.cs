@@ -20,6 +20,9 @@ namespace ERP.Application.DTOs
         [Required(ErrorMessage = "Data de início é obrigatória")]
         public DateTime StartDate { get; set; }
 
+        [StringLength(500, ErrorMessage = "Descrição deve ter no máximo 500 caracteres")]
+        public string? Description { get; set; }
+
         [Required(ErrorMessage = "Status de aprovação é obrigatório")]
         public bool IsApproved { get; set; }
 

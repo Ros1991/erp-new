@@ -43,6 +43,7 @@ import { SupplierCustomers } from '../pages/supplier-customers/SupplierCustomers
 import { SupplierCustomerForm } from '../pages/supplier-customers/SupplierCustomerForm';
 import { Tasks } from '../pages/tasks/Tasks';
 import { TaskForm } from '../pages/tasks/TaskForm';
+import { Payrolls } from '../pages/payroll/Payrolls';
 import AccessDenied from '../pages/AccessDenied';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
@@ -604,6 +605,20 @@ export function AppRoutes() {
             <CompanyProtectedRoute>
               <PermissionProtectedRoute requires="task.canEdit">
                 <TaskForm />
+              </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Payroll */}
+      <Route
+        path="/payroll"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="payroll.canView">
+                <Payrolls />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

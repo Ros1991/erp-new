@@ -370,6 +370,7 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"loan_advance_installments"            bigint               DEFAULT 0 NOT NULL,
 	"loan_advance_discount_source"         varchar (10)         NOT NULL,
 	"loan_advance_start_date"              date                 NOT NULL,
+	"loan_advance_description"             varchar (500)        NULL,
 	"loan_advance_is_approved"             boolean              NOT NULL,
 	"loan_advance_installments_paid"       int                  DEFAULT 0 NOT NULL,
 	"loan_advance_remaining_amount"        decimal (10,2)       DEFAULT 0 NOT NULL,
@@ -804,6 +805,13 @@ ALTER TABLE "erp"."tb_company_setting" ADD CONSTRAINT "fk_company_setting_compan
 	REFERENCES "erp"."tb_company"
 		("company_id");
 
+ALTER TABLE "erp"."tb_company_setting" ADD CONSTRAINT "fk_company_setting_general_manager"
+	FOREIGN KEY
+		("employee_id_general_manager")
+	REFERENCES "erp"."tb_employee"
+		("employee_id")
+	ON DELETE SET NULL;
+
 ALTER TABLE "erp"."tb_company_user" ADD CONSTRAINT "fk_company_user_company"
 	FOREIGN KEY
 		("company_id")
@@ -826,19 +834,22 @@ ALTER TABLE "erp"."tb_contract" ADD CONSTRAINT "fk_contract_employee"
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_contract_benefit_discount" ADD CONSTRAINT "fk_contract_benefit_discount_contract"
 	FOREIGN KEY
 		("contract_id")
 	REFERENCES "erp"."tb_contract"
-		("contract_id");
+		("contract_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_contract_cost_center" ADD CONSTRAINT "fk_contract_cost_center_contract"
 	FOREIGN KEY
 		("contract_id")
 	REFERENCES "erp"."tb_contract"
-		("contract_id");
+		("contract_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_contract_cost_center" ADD CONSTRAINT "fk_contract_cost_center_cost_center"
 	FOREIGN KEY
@@ -862,7 +873,8 @@ ALTER TABLE "erp"."tb_employee" ADD CONSTRAINT "fk_employee_employee_manager"
 	FOREIGN KEY
 		("employee_id_manager")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE SET NULL;
 
 ALTER TABLE "erp"."tb_employee" ADD CONSTRAINT "fk_employee_user"
 	FOREIGN KEY
@@ -874,7 +886,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "fk_employee_all
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "fk_employee_allowed_location_location"
 	FOREIGN KEY
@@ -923,7 +936,8 @@ ALTER TABLE "erp"."tb_justification" ADD CONSTRAINT "fk_justification_employee"
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_justification" ADD CONSTRAINT "fk_justification_user_approver"
 	FOREIGN KEY
@@ -935,7 +949,8 @@ ALTER TABLE "erp"."tb_loan_advance" ADD CONSTRAINT "fk_loan_advance_employee"
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_location" ADD CONSTRAINT "fk_location_company"
 	FOREIGN KEY
@@ -953,7 +968,8 @@ ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "fk_payroll_employee_empl
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "fk_payroll_employee_payroll"
 	FOREIGN KEY
@@ -965,7 +981,8 @@ ALTER TABLE "erp"."tb_payroll_item" ADD CONSTRAINT "fk_payroll_item_payroll_empl
 	FOREIGN KEY
 		("payroll_employee_id")
 	REFERENCES "erp"."tb_payroll_employee"
-		("payroll_employee_id");
+		("payroll_employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_purchase_order" ADD CONSTRAINT "fk_purchase_order_company"
 	FOREIGN KEY
@@ -1025,7 +1042,8 @@ ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "fk_task_employee_employee"
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_task_employee" ADD CONSTRAINT "fk_task_employee_task"
 	FOREIGN KEY
@@ -1037,13 +1055,15 @@ ALTER TABLE "erp"."tb_task_status_history" ADD CONSTRAINT "fk_task_status_histor
 	FOREIGN KEY
 		("task_employee_id")
 	REFERENCES "erp"."tb_task_employee"
-		("task_employee_id");
+		("task_employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_time_entry" ADD CONSTRAINT "fk_time_entry_employee"
 	FOREIGN KEY
 		("employee_id")
 	REFERENCES "erp"."tb_employee"
-		("employee_id");
+		("employee_id")
+	ON DELETE CASCADE;
 
 ALTER TABLE "erp"."tb_time_entry" ADD CONSTRAINT "fk_time_entry_location"
 	FOREIGN KEY

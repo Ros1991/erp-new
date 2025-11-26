@@ -849,6 +849,13 @@ namespace ERP.Infrastructure.Data
 			builder.Entity<Payroll>()
 				.Property(p => p.AtualizadoEm)
 				.HasColumnType("string?");
+			builder.Entity<Payroll>()
+				.Property(p => p.Snapshot)
+				.HasColumnType("jsonb")
+				.HasConversion(
+					v => v,  // Para o banco: mantém como string
+					v => v   // Do banco: mantém como string
+				);
 			builder.Entity<PayrollEmployee>()
 				.Property(p => p.PayrollEmployeeId)
 				.HasDefaultValueSql("((0))")
@@ -924,7 +931,11 @@ namespace ERP.Infrastructure.Data
 				.HasColumnType("decimal?");
 			builder.Entity<PayrollItem>()
 				.Property(p => p.CalculationDetails)
-				.HasColumnType("any");
+				.HasColumnType("jsonb")
+				.HasConversion(
+					v => v,  // Para o banco: mantém como string
+					v => v   // Do banco: mantém como string
+				);
 			builder.Entity<PayrollItem>()
 				.Property(p => p.CriadoPor)
 				.HasDefaultValueSql("((0))")

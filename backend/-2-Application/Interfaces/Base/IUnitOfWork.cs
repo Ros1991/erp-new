@@ -21,6 +21,9 @@ namespace ERP.Application.Interfaces
         ITaskRepository TaskRepository { get; }
         IFinancialTransactionRepository FinancialTransactionRepository { get; }
         IContractRepository ContractRepository { get; }
+        IPayrollRepository PayrollRepository { get; }
+        IPayrollEmployeeRepository PayrollEmployeeRepository { get; }
+        IPayrollItemRepository PayrollItemRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();

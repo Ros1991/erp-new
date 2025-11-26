@@ -63,8 +63,8 @@ namespace ERP.Application.Mappers
                 dto.AllowThursday,
                 dto.AllowFriday,
                 dto.AllowSaturday,
-                dto.StartDate,
-                dto.EndDate,
+                dto.StartDate.HasValue ? DateTime.SpecifyKind(dto.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null,
+                dto.EndDate.HasValue ? DateTime.SpecifyKind(dto.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null,
                 dto.OverallStatus,
                 userId,        // CriadoPor
                 null,          // AtualizadoPor
@@ -90,8 +90,8 @@ namespace ERP.Application.Mappers
             entity.AllowThursday = dto.AllowThursday;
             entity.AllowFriday = dto.AllowFriday;
             entity.AllowSaturday = dto.AllowSaturday;
-            entity.StartDate = dto.StartDate;
-            entity.EndDate = dto.EndDate;
+            entity.StartDate = dto.StartDate.HasValue ? DateTime.SpecifyKind(dto.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+            entity.EndDate = dto.EndDate.HasValue ? DateTime.SpecifyKind(dto.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null;
             entity.OverallStatus = dto.OverallStatus;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;

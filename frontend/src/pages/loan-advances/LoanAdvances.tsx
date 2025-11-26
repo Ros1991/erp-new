@@ -13,6 +13,7 @@ import loanAdvanceService, {
   type LoanAdvance, 
   type LoanAdvanceFilters 
 } from '../../services/loanAdvanceService';
+import { getDiscountSourceLabel } from '../../constants/discountSource';
 import { 
   Plus, 
   Search, 
@@ -201,6 +202,9 @@ export function LoanAdvances() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Fonte Desconto
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Descrição
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Ações
                   </th>
@@ -209,7 +213,7 @@ export function LoanAdvances() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
+                    <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                       </div>
@@ -217,7 +221,7 @@ export function LoanAdvances() {
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                       Nenhum empréstimo e adiantamento encontrado
                     </td>
                   </tr>
@@ -234,7 +238,18 @@ export function LoanAdvances() {
                         {item.installments}x
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {item.discountSource}
+                        {getDiscountSourceLabel(item.discountSource)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {item.description ? (
+                          <span title={item.description}>
+                            {item.description.length > 50 
+                              ? `${item.description.substring(0, 50)}...` 
+                              : item.description}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -319,9 +334,14 @@ export function LoanAdvances() {
                         </p>
                         <div className="mt-2">
                           <span className="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">
-                            {item.discountSource}
+                            {getDiscountSourceLabel(item.discountSource)}
                           </span>
                         </div>
+                        {item.description && (
+                          <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>

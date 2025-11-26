@@ -18,6 +18,7 @@ import contractService from '../../services/contractService';
 import costCenterService from '../../services/costCenterService';
 import { toUTCString } from '../../utils/dateUtils';
 import { ArrowLeft, Save, Info } from 'lucide-react';
+import { DISCOUNT_SOURCE_OPTIONS, DiscountSourceCode, migrateDiscountSourceValue } from '../../constants/discountSource';
 
 interface LoanAdvanceFormData {
   employeeId: string;
@@ -28,6 +29,7 @@ interface LoanAdvanceFormData {
   installments: number;
   discountSource: string;
   startDate: string;
+  description: string;
 }
 
 export function LoanAdvanceForm() {
@@ -44,8 +46,9 @@ export function LoanAdvanceForm() {
     accountName: '',
     amount: '0',
     installments: 1,
-    discountSource: 'Todos',
+    discountSource: DiscountSourceCode.ALL,
     startDate: new Date().toISOString().split('T')[0], // Data de hoje
+    description: '',
   });
 
   const [costCenters, setCostCenters] = useState<CostCenterDistributionItem[]>([]);
@@ -123,13 +126,24 @@ export function LoanAdvanceForm() {
       setFormData({
         employeeId: loanAdvance.employeeId.toString(),
         employeeName: loanAdvance.employeeName || '',
-        accountId: '', // Não retornado pelo backend na edição
-        accountName: '',
+        accountId: loanAdvance.accountId ? loanAdvance.accountId.toString() : '',
+        accountName: loanAdvance.accountName || '',
         amount: loanAdvance.amount.toString(),
         installments: Number(loanAdvance.installments),
-        discountSource: loanAdvance.discountSource,
+        discountSource: migrateDiscountSourceValue(loanAdvance.discountSource),
         startDate: loanAdvance.startDate.split('T')[0],
+        description: loanAdvance.description || '',
       });
+      
+      // Carregar cost centers se houver
+      if (loanAdvance.costCenterDistributions && loanAdvance.costCenterDistributions.length > 0) {
+        setCostCenters(loanAdvance.costCenterDistributions.map(cc => ({
+          costCenterId: cc.costCenterId.toString(),
+          costCenterName: cc.costCenterName || '',
+          amount: cc.amount,
+          percentage: cc.percentage
+        })));
+      }
     } catch (err: any) {
       handleBackendError(err);
     } finally {
@@ -201,6 +215,7 @@ export function LoanAdvanceForm() {
         installments: formData.installments,
         discountSource: formData.discountSource.trim(),
         startDate: toUTCString(new Date(formData.startDate))!,
+        description: formData.description.trim() || undefined, // Enviar undefined se vazio
         isApproved: true, // Sempre aprovado
         accountId: formData.accountId ? Number(formData.accountId) : null, // null se não houver conta
         costCenterDistributions:
@@ -480,10 +495,11 @@ export function LoanAdvanceForm() {
                     onChange={(e) => handleChange('discountSource', e.target.value)}
                     className={errors.discountSource ? 'border-red-500' : ''}
                   >
-                    <option value="Todos">Todos</option>
-                    <option value="Mensal">Mensal</option>
-                    <option value="Férias">Férias</option>
-                    <option value="Décimo Terceiro">Décimo Terceiro</option>
+                    {DISCOUNT_SOURCE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Select>
                   {errors.discountSource && <p className="text-sm text-red-600 mt-1">{errors.discountSource}</p>}
                 </div>
@@ -501,6 +517,25 @@ export function LoanAdvanceForm() {
                   />
                   {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
                 </div>
+              </div>
+
+              {/* Descrição */}
+              <div className="mt-4">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição (Opcional)
+                </label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Adicione uma descrição ou observação sobre este empréstimo/adiantamento..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.description.length}/500 caracteres
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -521,7 +556,7 @@ export function LoanAdvanceForm() {
                 )}
                 
                 <CostCenterDistribution
-                  totalAmount={Number(formData.amount) / 100} // Converter de centavos para reais
+                  totalAmount={Number(formData.amount)} // Valor já está em reais
                   distributions={costCenters}
                   onChange={setCostCenters}
                   readonly={availableCostCenters.length === 1}

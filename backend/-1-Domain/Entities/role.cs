@@ -19,7 +19,7 @@ namespace ERP.Domain.Entities
 		[Column("role_name")]
 		public string Name { get; set; }
 
-		[Column("role_permissions")]
+		[Column("role_permissions", TypeName = "jsonb")]
 		public string Permissions { get; set; } // JSON string com as permissões
 
 		[Column("role_is_system")]

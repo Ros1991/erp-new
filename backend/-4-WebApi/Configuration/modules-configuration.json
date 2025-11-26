@@ -347,6 +347,45 @@
           "description": "Excluir tarefas"
         }
       ]
+    },
+    {
+      "key": "payroll",
+      "name": "Folha de Pagamento",
+      "description": "Gerenciar folhas de pagamento e processamento de salários",
+      "icon": "receipt",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar lista e detalhes de folhas de pagamento"
+        },
+        {
+          "key": "canCreate",
+          "name": "Criar",
+          "description": "Criar e gerar novas folhas de pagamento"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar folhas de pagamento abertas"
+        },
+        {
+          "key": "canDelete",
+          "name": "Excluir",
+          "description": "Excluir folhas de pagamento"
+        },
+        {
+          "key": "canClose",
+          "name": "Fechar",
+          "description": "Fechar folhas de pagamento para processamento"
+        },
+        {
+          "key": "canReopen",
+          "name": "Reabrir",
+          "description": "Reabrir folhas de pagamento fechadas"
+        }
+      ]
     }
   ]
 }

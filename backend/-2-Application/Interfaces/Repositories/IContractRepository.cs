@@ -7,6 +7,7 @@ namespace ERP.Application.Interfaces.Repositories
     {
         Task<List<Contract>> GetAllByEmployeeIdAsync(long employeeId);
         Task<Contract> GetActiveByEmployeeIdAsync(long employeeId);
+        Task<List<Contract>> GetActivePayrollContractsByCompanyAsync(long companyId);
         Task<Contract> GetOneByIdAsync(long contractId);
         Task<Contract> CreateAsync(Contract entity);
         Task<Contract> UpdateByIdAsync(long contractId, Contract entity);

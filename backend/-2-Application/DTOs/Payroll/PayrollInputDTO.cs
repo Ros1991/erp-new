@@ -10,16 +10,7 @@ namespace ERP.Application.DTOs
         [Required(ErrorMessage = "Data de fim do período é obrigatória")]
         public DateTime PeriodEndDate { get; set; }
 
-        [Required(ErrorMessage = "Total bruto é obrigatório")]
-        public long TotalGrossPay { get; set; }
-
-        [Required(ErrorMessage = "Total de deduções é obrigatório")]
-        public long TotalDeductions { get; set; }
-
-        [Required(ErrorMessage = "Total líquido é obrigatório")]
-        public long TotalNetPay { get; set; }
-
-        [Required(ErrorMessage = "Status de fechamento é obrigatório")]
-        public bool IsClosed { get; set; }
+        [StringLength(1000, ErrorMessage = "Observações devem ter no máximo 1000 caracteres")]
+        public string? Notes { get; set; }
     }
 }
