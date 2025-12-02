@@ -14,6 +14,7 @@ import contractService, { type ContractInput } from '../../services/contractServ
 import employeeService from '../../services/employeeService';
 import costCenterService from '../../services/costCenterService';
 import { BenefitDiscountList, type BenefitDiscountItem } from '../../components/ui/BenefitDiscountList';
+import { migrateApplicationTypeValue } from '../../constants/applicationType';
 import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
 import { toUTCString } from '../../utils/dateUtils';
 
@@ -132,7 +133,7 @@ export function ContractForm() {
           contract.benefitsDiscounts.map((b) => ({
             description: b.description,
             type: b.type,
-            application: b.application,
+            application: migrateApplicationTypeValue(b.application), // Migrar valores antigos
             amount: b.amount, // Já está em centavos
           }))
         );

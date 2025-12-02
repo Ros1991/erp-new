@@ -352,10 +352,49 @@ namespace ERP.Application.Services
                 CriadoEm = now
             });
 
-            // 3. Adicionar benefícios do contrato
+            // 3. Adicionar benefícios do contrato (apenas os que se aplicam ao salário)
+            // Função para verificar se a Application se aplica ao salário
+            bool IsSalaryApplication(string application)
+            {
+                if (string.IsNullOrEmpty(application)) return true; // Se vazio, assume que se aplica
+                var normalized = application.ToLower().Trim();
+                return normalized == "salario" || normalized == "todos" || normalized == "mensal" || 
+                       normalized == "salário" || normalized == "all";
+            }
+            
+            // Função para verificar se é benefício (case-insensitive)
+            bool IsBenefit(string type)
+            {
+                if (string.IsNullOrEmpty(type)) return false;
+                var normalized = type.ToLower().Trim();
+                return normalized == "benefício" || normalized == "beneficio" || normalized == "provento";
+            }
+            
+            // Função para verificar se é desconto (case-insensitive)
+            bool IsDiscount(string type)
+            {
+                if (string.IsNullOrEmpty(type)) return false;
+                var normalized = type.ToLower().Trim();
+                return normalized == "desconto";
+            }
+
+            // LOG TEMPORÁRIO - verificar dados
+            Console.WriteLine($"[PAYROLL DEBUG] Contrato {contract.ContractId} - Employee {contract.EmployeeId}");
+            Console.WriteLine($"[PAYROLL DEBUG] Total BenefitsDiscounts: {contract.ContractBenefitDiscountList?.Count ?? 0}");
+            if (contract.ContractBenefitDiscountList != null)
+            {
+                foreach (var bd in contract.ContractBenefitDiscountList)
+                {
+                    Console.WriteLine($"[PAYROLL DEBUG] - Type='{bd.Type}' | Application='{bd.Application}' | Desc='{bd.Description}' | Amount={bd.Amount}");
+                    Console.WriteLine($"[PAYROLL DEBUG]   IsBenefit={IsBenefit(bd.Type)} | IsSalaryApp={IsSalaryApplication(bd.Application)}");
+                }
+            }
+            
             var benefits = contract.ContractBenefitDiscountList?
-                .Where(bd => bd.Type == "Provento")
+                .Where(bd => IsBenefit(bd.Type) && IsSalaryApplication(bd.Application))
                 .ToList() ?? new List<ContractBenefitDiscount>();
+            
+            Console.WriteLine($"[PAYROLL DEBUG] Benefits filtrados: {benefits.Count}");
 
             foreach (var benefit in benefits)
             {
@@ -364,7 +403,7 @@ namespace ERP.Application.Services
                     PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
                     Description = benefit.Description,
                     Type = "Provento",
-                    Category = "Beneficio",
+                    Category = "Benefício",
                     Amount = Convert.ToInt64(benefit.Amount),
                     SourceType = "contract_benefit",
                     ReferenceId = benefit.ContractBenefitDiscountId,
@@ -375,9 +414,9 @@ namespace ERP.Application.Services
                 });
             }
 
-            // 4. Adicionar descontos do contrato
+            // 4. Adicionar descontos do contrato (apenas os que se aplicam ao salário)
             var discounts = contract.ContractBenefitDiscountList?
-                .Where(bd => bd.Type == "Desconto")
+                .Where(bd => IsDiscount(bd.Type) && IsSalaryApplication(bd.Application))
                 .ToList() ?? new List<ContractBenefitDiscount>();
 
             foreach (var discount in discounts)

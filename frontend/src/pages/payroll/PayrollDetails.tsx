@@ -179,55 +179,79 @@ export function PayrollDetails() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Empregados</p>
-                  <p className="text-2xl font-bold text-gray-900">{payroll.employeeCount}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
+        {(() => {
+          // Calcular total de benefícios (Proventos que não são Salário Base)
+          const totalBenefits = payroll.employees.reduce((total, emp) => {
+            return total + emp.items
+              .filter(item => item.type === 'Provento' && item.category !== 'Salario')
+              .reduce((sum, item) => sum + item.amount, 0);
+          }, 0);
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Bruto</p>
-                  <p className="text-xl font-bold text-gray-900">{formatCurrency(payroll.totalGrossPay)}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Empregados</p>
+                      <p className="text-2xl font-bold text-gray-900">{payroll.employeeCount}</p>
+                    </div>
+                    <Users className="h-8 w-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Deduções</p>
-                  <p className="text-xl font-bold text-red-600">{formatCurrency(payroll.totalDeductions)}</p>
-                </div>
-                <TrendingDown className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Salários</p>
+                      <p className="text-xl font-bold text-gray-900">{formatCurrency(payroll.totalGrossPay - totalBenefits)}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Líquido</p>
-                  <p className="text-xl font-bold text-green-600">{formatCurrency(payroll.totalNetPay)}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              {/* Card de Benefícios */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Benefícios</p>
+                      <p className="text-xl font-bold text-blue-600">{formatCurrency(totalBenefits)}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Deduções</p>
+                      <p className="text-xl font-bold text-red-600">{formatCurrency(payroll.totalDeductions)}</p>
+                    </div>
+                    <TrendingDown className="h-8 w-8 text-red-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Líquido</p>
+                      <p className="text-xl font-bold text-green-600">{formatCurrency(payroll.totalNetPay)}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
 
         {/* Notes */}
         {payroll.notes && (
@@ -253,6 +277,10 @@ export function PayrollDetails() {
           const isExpanded = expandedEmployees.has(employee.employeeId);
           const credits = employee.items.filter(item => item.type === 'Provento');
           const debits = employee.items.filter(item => item.type === 'Desconto');
+          // Calcular benefícios do empregado (proventos que não são salário base)
+          const employeeBenefits = employee.items
+            .filter(item => item.type === 'Provento' && item.category !== 'Salario')
+            .reduce((sum, item) => sum + item.amount, 0);
           
           return (
             <Card key={employee.employeeId} className="overflow-hidden">
@@ -285,11 +313,31 @@ export function PayrollDetails() {
                       </div>
                     </div>
                     
-                    {/* Totals */}
-                    <div className="hidden sm:flex items-center gap-6 flex-shrink-0">
+                    {/* Totals - Desktop */}
+                    <div className="hidden lg:flex items-center gap-6 flex-shrink-0">
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">Bruto</p>
-                        <p className="text-sm font-medium text-gray-900">{formatCurrency(employee.totalGrossPay)}</p>
+                        <p className="text-xs text-gray-500">Salário</p>
+                        <p className="text-sm font-medium text-gray-900">{formatCurrency(employee.totalGrossPay - employeeBenefits)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Benefícios</p>
+                        <p className="text-sm font-medium text-blue-600">{formatCurrency(employeeBenefits)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Deduções</p>
+                        <p className="text-sm font-medium text-red-600">{formatCurrency(employee.totalDeductions)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Líquido</p>
+                        <p className="text-sm font-semibold text-green-600">{formatCurrency(employee.totalNetPay)}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Totals - Tablet (sem benefícios) */}
+                    <div className="hidden sm:flex lg:hidden items-center gap-6 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Salário</p>
+                        <p className="text-sm font-medium text-gray-900">{formatCurrency(employee.totalGrossPay - employeeBenefits)}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-gray-500">Deduções</p>
