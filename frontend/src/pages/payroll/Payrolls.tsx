@@ -114,7 +114,7 @@ export function Payrolls() {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value);
+    }).format(value / 100); // Converter de centavos para reais
   };
 
   const formatDate = (dateString: string) => {
@@ -312,13 +312,12 @@ export function Payrolls() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Protected requires="payroll.canEdit">
+                          <Protected requires="payroll.canView">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              title="Editar folha"
-                              onClick={() => navigate(`/payroll/${payroll.payrollId}/edit`)}
-                              disabled={payroll.isClosed}
+                              title="Ver detalhes"
+                              onClick={() => navigate(`/payroll/${payroll.payrollId}`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -365,15 +364,15 @@ export function Payrolls() {
           </Card>
         ) : (
           payrolls.map((payroll) => {
-            const canEdit = hasPermission('payroll.canEdit');
+            const canView = hasPermission('payroll.canView');
             const canDelete = hasPermission('payroll.canDelete');
-            const isDisabled = payroll.isClosed || (!canEdit && !canDelete);
+            const isDisabled = !canView && !canDelete;
             
             return (
               <SwipeToDelete
                 key={payroll.payrollId}
                 onDelete={canDelete && payroll.isLastPayroll && !payroll.isClosed ? () => handleDeleteClick(payroll) : () => {}}
-                onTap={canEdit && !payroll.isClosed ? () => navigate(`/payroll/${payroll.payrollId}/edit`) : undefined}
+                onTap={canView ? () => navigate(`/payroll/${payroll.payrollId}`) : undefined}
                 disabled={isDisabled}
                 showDeleteButton={canDelete && payroll.isLastPayroll && !payroll.isClosed}
               >

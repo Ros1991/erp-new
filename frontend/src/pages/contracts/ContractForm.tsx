@@ -116,7 +116,7 @@ export function ContractForm() {
       const contract = await contractService.getContractById(Number(contractId));
       setFormData({
         type: contract.type,
-        value: (contract.value * 100).toString(), // Converter de reais para centavos
+        value: contract.value.toString(), // Já está em centavos
         isPayroll: contract.isPayroll,
         hasInss: contract.hasInss,
         hasIrrf: contract.hasIrrf,
@@ -133,7 +133,7 @@ export function ContractForm() {
             description: b.description,
             type: b.type,
             application: b.application,
-            amount: b.amount * 100, // Converter de reais para centavos
+            amount: b.amount, // Já está em centavos
           }))
         );
       }
@@ -212,7 +212,7 @@ export function ContractForm() {
       const contractData: ContractInput = {
         employeeId: Number(employeeId),
         type: formData.type,
-        value: Number(formData.value) / 100, // Converter de centavos para reais
+        value: Number(formData.value), // Já em centavos
         isPayroll: formData.isPayroll,
         hasInss: formData.hasInss,
         hasIrrf: formData.hasIrrf,
@@ -227,7 +227,7 @@ export function ContractForm() {
                 description: b.description,
                 type: b.type,
                 application: b.application,
-                amount: b.amount / 100, // Converter de centavos para reais
+                amount: b.amount, // Já em centavos
               }))
             : undefined,
         costCenters:
@@ -432,7 +432,7 @@ export function ContractForm() {
               )}
               
               <CostCenterDistribution
-                totalAmount={Number(formData.value) / 100} // Converter de centavos para reais
+                totalAmount={Number(formData.value) / 100} // Exibir em reais para o usuário
                 distributions={costCenters}
                 onChange={setCostCenters}
                 readonly={availableCostCenters.length === 1}

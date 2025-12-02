@@ -7,8 +7,10 @@ namespace ERP.Application.Interfaces.Services
         Task<List<PayrollOutputDTO>> GetAllAsync(long companyId);
         Task<PagedResult<PayrollOutputDTO>> GetPagedAsync(long companyId, PayrollFilterDTO filters);
         Task<PayrollOutputDTO> GetOneByIdAsync(long payrollId);
+        Task<PayrollDetailedOutputDTO> GetDetailedByIdAsync(long payrollId);
         Task<PayrollOutputDTO> CreatePayrollAsync(long companyId, long currentUserId, PayrollInputDTO dto);
         Task<PayrollOutputDTO> UpdateByIdAsync(long payrollId, PayrollInputDTO dto, long currentUserId);
         Task<bool> DeleteByIdAsync(long payrollId);
+        Task<PayrollDetailedOutputDTO> RecalculatePayrollAsync(long payrollId, long currentUserId);
     }
 }

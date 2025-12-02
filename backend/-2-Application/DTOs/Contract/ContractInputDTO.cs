@@ -12,7 +12,7 @@ namespace ERP.Application.DTOs
         public string Type { get; set; }
 
         [Required(ErrorMessage = "Valor é obrigatório")]
-        public decimal Value { get; set; }
+        public long Value { get; set; } // Em centavos
 
         [Required(ErrorMessage = "IsPayroll é obrigatório")]
         public bool IsPayroll { get; set; }

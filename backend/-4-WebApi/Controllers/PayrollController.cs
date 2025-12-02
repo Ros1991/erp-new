@@ -52,6 +52,14 @@ public class PayrollController : BaseController
         return await ExecuteAsync(() => _payrollService.GetOneByIdAsync(payrollId), "Folha de pagamento encontrada com sucesso");
     }
 
+    [HttpGet("{payrollId}/details")]
+    [RequirePermissions("payroll.canView")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> GetDetailedByIdAsync(long payrollId)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        return await ExecuteAsync(() => _payrollService.GetDetailedByIdAsync(payrollId), "Detalhes da folha de pagamento carregados com sucesso");
+    }
+
     [HttpPost("create")]
     [RequirePermissions("payroll.canCreate")]
     public async Task<ActionResult<BaseResponse<PayrollOutputDTO>>> CreateAsync(PayrollInputDTO dto)
@@ -84,6 +92,18 @@ public class PayrollController : BaseController
             () => _payrollService.DeleteByIdAsync(payrollId),
             "Folha de pagamento deletada com sucesso",
             "Folha de pagamento não encontrada ou não pôde ser deletada"
+        );
+    }
+
+    [HttpPost("{payrollId}/recalculate")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> RecalculateAsync(long payrollId)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(
+            () => _payrollService.RecalculatePayrollAsync(payrollId, currentUserId),
+            "Folha de pagamento recalculada com sucesso"
         );
     }
 }

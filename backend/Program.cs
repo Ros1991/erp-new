@@ -6,6 +6,9 @@ using ERP.CrossCutting.IoC;
 using ERP.Configuration; // ADICIONADO: Nossa configuração personalizada do Swagger
 using ERP.Application.DTOs;
 
+// Configuração para Npgsql aceitar DateTime com Kind Unspecified (trata como UTC)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== CONFIGURAÇÃO DE SERVIÇOS =====

@@ -20,7 +20,7 @@ namespace ERP.Domain.Entities
 		public string Type { get; set; }
 
 		[Column("contract_value")]
-		public decimal Value { get; set; }
+		public long Value { get; set; } // Armazenado em centavos
 
 		[Column("contract_is_payroll")]
 		public bool IsPayroll { get; set; }
@@ -72,7 +72,7 @@ namespace ERP.Domain.Entities
 		public Contract(
 			long Param_EmployeeId, 
 			string Param_Type, 
-			decimal Param_Value, 
+			long Param_Value, 
 			bool Param_IsPayroll, 
 			bool Param_HasInss, 
 			bool Param_HasIrrf, 

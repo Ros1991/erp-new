@@ -447,7 +447,7 @@ namespace ERP.Infrastructure.Data
 			builder.Entity<Contract>()
 				.Property(p => p.Value)
 				.HasDefaultValueSql("((0))")
-				.HasColumnType("decimal");
+				.HasColumnType("Int64");
 			builder.Entity<Contract>()
 				.Property(p => p.IsPayroll)
 				.HasColumnType("bool");
@@ -505,7 +505,7 @@ namespace ERP.Infrastructure.Data
 			builder.Entity<ContractBenefitDiscount>()
 				.Property(p => p.Amount)
 				.HasDefaultValueSql("((0))")
-				.HasColumnType("decimal");
+				.HasColumnType("Int64");
 			builder.Entity<ContractBenefitDiscount>()
 				.Property(p => p.CriadoPor)
 				.HasDefaultValueSql("((0))")

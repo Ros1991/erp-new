@@ -26,7 +26,7 @@ namespace ERP.Domain.Entities
 		public string Application { get; set; }
 
 		[Column("contract_benefit_discount_amount")]
-		public decimal Amount { get; set; }
+		public long Amount { get; set; } // Armazenado em centavos
 
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
@@ -52,7 +52,7 @@ namespace ERP.Domain.Entities
 			string Param_Description, 
 			string Param_Type, 
 			string Param_Application, 
-			decimal Param_Amount, 
+			long Param_Amount, 
 			long Param_CriadoPor, 
 			long? Param_AtualizadoPor, 
 			DateTime Param_CriadoEm, 

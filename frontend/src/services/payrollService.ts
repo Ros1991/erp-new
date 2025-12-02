@@ -44,6 +44,37 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
+export interface PayrollItem {
+  payrollItemId: number;
+  payrollEmployeeId: number;
+  description: string;
+  type: string; // "Credit" ou "Debit"
+  category: string;
+  amount: number; // em centavos
+  referenceId?: number;
+  calculationBasis?: number;
+  calculationDetails?: string;
+}
+
+export interface PayrollEmployeeDetailed {
+  payrollEmployeeId: number;
+  payrollId: number;
+  employeeId: number;
+  employeeName: string;
+  employeeDocument?: string;
+  isOnVacation: boolean;
+  vacationDays?: number;
+  vacationAdvanceAmount?: number; // em centavos
+  totalGrossPay: number; // em centavos
+  totalDeductions: number; // em centavos
+  totalNetPay: number; // em centavos
+  items: PayrollItem[];
+}
+
+export interface PayrollDetailed extends Payroll {
+  employees: PayrollEmployeeDetailed[];
+}
+
 class PayrollService {
   async getAllPayrolls(): Promise<Payroll[]> {
     const response = await api.get('/payroll/getAll');
@@ -71,6 +102,11 @@ class PayrollService {
     return response.data.data;
   }
 
+  async getPayrollDetails(id: number): Promise<PayrollDetailed> {
+    const response = await api.get(`/payroll/${id}/details`);
+    return response.data.data;
+  }
+
   async createPayroll(data: { 
     periodStartDate: string; 
     periodEndDate: string; 
@@ -91,6 +127,11 @@ class PayrollService {
 
   async deletePayroll(id: number): Promise<void> {
     await api.delete(`/payroll/${id}`);
+  }
+
+  async recalculatePayroll(id: number): Promise<PayrollDetailed> {
+    const response = await api.post(`/payroll/${id}/recalculate`);
+    return response.data.data;
   }
 }
 

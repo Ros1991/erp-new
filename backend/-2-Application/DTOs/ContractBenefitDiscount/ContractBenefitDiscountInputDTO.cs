@@ -20,6 +20,6 @@ namespace ERP.Application.DTOs
         public string Application { get; set; }
 
         [Required(ErrorMessage = "Valor é obrigatório")]
-        public decimal Amount { get; set; }
+        public long Amount { get; set; } // Em centavos
     }
 }

@@ -6,7 +6,7 @@ namespace ERP.Application.DTOs
         public long EmployeeId { get; set; }
         public string? EmployeeName { get; set; }
         public string Type { get; set; }
-        public decimal Value { get; set; }
+        public long Value { get; set; } // Em centavos
         public bool IsPayroll { get; set; }
         public bool HasInss { get; set; }
         public bool HasIrrf { get; set; }
@@ -29,7 +29,7 @@ namespace ERP.Application.DTOs
         public string Description { get; set; }
         public string Type { get; set; }
         public string Application { get; set; }
-        public decimal Amount { get; set; }
+        public long Amount { get; set; } // Em centavos
     }
 
     public class ContractCostCenterDTO

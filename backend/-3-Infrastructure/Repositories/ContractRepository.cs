@@ -39,7 +39,7 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<Contract>> GetActivePayrollContractsByCompanyAsync(long companyId)
+        public async Task<List<Contract>> GetActivePayrollContractsByCompanyAsync(long companyId, DateTime periodStartDate, DateTime periodEndDate)
         {
             return await _context.Set<Contract>()
                 .Include(c => c.Employee)
@@ -48,7 +48,11 @@ namespace ERP.Infrastructure.Repositories
                     .ThenInclude(ccc => ccc.CostCenter)
                 .Where(c => c.Employee.CompanyId == companyId &&
                            c.IsActive == true &&
-                           c.IsPayroll == true)
+                           c.IsPayroll == true &&
+                           // Contrato já iniciou (data início <= data final da folha)
+                           c.StartDate <= periodEndDate &&
+                           // Contrato ainda não terminou (data fim é nula OU >= data início da folha)
+                           (c.EndDate == null || c.EndDate >= periodStartDate))
                 .OrderBy(c => c.Employee.Nickname)
                 .ToListAsync();
         }
