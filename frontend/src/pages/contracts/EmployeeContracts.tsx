@@ -75,6 +75,11 @@ export function EmployeeContracts() {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
+  const getMonthName = (month: number) => {
+    const months = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    return months[month] || '';
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -192,6 +197,16 @@ export function EmployeeContracts() {
                       FGTS
                     </span>
                   )}
+                  {activeContract.hasThirteenthSalary && (
+                    <span className="px-2 py-1 bg-teal-100 text-teal-800 text-xs rounded">
+                      13º Salário
+                    </span>
+                  )}
+                  {activeContract.hasVacationBonus && (
+                    <span className="px-2 py-1 bg-cyan-100 text-cyan-800 text-xs rounded">
+                      Adicional Férias
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -207,7 +222,25 @@ export function EmployeeContracts() {
                         <p className="font-medium">{item.description}</p>
                         <p className="text-sm text-muted-foreground">
                           {item.type} • {getApplicationTypeLabel(migrateApplicationTypeValue(item.application))}
+                          {item.month && ` • ${getMonthName(item.month)}`}
                         </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.hasTaxes && (
+                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs rounded">
+                              Incide impostos
+                            </span>
+                          )}
+                          {item.isProportional !== false && (
+                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                              Proporcional
+                            </span>
+                          )}
+                          {item.isProportional === false && (
+                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                              Valor fixo
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <p className={`font-semibold ${item.type === 'Benefício' ? 'text-green-600' : 'text-red-600'}`}>
                         {item.type === 'Desconto' && '-'}

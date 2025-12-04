@@ -336,14 +336,97 @@ namespace ERP.Application.Services
 
             var items = new List<PayrollItem>();
 
-            // 2. Criar item de salário base
+            // Função para calcular a proporção baseada na data de início do contrato
+            // Se o contrato começou dentro do período da folha, retorna a proporção (0.0 a 1.0)
+            // Se começou antes do período, retorna 1.0 (100%)
+            decimal CalculateProportionalFactor(DateTime contractStartDate, DateTime periodStart, DateTime periodEnd)
+            {
+                // Se o contrato começou antes ou no início do período, é 100%
+                if (contractStartDate <= periodStart)
+                {
+                    return 1.0m;
+                }
+                
+                // Se o contrato começou depois do fim do período, é 0%
+                if (contractStartDate > periodEnd)
+                {
+                    return 0.0m;
+                }
+                
+                // Contrato começou dentro do período - calcular proporção
+                var totalDays = (periodEnd - periodStart).Days + 1; // +1 para incluir o último dia
+                var workedDays = (periodEnd - contractStartDate).Days + 1; // +1 para incluir o dia de início
+                
+                return (decimal)workedDays / totalDays;
+            }
+
+            // Calcular fator de proporcionalidade para este contrato (para benefícios mensais)
+            var proportionalFactor = CalculateProportionalFactor(
+                contract.StartDate, 
+                payroll.PeriodStartDate, 
+                payroll.PeriodEndDate
+            );
+            
+            Console.WriteLine($"[PAYROLL DEBUG] ProportionalFactor (mensal): {proportionalFactor:P2} (Contract Start: {contract.StartDate:d}, Period: {payroll.PeriodStartDate:d} - {payroll.PeriodEndDate:d})");
+
+            // Função para calcular proporção ANUAL baseada em meses trabalhados
+            // Se trabalhou 12+ meses, recebe 100%. Se trabalhou 6 meses, recebe 50% (6/12)
+            decimal CalculateAnnualProportionalFactor(DateTime contractStartDate, DateTime referenceDate)
+            {
+                // Calcular meses completos de trabalho
+                var totalMonths = ((referenceDate.Year - contractStartDate.Year) * 12) + (referenceDate.Month - contractStartDate.Month);
+                
+                // Ajustar se ainda não completou o mês
+                if (referenceDate.Day < contractStartDate.Day)
+                {
+                    totalMonths--;
+                }
+                
+                // Se trabalhou 12+ meses, é 100%
+                if (totalMonths >= 12)
+                {
+                    return 1.0m;
+                }
+                
+                // Se ainda não trabalhou nem 1 mês completo
+                if (totalMonths <= 0)
+                {
+                    // Calcular proporção de dias do primeiro mês
+                    var daysInMonth = DateTime.DaysInMonth(contractStartDate.Year, contractStartDate.Month);
+                    var workedDays = (referenceDate - contractStartDate).Days + 1;
+                    return Math.Max(0, (decimal)workedDays / daysInMonth / 12);
+                }
+                
+                // Proporcional aos meses trabalhados (1 a 11 meses)
+                return (decimal)totalMonths / 12;
+            }
+            
+            // Calcular fator de proporcionalidade anual (para benefícios anuais)
+            var annualProportionalFactor = CalculateAnnualProportionalFactor(
+                contract.StartDate,
+                payroll.PeriodEndDate
+            );
+            
+            Console.WriteLine($"[PAYROLL DEBUG] ProportionalFactor (anual): {annualProportionalFactor:P2} (Contract Start: {contract.StartDate:d}, Reference: {payroll.PeriodEndDate:d})");
+
+            // 2. Criar item de salário base (sempre proporcional se contrato começou no período)
+            var salaryAmount = contract.Value;
+            var salaryDescription = "Salário Base";
+            
+            if (proportionalFactor < 1.0m)
+            {
+                salaryAmount = (long)Math.Round(contract.Value * proportionalFactor);
+                salaryDescription = $"Salário Base (proporcional {proportionalFactor:P0})";
+                Console.WriteLine($"[PAYROLL DEBUG] Salário proporcional: Original: {contract.Value} -> Proporcional: {salaryAmount}");
+            }
+            
             items.Add(new PayrollItem
             {
                 PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
-                Description = "Salário Base",
+                Description = salaryDescription,
                 Type = "Provento",
                 Category = "Salario",
-                Amount = Convert.ToInt64(contract.Value),
+                Amount = Convert.ToInt64(salaryAmount),
                 SourceType = "contract_benefit",
                 ReferenceId = contract.ContractId,
                 IsManual = false,
@@ -398,13 +481,46 @@ namespace ERP.Application.Services
 
             foreach (var benefit in benefits)
             {
+                // Calcular valor: se IsProportional, aplicar fator apropriado
+                var benefitAmount = benefit.Amount;
+                var description = benefit.Description;
+                
+                if (benefit.IsProportional)
+                {
+                    // Verificar se é benefício ANUAL
+                    var isAnnual = !string.IsNullOrEmpty(benefit.Application) && 
+                                   benefit.Application.ToLower().Trim() == "anual";
+                    
+                    if (isAnnual)
+                    {
+                        // Benefício anual: proporção baseada em meses trabalhados (até 12 meses)
+                        if (annualProportionalFactor < 1.0m)
+                        {
+                            benefitAmount = (long)Math.Round(benefit.Amount * annualProportionalFactor);
+                            var monthsWorked = (int)Math.Round(annualProportionalFactor * 12);
+                            description = $"{benefit.Description} (proporcional {monthsWorked}/12 meses)";
+                            Console.WriteLine($"[PAYROLL DEBUG] Benefício ANUAL proporcional: {benefit.Description} - Original: {benefit.Amount} -> Proporcional: {benefitAmount} ({annualProportionalFactor:P0})");
+                        }
+                    }
+                    else
+                    {
+                        // Benefício mensal: proporção baseada em dias no período
+                        if (proportionalFactor < 1.0m)
+                        {
+                            benefitAmount = (long)Math.Round(benefit.Amount * proportionalFactor);
+                            description = $"{benefit.Description} (proporcional {proportionalFactor:P0})";
+                            Console.WriteLine($"[PAYROLL DEBUG] Benefício MENSAL proporcional: {benefit.Description} - Original: {benefit.Amount} -> Proporcional: {benefitAmount}");
+                        }
+                    }
+                }
+                
                 items.Add(new PayrollItem
                 {
                     PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
-                    Description = benefit.Description,
+                    Description = description,
                     Type = "Provento",
                     Category = "Benefício",
-                    Amount = Convert.ToInt64(benefit.Amount),
+                    Amount = Convert.ToInt64(benefitAmount),
                     SourceType = "contract_benefit",
                     ReferenceId = benefit.ContractBenefitDiscountId,
                     IsManual = false,
@@ -421,13 +537,46 @@ namespace ERP.Application.Services
 
             foreach (var discount in discounts)
             {
+                // Calcular valor: se IsProportional, aplicar fator apropriado
+                var discountAmount = discount.Amount;
+                var discountDescription = discount.Description;
+                
+                if (discount.IsProportional)
+                {
+                    // Verificar se é desconto ANUAL
+                    var isAnnual = !string.IsNullOrEmpty(discount.Application) && 
+                                   discount.Application.ToLower().Trim() == "anual";
+                    
+                    if (isAnnual)
+                    {
+                        // Desconto anual: proporção baseada em meses trabalhados (até 12 meses)
+                        if (annualProportionalFactor < 1.0m)
+                        {
+                            discountAmount = (long)Math.Round(discount.Amount * annualProportionalFactor);
+                            var monthsWorked = (int)Math.Round(annualProportionalFactor * 12);
+                            discountDescription = $"{discount.Description} (proporcional {monthsWorked}/12 meses)";
+                            Console.WriteLine($"[PAYROLL DEBUG] Desconto ANUAL proporcional: {discount.Description} - Original: {discount.Amount} -> Proporcional: {discountAmount} ({annualProportionalFactor:P0})");
+                        }
+                    }
+                    else
+                    {
+                        // Desconto mensal: proporção baseada em dias no período
+                        if (proportionalFactor < 1.0m)
+                        {
+                            discountAmount = (long)Math.Round(discount.Amount * proportionalFactor);
+                            discountDescription = $"{discount.Description} (proporcional {proportionalFactor:P0})";
+                            Console.WriteLine($"[PAYROLL DEBUG] Desconto MENSAL proporcional: {discount.Description} - Original: {discount.Amount} -> Proporcional: {discountAmount}");
+                        }
+                    }
+                }
+                
                 items.Add(new PayrollItem
                 {
                     PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
-                    Description = discount.Description,
+                    Description = discountDescription,
                     Type = "Desconto",
                     Category = "Desconto",
-                    Amount = Convert.ToInt64(discount.Amount),
+                    Amount = Convert.ToInt64(discountAmount),
                     SourceType = "contract_discount",
                     ReferenceId = discount.ContractBenefitDiscountId,
                     IsManual = false,
