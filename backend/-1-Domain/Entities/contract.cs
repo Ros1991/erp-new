@@ -34,6 +34,12 @@ namespace ERP.Domain.Entities
 		[Column("contract_has_fgts")]
 		public bool HasFgts { get; set; }
 
+		[Column("contract_has_thirteenth_salary")]
+		public bool HasThirteenthSalary { get; set; } = true;
+
+		[Column("contract_has_vacation_bonus")]
+		public bool HasVacationBonus { get; set; } = true;
+
 		[Column("contract_start_date")]
 		public DateTime StartDate { get; set; }
 

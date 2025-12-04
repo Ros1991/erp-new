@@ -21,6 +21,8 @@ namespace ERP.Application.Mappers
                 HasInss = entity.HasInss,
                 HasIrrf = entity.HasIrrf,
                 HasFgts = entity.HasFgts,
+                HasThirteenthSalary = entity.HasThirteenthSalary,
+                HasVacationBonus = entity.HasVacationBonus,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
                 WeeklyHours = entity.WeeklyHours,
@@ -31,7 +33,10 @@ namespace ERP.Application.Mappers
                     Description = b.Description,
                     Type = b.Type,
                     Application = b.Application,
-                    Amount = b.Amount
+                    Amount = b.Amount,
+                    Month = b.Month,
+                    HasTaxes = b.HasTaxes,
+                    IsProportional = b.IsProportional
                 }).ToList(),
                 CostCenters = entity.ContractCostCenterList?.Select(c => new ContractCostCenterDTO
                 {
@@ -89,6 +94,8 @@ namespace ERP.Application.Mappers
             entity.HasInss = dto.HasInss;
             entity.HasIrrf = dto.HasIrrf;
             entity.HasFgts = dto.HasFgts;
+            entity.HasThirteenthSalary = dto.HasThirteenthSalary;
+            entity.HasVacationBonus = dto.HasVacationBonus;
             entity.StartDate = DateTimeHelper.ToUtc(dto.StartDate);
             entity.EndDate = dto.EndDate.HasValue ? DateTimeHelper.ToUtc(dto.EndDate.Value) : null;
             entity.WeeklyHours = dto.WeeklyHours;

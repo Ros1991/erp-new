@@ -26,6 +26,10 @@ namespace ERP.Application.DTOs
         [Required(ErrorMessage = "HasFgts é obrigatório")]
         public bool HasFgts { get; set; }
 
+        public bool HasThirteenthSalary { get; set; } = true;
+
+        public bool HasVacationBonus { get; set; } = true;
+
         [Required(ErrorMessage = "Data de início é obrigatória")]
         public DateTime StartDate { get; set; }
 

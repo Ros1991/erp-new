@@ -28,6 +28,15 @@ namespace ERP.Domain.Entities
 		[Column("contract_benefit_discount_amount")]
 		public long Amount { get; set; } // Armazenado em centavos
 
+		[Column("contract_benefit_discount_month")]
+		public int? Month { get; set; } // Mês (1-12) para benefícios anuais
+
+		[Column("contract_benefit_discount_has_taxes")]
+		public bool HasTaxes { get; set; } = false;
+
+		[Column("contract_benefit_discount_is_proportional")]
+		public bool IsProportional { get; set; } = true;
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 

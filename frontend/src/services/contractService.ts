@@ -6,6 +6,9 @@ export interface ContractBenefitDiscount {
   type: string;
   application: string;
   amount: number;
+  month?: number; // Mês (1-12) para benefícios anuais
+  hasTaxes?: boolean; // Se tem incidência de impostos
+  isProportional?: boolean; // Se pode ser proporcional
 }
 
 export interface ContractCostCenter {
@@ -25,6 +28,8 @@ export interface Contract {
   hasInss: boolean;
   hasIrrf: boolean;
   hasFgts: boolean;
+  hasThirteenthSalary: boolean;
+  hasVacationBonus: boolean;
   startDate: string;
   endDate?: string;
   weeklyHours?: number;
@@ -45,6 +50,8 @@ export interface ContractInput {
   hasInss: boolean;
   hasIrrf: boolean;
   hasFgts: boolean;
+  hasThirteenthSalary: boolean;
+  hasVacationBonus: boolean;
   startDate: string;
   endDate?: string;
   weeklyHours?: number;

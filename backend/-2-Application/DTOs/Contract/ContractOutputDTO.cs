@@ -11,6 +11,8 @@ namespace ERP.Application.DTOs
         public bool HasInss { get; set; }
         public bool HasIrrf { get; set; }
         public bool HasFgts { get; set; }
+        public bool HasThirteenthSalary { get; set; }
+        public bool HasVacationBonus { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public long? WeeklyHours { get; set; }
@@ -30,6 +32,9 @@ namespace ERP.Application.DTOs
         public string Type { get; set; }
         public string Application { get; set; }
         public long Amount { get; set; } // Em centavos
+        public int? Month { get; set; } // Mês (1-12) para benefícios anuais
+        public bool HasTaxes { get; set; } // Se tem incidência de impostos
+        public bool IsProportional { get; set; } = true; // Se pode ser proporcional
     }
 
     public class ContractCostCenterDTO

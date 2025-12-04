@@ -25,6 +25,8 @@ interface ContractFormData {
   hasInss: boolean;
   hasIrrf: boolean;
   hasFgts: boolean;
+  hasThirteenthSalary: boolean;
+  hasVacationBonus: boolean;
   startDate: string;
   endDate: string;
   weeklyHours: string;
@@ -46,6 +48,8 @@ export function ContractForm() {
     hasInss: true,
     hasIrrf: true,
     hasFgts: true,
+    hasThirteenthSalary: true,
+    hasVacationBonus: true,
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     weeklyHours: '40',
@@ -122,6 +126,8 @@ export function ContractForm() {
         hasInss: contract.hasInss,
         hasIrrf: contract.hasIrrf,
         hasFgts: contract.hasFgts,
+        hasThirteenthSalary: contract.hasThirteenthSalary ?? true,
+        hasVacationBonus: contract.hasVacationBonus ?? true,
         startDate: contract.startDate.split('T')[0],
         endDate: contract.endDate ? contract.endDate.split('T')[0] : '',
         weeklyHours: contract.weeklyHours?.toString() || '',
@@ -135,6 +141,9 @@ export function ContractForm() {
             type: b.type,
             application: migrateApplicationTypeValue(b.application), // Migrar valores antigos
             amount: b.amount, // Já está em centavos
+            month: b.month,
+            hasTaxes: b.hasTaxes ?? false,
+            isProportional: b.isProportional ?? true,
           }))
         );
       }
@@ -218,6 +227,8 @@ export function ContractForm() {
         hasInss: formData.hasInss,
         hasIrrf: formData.hasIrrf,
         hasFgts: formData.hasFgts,
+        hasThirteenthSalary: formData.hasThirteenthSalary,
+        hasVacationBonus: formData.hasVacationBonus,
         startDate: toUTCString(new Date(formData.startDate))!,
         endDate: formData.endDate ? toUTCString(new Date(formData.endDate))! : undefined,
         weeklyHours: formData.weeklyHours ? Number(formData.weeklyHours) : undefined,
@@ -229,6 +240,9 @@ export function ContractForm() {
                 type: b.type,
                 application: b.application,
                 amount: b.amount, // Já em centavos
+                month: b.month,
+                hasTaxes: b.hasTaxes ?? false,
+                isProportional: b.isProportional ?? true,
               }))
             : undefined,
         costCenters:
@@ -408,6 +422,28 @@ export function ContractForm() {
                   className="w-4 h-4"
                 />
                 <Label htmlFor="hasFgts" className="cursor-pointer">Tem FGTS</Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="hasThirteenthSalary"
+                  checked={formData.hasThirteenthSalary}
+                  onChange={(e) => handleInputChange('hasThirteenthSalary', e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="hasThirteenthSalary" className="cursor-pointer">Recebe 13º Salário</Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="hasVacationBonus"
+                  checked={formData.hasVacationBonus}
+                  onChange={(e) => handleInputChange('hasVacationBonus', e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="hasVacationBonus" className="cursor-pointer">Recebe Adicional de Férias (1/3)</Label>
               </div>
             </div>
           </CardContent>

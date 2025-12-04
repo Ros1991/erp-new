@@ -11,6 +11,9 @@ export interface BenefitDiscountItem {
   type: string; // 'Benefício' ou 'Desconto'
   application: string; // Códigos curtos: SALARIO, 13SAL, FERIAS, TODOS, BONUS, COMISSAO
   amount: number; // Valor em centavos
+  month?: number; // Mês (1-12) para benefícios anuais
+  hasTaxes?: boolean; // Se tem incidência de impostos
+  isProportional?: boolean; // Se pode ser proporcional
 }
 
 interface BenefitDiscountListProps {
@@ -32,6 +35,9 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
         type: 'Benefício',
         application: ApplicationTypeCode.SALARY,
         amount: 0,
+        month: undefined,
+        hasTaxes: false,
+        isProportional: true,
       },
     ]);
   };
@@ -41,7 +47,7 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
     onChange(newItems);
   };
 
-  const handleChange = (index: number, field: keyof BenefitDiscountItem, value: string | number) => {
+  const handleChange = (index: number, field: keyof BenefitDiscountItem, value: string | number | boolean | undefined) => {
     const newItems = [...items];
     // Migrar valores antigos de application para códigos novos
     if (field === 'application' && typeof value === 'string') {
@@ -94,72 +100,127 @@ export function BenefitDiscountList({ items, onChange }: BenefitDiscountListProp
           {items.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg bg-card"
+              className="p-4 border rounded-lg bg-card space-y-3"
             >
-              {/* Descrição */}
-              <div className="md:col-span-4">
-                <Label htmlFor={`description-${index}`}>Descrição</Label>
-                <Input
-                  id={`description-${index}`}
-                  value={item.description}
-                  onChange={(e) => handleChange(index, 'description', e.target.value)}
-                  placeholder="Ex: Vale Transporte"
-                />
+              {/* Linha 1: Descrição, Tipo, Aplicação, Valor, Remover */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                {/* Descrição */}
+                <div className="md:col-span-4">
+                  <Label htmlFor={`description-${index}`}>Descrição</Label>
+                  <Input
+                    id={`description-${index}`}
+                    value={item.description}
+                    onChange={(e) => handleChange(index, 'description', e.target.value)}
+                    placeholder="Ex: Vale Transporte"
+                  />
+                </div>
+
+                {/* Tipo */}
+                <div className="md:col-span-2">
+                  <Label htmlFor={`type-${index}`}>Tipo</Label>
+                  <Select
+                    id={`type-${index}`}
+                    value={item.type}
+                    onChange={(e) => handleChange(index, 'type', e.target.value)}
+                  >
+                    {TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Aplicação */}
+                <div className="md:col-span-3">
+                  <Label htmlFor={`application-${index}`}>Aplicação</Label>
+                  <Select
+                    id={`application-${index}`}
+                    value={migrateApplicationTypeValue(item.application)}
+                    onChange={(e) => handleChange(index, 'application', e.target.value)}
+                  >
+                    {APPLICATION_TYPE_OPTIONS.map((app) => (
+                      <option key={app.value} value={app.value}>
+                        {app.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Valor */}
+                <div className="md:col-span-2">
+                  <Label htmlFor={`amount-${index}`}>Valor</Label>
+                  <CurrencyInput
+                    id={`amount-${index}`}
+                    value={item.amount.toString()}
+                    onChange={(value) => handleChange(index, 'amount', Number(value))}
+                  />
+                </div>
+
+                {/* Botão Remover */}
+                <div className="md:col-span-1 flex items-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemove(index)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
-              {/* Tipo */}
-              <div className="md:col-span-2">
-                <Label htmlFor={`type-${index}`}>Tipo</Label>
-                <Select
-                  id={`type-${index}`}
-                  value={item.type}
-                  onChange={(e) => handleChange(index, 'type', e.target.value)}
-                >
-                  {TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              {/* Linha 2: Opções adicionais */}
+              <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-dashed">
+                {/* Mês (só para aplicação Anual) */}
+                {item.application === 'ANUAL' && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor={`month-${index}`} className="text-sm">Mês:</Label>
+                    <Select
+                      id={`month-${index}`}
+                      value={item.month?.toString() || ''}
+                      onChange={(e) => handleChange(index, 'month', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-32"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="1">Janeiro</option>
+                      <option value="2">Fevereiro</option>
+                      <option value="3">Março</option>
+                      <option value="4">Abril</option>
+                      <option value="5">Maio</option>
+                      <option value="6">Junho</option>
+                      <option value="7">Julho</option>
+                      <option value="8">Agosto</option>
+                      <option value="9">Setembro</option>
+                      <option value="10">Outubro</option>
+                      <option value="11">Novembro</option>
+                      <option value="12">Dezembro</option>
+                    </Select>
+                  </div>
+                )}
 
-              {/* Aplicação */}
-              <div className="md:col-span-3">
-                <Label htmlFor={`application-${index}`}>Aplicação</Label>
-                <Select
-                  id={`application-${index}`}
-                  value={migrateApplicationTypeValue(item.application)}
-                  onChange={(e) => handleChange(index, 'application', e.target.value)}
-                >
-                  {APPLICATION_TYPE_OPTIONS.map((app) => (
-                    <option key={app.value} value={app.value}>
-                      {app.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+                {/* Tem impostos */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={item.hasTaxes ?? false}
+                    onChange={(e) => handleChange(index, 'hasTaxes', e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm">Incide impostos</span>
+                </label>
 
-              {/* Valor */}
-              <div className="md:col-span-2">
-                <Label htmlFor={`amount-${index}`}>Valor</Label>
-                <CurrencyInput
-                  id={`amount-${index}`}
-                  value={item.amount.toString()}
-                  onChange={(value) => handleChange(index, 'amount', Number(value))}
-                />
-              </div>
-
-              {/* Botão Remover */}
-              <div className="md:col-span-1 flex items-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemove(index)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {/* É proporcional */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={item.isProportional ?? true}
+                    onChange={(e) => handleChange(index, 'isProportional', e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm">Proporcional</span>
+                </label>
               </div>
             </div>
           ))}

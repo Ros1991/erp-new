@@ -86,7 +86,12 @@ namespace ERP.Application.Services
                         null,
                         now,
                         null
-                    );
+                    )
+                    {
+                        Month = benefit.Month,
+                        HasTaxes = benefit.HasTaxes,
+                        IsProportional = benefit.IsProportional
+                    };
                     createdEntity.ContractBenefitDiscountList.Add(cbd);
                 }
             }
@@ -170,7 +175,12 @@ namespace ERP.Application.Services
                         null,
                         now,
                         null
-                    );
+                    )
+                    {
+                        Month = benefit.Month,
+                        HasTaxes = benefit.HasTaxes,
+                        IsProportional = benefit.IsProportional
+                    };
                     existingEntity.ContractBenefitDiscountList.Add(cbd);
                 }
             }
