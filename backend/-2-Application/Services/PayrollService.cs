@@ -624,7 +624,207 @@ namespace ERP.Application.Services
                 }
             }
 
-            // 6. Salvar todos os itens
+            // 6. Calcular e adicionar impostos (INSS, IRRF, FGTS)
+            // Calcular base de cálculo (salário + benefícios que incidem impostos)
+            var taxableIncome = salaryAmount; // Salário base (já proporcional se aplicável)
+            
+            // Adicionar benefícios que têm incidência de impostos
+            foreach (var benefit in benefits.Where(b => b.HasTaxes))
+            {
+                // Recalcular o valor do benefício (considerando proporcionalidade)
+                var benefitValue = benefit.Amount;
+                if (benefit.IsProportional)
+                {
+                    var isAnnual = !string.IsNullOrEmpty(benefit.Application) && 
+                                   benefit.Application.ToLower().Trim() == "anual";
+                    if (isAnnual && annualProportionalFactor < 1.0m)
+                    {
+                        benefitValue = (long)Math.Round(benefit.Amount * annualProportionalFactor);
+                    }
+                    else if (!isAnnual && proportionalFactor < 1.0m)
+                    {
+                        benefitValue = (long)Math.Round(benefit.Amount * proportionalFactor);
+                    }
+                }
+                taxableIncome += benefitValue;
+            }
+            
+            Console.WriteLine($"[PAYROLL DEBUG] Base de cálculo para impostos: {taxableIncome} centavos (R$ {taxableIncome / 100.0m:N2})");
+
+            // ===== INSS (Tabela 2024 - valores em centavos) =====
+            // Faixas progressivas
+            long CalculateINSS(long grossIncome)
+            {
+                // Converter para reais para cálculo
+                decimal income = grossIncome / 100.0m;
+                decimal inss = 0;
+                
+                // Faixa 1: Até R$ 1.412,00 → 7,5%
+                if (income <= 1412.00m)
+                {
+                    inss = income * 0.075m;
+                }
+                // Faixa 2: De R$ 1.412,01 até R$ 2.666,68 → 9%
+                else if (income <= 2666.68m)
+                {
+                    inss = (1412.00m * 0.075m) + ((income - 1412.00m) * 0.09m);
+                }
+                // Faixa 3: De R$ 2.666,69 até R$ 4.000,03 → 12%
+                else if (income <= 4000.03m)
+                {
+                    inss = (1412.00m * 0.075m) + ((2666.68m - 1412.00m) * 0.09m) + ((income - 2666.68m) * 0.12m);
+                }
+                // Faixa 4: De R$ 4.000,04 até R$ 7.786,02 → 14%
+                else if (income <= 7786.02m)
+                {
+                    inss = (1412.00m * 0.075m) + ((2666.68m - 1412.00m) * 0.09m) + ((4000.03m - 2666.68m) * 0.12m) + ((income - 4000.03m) * 0.14m);
+                }
+                // Acima do teto: contribuição máxima
+                else
+                {
+                    inss = (1412.00m * 0.075m) + ((2666.68m - 1412.00m) * 0.09m) + ((4000.03m - 2666.68m) * 0.12m) + ((7786.02m - 4000.03m) * 0.14m);
+                }
+                
+                // Converter de volta para centavos
+                return (long)Math.Round(inss * 100);
+            }
+
+            // ===== IRRF (Tabela 2024 - valores em centavos) =====
+            // Calculado sobre (Salário - INSS - Dependentes)
+            long CalculateIRRF(long grossIncome, long inssValue)
+            {
+                // Converter para reais
+                decimal income = grossIncome / 100.0m;
+                decimal inss = inssValue / 100.0m;
+                
+                // Base de cálculo = Renda - INSS (sem considerar dependentes por enquanto)
+                decimal baseCalculo = income - inss;
+                
+                decimal irrf = 0;
+                decimal deduction = 0;
+                
+                // Faixa 1: Até R$ 2.259,20 → Isento
+                if (baseCalculo <= 2259.20m)
+                {
+                    irrf = 0;
+                }
+                // Faixa 2: De R$ 2.259,21 até R$ 2.826,65 → 7,5%
+                else if (baseCalculo <= 2826.65m)
+                {
+                    irrf = (baseCalculo * 0.075m) - 169.44m;
+                }
+                // Faixa 3: De R$ 2.826,66 até R$ 3.751,05 → 15%
+                else if (baseCalculo <= 3751.05m)
+                {
+                    irrf = (baseCalculo * 0.15m) - 381.44m;
+                }
+                // Faixa 4: De R$ 3.751,06 até R$ 4.664,68 → 22,5%
+                else if (baseCalculo <= 4664.68m)
+                {
+                    irrf = (baseCalculo * 0.225m) - 662.77m;
+                }
+                // Faixa 5: Acima de R$ 4.664,68 → 27,5%
+                else
+                {
+                    irrf = (baseCalculo * 0.275m) - 896.00m;
+                }
+                
+                // IRRF não pode ser negativo
+                if (irrf < 0) irrf = 0;
+                
+                // Converter de volta para centavos
+                return (long)Math.Round(irrf * 100);
+            }
+
+            // ===== FGTS (8% sobre salário bruto - pago pelo empregador) =====
+            long CalculateFGTS(long grossIncome)
+            {
+                return (long)Math.Round(grossIncome * 0.08m);
+            }
+
+            // Calcular e adicionar INSS se contrato tiver
+            if (contract.HasInss)
+            {
+                var inssValue = CalculateINSS(taxableIncome);
+                if (inssValue > 0)
+                {
+                    items.Add(new PayrollItem
+                    {
+                        PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                        Description = "INSS",
+                        Type = "Desconto",
+                        Category = "Imposto",
+                        Amount = inssValue,
+                        SourceType = "tax",
+                        CalculationBasis = taxableIncome,
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = userId,
+                        CriadoEm = now
+                    });
+                    Console.WriteLine($"[PAYROLL DEBUG] INSS calculado: R$ {inssValue / 100.0m:N2}");
+                    
+                    // Calcular IRRF se contrato tiver (usa INSS como dedução)
+                    if (contract.HasIrrf)
+                    {
+                        var irrfValue = CalculateIRRF(taxableIncome, inssValue);
+                        if (irrfValue > 0)
+                        {
+                            items.Add(new PayrollItem
+                            {
+                                PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                                Description = "IRRF",
+                                Type = "Desconto",
+                                Category = "Imposto",
+                                Amount = irrfValue,
+                                SourceType = "tax",
+                                CalculationBasis = taxableIncome - inssValue, // Base de cálculo do IRRF
+                                IsManual = false,
+                                IsActive = true,
+                                CriadoPor = userId,
+                                CriadoEm = now
+                            });
+                            Console.WriteLine($"[PAYROLL DEBUG] IRRF calculado: R$ {irrfValue / 100.0m:N2}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[PAYROLL DEBUG] IRRF: Isento (base R$ {(taxableIncome - inssValue) / 100.0m:N2})");
+                        }
+                    }
+                }
+            }
+            else if (contract.HasIrrf)
+            {
+                // IRRF sem INSS (caso raro, mas possível)
+                var irrfValue = CalculateIRRF(taxableIncome, 0);
+                if (irrfValue > 0)
+                {
+                    items.Add(new PayrollItem
+                    {
+                        PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                        Description = "IRRF",
+                        Type = "Desconto",
+                        Category = "Imposto",
+                        Amount = irrfValue,
+                        SourceType = "tax",
+                        CalculationBasis = taxableIncome,
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = userId,
+                        CriadoEm = now
+                    });
+                    Console.WriteLine($"[PAYROLL DEBUG] IRRF calculado (sem INSS): R$ {irrfValue / 100.0m:N2}");
+                }
+            }
+
+            // FGTS: apenas log para referência (não cria item no banco - é encargo do empregador)
+            if (contract.HasFgts)
+            {
+                var fgtsValue = CalculateFGTS(taxableIncome);
+                Console.WriteLine($"[PAYROLL DEBUG] FGTS (encargo empregador, não salvo): R$ {fgtsValue / 100.0m:N2}");
+            }
+
+            // 7. Salvar todos os itens
             foreach (var item in items)
             {
                 await _unitOfWork.PayrollItemRepository.CreateAsync(item);
