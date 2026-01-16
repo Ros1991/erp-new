@@ -1216,5 +1216,96 @@ namespace ERP.Application.Services
                 Items = itemsList
             };
         }
+
+        public async Task<PayrollEmployeeDetailedDTO> AddPayrollItemAsync(PayrollItemInputDTO dto, long currentUserId)
+        {
+            // Buscar PayrollEmployee
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(dto.PayrollEmployeeId);
+            if (payrollEmployee == null)
+                throw new EntityNotFoundException("PayrollEmployee", dto.PayrollEmployeeId);
+
+            // Buscar Payroll e verificar se está aberta
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollEmployee.PayrollId);
+            if (payroll == null)
+                throw new EntityNotFoundException("Payroll", payrollEmployee.PayrollId);
+
+            if (payroll.IsClosed)
+                throw new ValidationException("Payroll", "Não é possível adicionar itens em uma folha fechada.");
+
+            // Validar dados do item
+            if (string.IsNullOrWhiteSpace(dto.Description))
+                throw new ValidationException("Description", "A descrição do item é obrigatória.");
+
+            if (dto.Amount <= 0)
+                throw new ValidationException("Amount", "O valor do item deve ser maior que zero.");
+
+            if (dto.Type != "Provento" && dto.Type != "Desconto")
+                throw new ValidationException("Type", "O tipo do item deve ser 'Provento' ou 'Desconto'.");
+
+            // Criar novo item
+            var newItem = new PayrollItem
+            {
+                PayrollEmployeeId = dto.PayrollEmployeeId,
+                Description = dto.Description,
+                Type = dto.Type,
+                Category = dto.Category ?? "Manual",
+                Amount = dto.Amount,
+                IsManual = true,
+                IsActive = true,
+                SourceType = "manual",
+                CriadoPor = currentUserId,
+                CriadoEm = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PayrollItemRepository.CreateAsync(newItem);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Recalcular totais
+            await RecalculatePayrollEmployeeTotalsAsync(dto.PayrollEmployeeId);
+            await RecalculatePayrollTotalsAsync(payroll.PayrollId);
+
+            // Buscar dados do empregado para retorno
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(payrollEmployee.EmployeeId);
+            var contract = payrollEmployee.ContractId.HasValue 
+                ? await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value) 
+                : null;
+            var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(dto.PayrollEmployeeId);
+            
+            // Recarregar payrollEmployee após recálculo
+            payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(dto.PayrollEmployeeId);
+
+            var itemsList = payrollItems.Select(item => new PayrollItemDetailedDTO
+            {
+                PayrollItemId = item.PayrollItemId,
+                PayrollEmployeeId = item.PayrollEmployeeId,
+                Description = item.Description,
+                Type = item.Type,
+                Category = item.Category,
+                Amount = item.Amount,
+                ReferenceId = item.ReferenceId,
+                CalculationBasis = item.CalculationBasis,
+                CalculationDetails = item.CalculationDetails
+            }).ToList();
+
+            return new PayrollEmployeeDetailedDTO
+            {
+                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                PayrollId = payrollEmployee.PayrollId,
+                EmployeeId = payrollEmployee.EmployeeId,
+                EmployeeName = employee?.Nickname ?? employee?.FullName ?? "Desconhecido",
+                EmployeeDocument = employee?.Cpf,
+                IsOnVacation = payrollEmployee.IsOnVacation,
+                VacationDays = payrollEmployee.VacationDays,
+                VacationAdvanceAmount = payrollEmployee.VacationAdvanceAmount,
+                TotalGrossPay = payrollEmployee.TotalGrossPay,
+                TotalDeductions = payrollEmployee.TotalDeductions,
+                TotalNetPay = payrollEmployee.TotalNetPay,
+                ContractId = payrollEmployee.ContractId,
+                ContractType = contract?.Type,
+                ContractValue = contract?.Value,
+                WorkedUnits = payrollEmployee.WorkedUnits,
+                Items = itemsList
+            };
+        }
     }
 }

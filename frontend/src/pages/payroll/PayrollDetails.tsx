@@ -24,8 +24,18 @@ import {
   ChevronUp,
   RefreshCw,
   Clock,
-  Edit2
+  Edit2,
+  Trash2,
+  CheckCircle,
+  Printer,
+  Gift,
+  Palmtree,
+  ExternalLink,
+  Plus
 } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Label } from '../../components/ui/Label';
+import { CurrencyInput } from '../../components/ui/CurrencyInput';
 
 export function PayrollDetails() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +61,30 @@ export function PayrollDetails() {
   const [recalculateEmployeeDialogOpen, setRecalculateEmployeeDialogOpen] = useState(false);
   const [employeeToRecalculate, setEmployeeToRecalculate] = useState<PayrollEmployeeDetailed | null>(null);
   const [isRecalculatingEmployee, setIsRecalculatingEmployee] = useState(false);
+
+  // Estados para ações da folha
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [thirteenthDialogOpen, setThirteenthDialogOpen] = useState(false);
+  const [thirteenthPercentage, setThirteenthPercentage] = useState(100);
+  const [thirteenthTaxOption, setThirteenthTaxOption] = useState<'none' | 'proportional' | 'full'>('none');
+  const [isGenerating13th, setIsGenerating13th] = useState(false);
+
+  // Estados para ações do funcionário
+  const [vacationDialogOpen, setVacationDialogOpen] = useState(false);
+  const [vacationEmployee, setVacationEmployee] = useState<PayrollEmployeeDetailed | null>(null);
+  const [vacationStartDate, setVacationStartDate] = useState('');
+  const [vacationDays, setVacationDays] = useState(30);
+  const [vacationReferencePeriod, setVacationReferencePeriod] = useState('');
+  const [isAddingVacation, setIsAddingVacation] = useState(false);
+  const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+  const [addItemEmployee, setAddItemEmployee] = useState<PayrollEmployeeDetailed | null>(null);
+  const [newItemType, setNewItemType] = useState<'Provento' | 'Desconto'>('Provento');
+  const [newItemDescription, setNewItemDescription] = useState('');
+  const [newItemAmount, setNewItemAmount] = useState(0);
+  const [isAddingItem, setIsAddingItem] = useState(false);
 
   useEffect(() => {
     loadPayrollDetails();
@@ -187,6 +221,113 @@ export function PayrollDetails() {
     }
   };
 
+  // Handler para apagar folha (placeholder - apenas frontend)
+  const handleDeletePayroll = async () => {
+    setIsDeleting(true);
+    // TODO: Implementar backend
+    setTimeout(() => {
+      showSuccess('Folha de pagamento excluída com sucesso!');
+      setDeleteDialogOpen(false);
+      setIsDeleting(false);
+      navigate('/payroll');
+    }, 1000);
+  };
+
+  // Handler para pagar folha (placeholder - apenas frontend)
+  const handlePayPayroll = async () => {
+    setIsPaying(true);
+    // TODO: Implementar backend
+    setTimeout(() => {
+      showSuccess('Folha de pagamento marcada como paga!');
+      setPayDialogOpen(false);
+      setIsPaying(false);
+    }, 1000);
+  };
+
+  // Handler para imprimir folha
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Handler para gerar 13º (placeholder - apenas frontend)
+  const handleGenerate13th = async () => {
+    setIsGenerating13th(true);
+    // TODO: Implementar backend
+    setTimeout(() => {
+      showSuccess(`13º salário gerado com ${thirteenthPercentage}% e opção de impostos: ${thirteenthTaxOption}`);
+      setThirteenthDialogOpen(false);
+      setIsGenerating13th(false);
+      setThirteenthPercentage(100);
+      setThirteenthTaxOption('none');
+    }, 1000);
+  };
+
+  // Handler para abrir dialog de férias
+  const handleAddVacation = (employee: PayrollEmployeeDetailed) => {
+    setVacationEmployee(employee);
+    setVacationStartDate('');
+    setVacationDays(30);
+    setVacationReferencePeriod('');
+    setVacationDialogOpen(true);
+  };
+
+  // Handler para salvar férias (placeholder - apenas frontend)
+  const handleSaveVacation = async () => {
+    setIsAddingVacation(true);
+    // TODO: Implementar backend
+    setTimeout(() => {
+      showSuccess(`Férias adicionadas para ${vacationEmployee?.employeeName}`);
+      setVacationDialogOpen(false);
+      setIsAddingVacation(false);
+      setVacationEmployee(null);
+    }, 1000);
+  };
+
+  // Handler para abrir contrato em nova aba
+  const handleOpenContract = (employee: PayrollEmployeeDetailed) => {
+    window.open(`/employees/${employee.employeeId}/contracts`, '_blank');
+  };
+
+  // Handler para abrir dialog de adicionar item
+  const handleAddItem = (employee: PayrollEmployeeDetailed) => {
+    setAddItemEmployee(employee);
+    setNewItemType('Provento');
+    setNewItemDescription('');
+    setNewItemAmount(0);
+    setAddItemDialogOpen(true);
+  };
+
+  // Handler para salvar novo item
+  const handleSaveNewItem = async () => {
+    if (!addItemEmployee || !payroll) return;
+    
+    setIsAddingItem(true);
+    try {
+      const updatedEmployee = await payrollService.addPayrollItem({
+        payrollEmployeeId: addItemEmployee.payrollEmployeeId,
+        description: newItemDescription,
+        type: newItemType,
+        category: 'Manual',
+        amount: newItemAmount
+      });
+      
+      // Atualizar estado local
+      const updatedPayroll = payrollService.replaceEmployeeLocally(payroll, updatedEmployee);
+      setPayroll(updatedPayroll);
+      
+      showSuccess(`${newItemType === 'Provento' ? 'Crédito' : 'Débito'} adicionado com sucesso!`);
+      setAddItemDialogOpen(false);
+      setAddItemEmployee(null);
+      setNewItemDescription('');
+      setNewItemAmount(0);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsAddingItem(false);
+    }
+  };
+
   const formatCurrency = (valueInCents: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -253,19 +394,67 @@ export function PayrollDetails() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {/* Botões apenas para folha aberta */}
             {!payroll.isClosed && (
-              <Protected requires="payroll.canEdit">
-                <Button
-                  variant="outline"
-                  onClick={() => setRecalculateDialogOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span className="hidden sm:inline">Recalcular</span>
-                </Button>
-              </Protected>
+              <>
+                <Protected requires="payroll.canEdit">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRecalculateDialogOpen(true)}
+                    className="flex items-center gap-1"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span className="hidden sm:inline">Recalcular</span>
+                  </Button>
+                </Protected>
+                <Protected requires="payroll.canEdit">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPayDialogOpen(true)}
+                    className="flex items-center gap-1 text-green-700 border-green-300 hover:bg-green-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">Pagar</span>
+                  </Button>
+                </Protected>
+                <Protected requires="payroll.canDelete">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="flex items-center gap-1 text-red-700 border-red-300 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Excluir</span>
+                  </Button>
+                </Protected>
+              </>
             )}
+            {/* Botões sempre visíveis */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              className="flex items-center gap-1"
+            >
+              <Printer className="h-4 w-4" />
+              <span className="hidden sm:inline">Imprimir</span>
+            </Button>
+            <Protected requires="payroll.canEdit">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setThirteenthDialogOpen(true)}
+                className="flex items-center gap-1 text-purple-700 border-purple-300 hover:bg-purple-50"
+              >
+                <Gift className="h-4 w-4" />
+                <span className="hidden sm:inline">Gerar 13º</span>
+              </Button>
+            </Protected>
+            {/* Badge de status */}
             {payroll.isClosed ? (
               <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                 <Lock className="h-4 w-4 mr-1.5" />
@@ -515,6 +704,52 @@ export function PayrollDetails() {
                             Recalcular
                           </Button>
                         </Protected>
+
+                        {/* Botão de Férias */}
+                        <Protected requires="payroll.canEdit">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddVacation(employee);
+                            }}
+                            className="text-cyan-700 border-cyan-300 hover:bg-cyan-100"
+                          >
+                            <Palmtree className="h-3 w-3 mr-1" />
+                            Férias
+                          </Button>
+                        </Protected>
+
+                        {/* Botão de Adicionar Débito/Crédito */}
+                        <Protected requires="payroll.canEdit">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddItem(employee);
+                            }}
+                            className="text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Adicionar
+                          </Button>
+                        </Protected>
+
+                        {/* Botão de Atalho para Contratos */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenContract(employee);
+                          }}
+                          className="text-gray-700 border-gray-300 hover:bg-gray-100"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Contratos
+                        </Button>
                       </div>
                     )}
 
@@ -651,6 +886,233 @@ export function PayrollDetails() {
         variant="danger"
         isLoading={isRecalculatingEmployee}
       />
+
+      {/* Delete Payroll Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeletePayroll}
+        title="Excluir Folha de Pagamento"
+        description="Tem certeza que deseja excluir esta folha de pagamento? Todos os dados de empregados e itens serão permanentemente removidos. Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Pay Payroll Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={payDialogOpen}
+        onClose={() => setPayDialogOpen(false)}
+        onConfirm={handlePayPayroll}
+        title="Pagar Folha de Pagamento"
+        description="Tem certeza que deseja marcar esta folha como paga? Após o pagamento, a folha será fechada e não poderá mais ser editada."
+        confirmText="Pagar"
+        cancelText="Cancelar"
+        variant="warning"
+        isLoading={isPaying}
+      />
+
+      {/* Generate 13th Salary Dialog */}
+      {thirteenthDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Gift className="h-5 w-5 text-purple-600" />
+              Gerar 13º Salário
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="thirteenthPercentage">Porcentagem do 13º</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    id="thirteenthPercentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={thirteenthPercentage}
+                    onChange={(e) => setThirteenthPercentage(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-gray-500">%</span>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="thirteenthTaxOption">Opção de Impostos</Label>
+                <select
+                  id="thirteenthTaxOption"
+                  value={thirteenthTaxOption}
+                  onChange={(e) => setThirteenthTaxOption(e.target.value as 'none' | 'proportional' | 'full')}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm p-2 border"
+                >
+                  <option value="none">Não Lançar Impostos</option>
+                  <option value="proportional">Impostos Proporcionais</option>
+                  <option value="full">Impostos Totais</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setThirteenthDialogOpen(false);
+                  setThirteenthPercentage(100);
+                  setThirteenthTaxOption('none');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleGenerate13th}
+                disabled={isGenerating13th}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {isGenerating13th ? 'Gerando...' : 'Gerar 13º'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vacation Dialog */}
+      {vacationDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Palmtree className="h-5 w-5 text-cyan-600" />
+              Adicionar Férias - {vacationEmployee?.employeeName}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="vacationStartDate">Data de Início</Label>
+                <Input
+                  id="vacationStartDate"
+                  type="date"
+                  value={vacationStartDate}
+                  onChange={(e) => setVacationStartDate(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="vacationDays">Quantidade de Dias</Label>
+                <Input
+                  id="vacationDays"
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={vacationDays}
+                  onChange={(e) => setVacationDays(Number(e.target.value))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="vacationReferencePeriod">Período de Referência</Label>
+                <Input
+                  id="vacationReferencePeriod"
+                  type="text"
+                  placeholder="Ex: 2024/2025"
+                  value={vacationReferencePeriod}
+                  onChange={(e) => setVacationReferencePeriod(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setVacationDialogOpen(false);
+                  setVacationEmployee(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveVacation}
+                disabled={isAddingVacation || !vacationStartDate}
+                className="bg-cyan-600 hover:bg-cyan-700"
+              >
+                {isAddingVacation ? 'Salvando...' : 'Salvar Férias'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Item Dialog */}
+      {addItemDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Plus className="h-5 w-5 text-indigo-600" />
+              Adicionar Item - {addItemEmployee?.employeeName}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="newItemType">Tipo</Label>
+                <select
+                  id="newItemType"
+                  value={newItemType}
+                  onChange={(e) => setNewItemType(e.target.value as 'Provento' | 'Desconto')}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm p-2 border"
+                >
+                  <option value="Provento">Crédito (Provento)</option>
+                  <option value="Desconto">Débito (Desconto)</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="newItemDescription">Descrição</Label>
+                <Input
+                  id="newItemDescription"
+                  type="text"
+                  placeholder="Ex: Bônus de produtividade"
+                  value={newItemDescription}
+                  onChange={(e) => setNewItemDescription(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="newItemAmount">Valor</Label>
+                <CurrencyInput
+                  id="newItemAmount"
+                  value={newItemAmount}
+                  onChange={(value) => setNewItemAmount(parseInt(value) || 0)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAddItemDialogOpen(false);
+                  setAddItemEmployee(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveNewItem}
+                disabled={isAddingItem || !newItemDescription || newItemAmount <= 0}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                {isAddingItem ? 'Salvando...' : 'Adicionar Item'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }

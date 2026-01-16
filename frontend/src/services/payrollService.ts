@@ -84,6 +84,14 @@ export interface UpdateWorkedUnitsData {
   workedUnits: number;
 }
 
+export interface PayrollItemInputData {
+  payrollEmployeeId: number;
+  description: string;
+  type: 'Provento' | 'Desconto';
+  category?: string;
+  amount: number; // em centavos
+}
+
 export interface PayrollDetailed extends Payroll {
   employees: PayrollEmployeeDetailed[];
 }
@@ -162,16 +170,47 @@ class PayrollService {
     return response.data.data;
   }
 
+  async addPayrollItem(data: PayrollItemInputData): Promise<PayrollEmployeeDetailed> {
+    const response = await api.post('/payroll/item', data);
+    return response.data.data;
+  }
+
   // Helpers para atualização local do estado
   updatePayrollItemLocally(payroll: PayrollDetailed, updatedItem: PayrollItem): PayrollDetailed {
+    // Atualizar itens e recalcular totais do funcionário e da folha
+    const newEmployees = payroll.employees.map(emp => {
+      const hasItem = emp.items.some(item => item.payrollItemId === updatedItem.payrollItemId);
+      if (!hasItem) return emp;
+      
+      // Atualizar itens do funcionário
+      const newItems = emp.items.map(item =>
+        item.payrollItemId === updatedItem.payrollItemId ? updatedItem : item
+      );
+      
+      // Recalcular totais do funcionário
+      const totalGrossPay = newItems
+        .filter(item => item.type === 'Provento')
+        .reduce((sum, item) => sum + item.amount, 0);
+      const totalDeductions = newItems
+        .filter(item => item.type === 'Desconto')
+        .reduce((sum, item) => sum + item.amount, 0);
+      
+      return {
+        ...emp,
+        items: newItems,
+        totalGrossPay,
+        totalDeductions,
+        totalNetPay: totalGrossPay - totalDeductions
+      };
+    });
+    
     return {
       ...payroll,
-      employees: payroll.employees.map(emp => ({
-        ...emp,
-        items: emp.items.map(item =>
-          item.payrollItemId === updatedItem.payrollItemId ? updatedItem : item
-        )
-      }))
+      employees: newEmployees,
+      // Recalcular totais da folha
+      totalGrossPay: newEmployees.reduce((sum, emp) => sum + emp.totalGrossPay, 0),
+      totalDeductions: newEmployees.reduce((sum, emp) => sum + emp.totalDeductions, 0),
+      totalNetPay: newEmployees.reduce((sum, emp) => sum + emp.totalNetPay, 0)
     };
   }
 

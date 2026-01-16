@@ -142,4 +142,15 @@ public class PayrollController : BaseController
             "Horas/dias trabalhados atualizados com sucesso"
         );
     }
+
+    [HttpPost("item")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollEmployeeDetailedDTO>>> AddPayrollItemAsync(PayrollItemInputDTO dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.AddPayrollItemAsync(dto, currentUserId),
+            "Item adicionado com sucesso"
+        );
+    }
 }
