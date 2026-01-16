@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
@@ -6,10 +6,12 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Protected } from '../../components/permissions/Protected';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 import payrollService, { type PayrollDetailed, type PayrollItem, type PayrollEmployeeDetailed } from '../../services/payrollService';
 import { parseBackendError } from '../../utils/errorHandler';
 import { EditPayrollItemDialog } from './EditPayrollItemDialog';
 import { WorkedUnitsDialog } from './WorkedUnitsDialog';
+import { PayrollPrintReport } from './PayrollPrintReport';
 import { 
   ArrowLeft,
   Calendar,
@@ -41,8 +43,11 @@ export function PayrollDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showError, showSuccess } = useToast();
+  const { selectedCompany } = useAuth();
+  const printRef = useRef<HTMLDivElement>(null);
   const [payroll, setPayroll] = useState<PayrollDetailed | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPrintView, setShowPrintView] = useState(false);
   const [expandedEmployees, setExpandedEmployees] = useState<Set<number>>(new Set());
   const [recalculateDialogOpen, setRecalculateDialogOpen] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
@@ -67,6 +72,9 @@ export function PayrollDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [payDialogOpen, setPayDialogOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [paymentDate, setPaymentDate] = useState('');
+  const [inssAmount, setInssAmount] = useState(0);
+  const [fgtsAmount, setFgtsAmount] = useState(0);
   const [thirteenthDialogOpen, setThirteenthDialogOpen] = useState(false);
   const [thirteenthPercentage, setThirteenthPercentage] = useState(100);
   const [thirteenthTaxOption, setThirteenthTaxOption] = useState<'none' | 'proportional' | 'full'>('none');
@@ -233,6 +241,48 @@ export function PayrollDetails() {
     }, 1000);
   };
 
+  // Calcular totais de INSS e FGTS da folha
+  const calculatePayrollTaxes = () => {
+    if (!payroll) return { inss: 0, fgts: 0 };
+    
+    let totalInss = 0;
+    let totalFgts = 0;
+    
+    payroll.employees.forEach(emp => {
+      // INSS - buscar por descrição "INSS" (categoria é "Imposto")
+      emp.items.forEach(item => {
+        if (item.type === 'Desconto' && item.description.toUpperCase() === 'INSS') {
+          totalInss += item.amount;
+        }
+      });
+      
+      // FGTS - calcular 8% apenas dos funcionários que têm FGTS no contrato
+      if (emp.hasFgts) {
+        totalFgts += Math.round(emp.totalGrossPay * 0.08);
+      }
+    });
+    
+    return { inss: totalInss, fgts: totalFgts };
+  };
+
+  // Handler para abrir dialog de pagar folha
+  const handleOpenPayDialog = () => {
+    if (!payroll) return;
+    
+    // Calcular data default: dia 5 do mês seguinte ao período
+    const periodEnd = new Date(payroll.periodEndDate);
+    const payDate = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1, 5);
+    const formattedDate = payDate.toISOString().split('T')[0];
+    setPaymentDate(formattedDate);
+    
+    // Calcular INSS e FGTS
+    const taxes = calculatePayrollTaxes();
+    setInssAmount(taxes.inss);
+    setFgtsAmount(taxes.fgts);
+    
+    setPayDialogOpen(true);
+  };
+
   // Handler para pagar folha (placeholder - apenas frontend)
   const handlePayPayroll = async () => {
     setIsPaying(true);
@@ -246,7 +296,11 @@ export function PayrollDetails() {
 
   // Handler para imprimir folha
   const handlePrint = () => {
-    window.print();
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
   // Handler para gerar 13º (placeholder - apenas frontend)
@@ -413,7 +467,7 @@ export function PayrollDetails() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPayDialogOpen(true)}
+                    onClick={handleOpenPayDialog}
                     className="flex items-center gap-1 text-green-700 border-green-300 hover:bg-green-50"
                   >
                     <CheckCircle className="h-4 w-4" />
@@ -900,18 +954,72 @@ export function PayrollDetails() {
         isLoading={isDeleting}
       />
 
-      {/* Pay Payroll Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={payDialogOpen}
-        onClose={() => setPayDialogOpen(false)}
-        onConfirm={handlePayPayroll}
-        title="Pagar Folha de Pagamento"
-        description="Tem certeza que deseja marcar esta folha como paga? Após o pagamento, a folha será fechada e não poderá mais ser editada."
-        confirmText="Pagar"
-        cancelText="Cancelar"
-        variant="warning"
-        isLoading={isPaying}
-      />
+      {/* Pay Payroll Dialog */}
+      {payDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Pagar Folha de Pagamento
+            </h2>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              Após o pagamento, a folha será fechada e não poderá mais ser editada.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="paymentDate">Data do Pagamento</Label>
+                <Input
+                  id="paymentDate"
+                  type="date"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="inssAmount">Valor do Boleto INSS</Label>
+                <CurrencyInput
+                  id="inssAmount"
+                  value={inssAmount}
+                  onChange={(value) => setInssAmount(parseInt(value) || 0)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Soma dos descontos de INSS dos funcionários</p>
+              </div>
+
+              <div>
+                <Label htmlFor="fgtsAmount">Valor do Boleto FGTS</Label>
+                <CurrencyInput
+                  id="fgtsAmount"
+                  value={fgtsAmount}
+                  onChange={(value) => setFgtsAmount(parseInt(value) || 0)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">8% sobre a remuneração bruta</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setPayDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handlePayPayroll}
+                disabled={isPaying || !paymentDate}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isPaying ? 'Processando...' : 'Confirmar Pagamento'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Generate 13th Salary Dialog */}
       {thirteenthDialogOpen && (
@@ -1111,6 +1219,19 @@ export function PayrollDetails() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Componente de Impressão - invisível na tela, visível apenas na impressão */}
+      {showPrintView && payroll && (
+        <div className="fixed inset-0 bg-white z-[100]">
+          <PayrollPrintReport
+            ref={printRef}
+            payroll={payroll}
+            companyName={selectedCompany?.name || 'Empresa'}
+            inssAmount={inssAmount}
+            fgtsAmount={fgtsAmount}
+          />
         </div>
       )}
     </MainLayout>

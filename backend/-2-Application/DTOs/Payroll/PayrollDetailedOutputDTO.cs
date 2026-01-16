@@ -47,6 +47,7 @@ namespace ERP.Application.DTOs
         public string? ContractType { get; set; } // "Mensalista", "Horista", "Diarista"
         public long? ContractValue { get; set; } // Valor base do contrato em centavos
         public decimal? WorkedUnits { get; set; } // Horas ou dias trabalhados (para horistas/diaristas)
+        public bool HasFgts { get; set; } // Se o contrato tem FGTS
         
         // Itens da folha (débitos e créditos)
         public List<PayrollItemDetailedDTO> Items { get; set; } = new();

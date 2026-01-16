@@ -72,6 +72,7 @@ export interface PayrollEmployeeDetailed {
   contractType?: string; // "Mensalista", "Horista", "Diarista"
   contractValue?: number; // Valor base do contrato em centavos
   workedUnits?: number; // Horas ou dias trabalhados (para horistas/diaristas)
+  hasFgts?: boolean; // Se o contrato tem FGTS
   items: PayrollItem[];
 }
 

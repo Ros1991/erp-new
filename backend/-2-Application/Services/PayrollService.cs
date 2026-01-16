@@ -127,6 +127,7 @@ namespace ERP.Application.Services
                     ContractType = contract?.Type,
                     ContractValue = contract?.Value,
                     WorkedUnits = payrollEmployee.WorkedUnits,
+                    HasFgts = contract?.HasFgts ?? false,
                     Items = itemsList
                 });
             }
@@ -420,6 +421,7 @@ namespace ERP.Application.Services
                 ContractType = contract?.Type,
                 ContractValue = contract?.Value,
                 WorkedUnits = newPayrollEmployee.WorkedUnits,
+                HasFgts = contract?.HasFgts ?? false,
                 Items = itemsList
             };
         }
@@ -1213,6 +1215,7 @@ namespace ERP.Application.Services
                 ContractType = contract?.Type,
                 ContractValue = contract?.Value,
                 WorkedUnits = payrollEmployee.WorkedUnits,
+                HasFgts = contract?.HasFgts ?? false,
                 Items = itemsList
             };
         }
@@ -1304,6 +1307,7 @@ namespace ERP.Application.Services
                 ContractType = contract?.Type,
                 ContractValue = contract?.Value,
                 WorkedUnits = payrollEmployee.WorkedUnits,
+                HasFgts = contract?.HasFgts ?? false,
                 Items = itemsList
             };
         }
