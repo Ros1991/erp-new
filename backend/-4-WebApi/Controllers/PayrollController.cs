@@ -106,4 +106,28 @@ public class PayrollController : BaseController
             "Folha de pagamento recalculada com sucesso"
         );
     }
+
+    [HttpPut("item/{payrollItemId}")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollItemDetailedDTO>>> UpdatePayrollItemAsync(long payrollItemId, UpdatePayrollItemDTO dto)
+    {
+        ValidateId(payrollItemId, nameof(payrollItemId));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.UpdatePayrollItemAsync(payrollItemId, dto, currentUserId),
+            "Item da folha de pagamento atualizado com sucesso"
+        );
+    }
+
+    [HttpPut("employee/{payrollEmployeeId}/worked-units")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollEmployeeDetailedDTO>>> UpdateWorkedUnitsAsync(long payrollEmployeeId, UpdateWorkedUnitsDTO dto)
+    {
+        ValidateId(payrollEmployeeId, nameof(payrollEmployeeId));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.UpdateWorkedUnitsAsync(payrollEmployeeId, dto, currentUserId),
+            "Horas/dias trabalhados atualizados com sucesso"
+        );
+    }
 }

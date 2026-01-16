@@ -6,8 +6,10 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Protected } from '../../components/permissions/Protected';
 import { useToast } from '../../contexts/ToastContext';
-import payrollService, { type PayrollDetailed } from '../../services/payrollService';
+import payrollService, { type PayrollDetailed, type PayrollItem, type PayrollEmployeeDetailed } from '../../services/payrollService';
 import { parseBackendError } from '../../utils/errorHandler';
+import { EditPayrollItemDialog } from './EditPayrollItemDialog';
+import { WorkedUnitsDialog } from './WorkedUnitsDialog';
 import { 
   ArrowLeft,
   Calendar,
@@ -20,7 +22,9 @@ import {
   TrendingDown,
   ChevronDown,
   ChevronUp,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  Edit2
 } from 'lucide-react';
 
 export function PayrollDetails() {
@@ -32,6 +36,16 @@ export function PayrollDetails() {
   const [expandedEmployees, setExpandedEmployees] = useState<Set<number>>(new Set());
   const [recalculateDialogOpen, setRecalculateDialogOpen] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  
+  // Estados para edição de item
+  const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<PayrollItem | null>(null);
+  const [isUpdatingItem, setIsUpdatingItem] = useState(false);
+  
+  // Estados para horas/dias trabalhados
+  const [workedUnitsDialogOpen, setWorkedUnitsDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<PayrollEmployeeDetailed | null>(null);
+  const [isUpdatingWorkedUnits, setIsUpdatingWorkedUnits] = useState(false);
 
   useEffect(() => {
     loadPayrollDetails();
@@ -44,7 +58,7 @@ export function PayrollDetails() {
     try {
       const data = await payrollService.recalculatePayroll(parseInt(id));
       setPayroll(data);
-      setExpandedEmployees(new Set(data.employees.map(e => e.employeeId)));
+      setExpandedEmployees(new Set()); // Funcionários fechados por padrão
       showSuccess('Folha de pagamento recalculada com sucesso!');
       setRecalculateDialogOpen(false);
     } catch (err: any) {
@@ -62,8 +76,8 @@ export function PayrollDetails() {
     try {
       const data = await payrollService.getPayrollDetails(parseInt(id));
       setPayroll(data);
-      // Expandir todos os empregados por padrão
-      setExpandedEmployees(new Set(data.employees.map(e => e.employeeId)));
+      // Manter funcionários fechados por padrão
+      setExpandedEmployees(new Set());
     } catch (err: any) {
       const { message } = parseBackendError(err);
       showError(message);
@@ -83,6 +97,60 @@ export function PayrollDetails() {
       }
       return newSet;
     });
+  };
+
+  // Handler para abrir edição de item
+  const handleEditItem = (item: PayrollItem) => {
+    if (payroll?.isClosed) return;
+    setSelectedItem(item);
+    setEditItemDialogOpen(true);
+  };
+
+  // Handler para salvar edição de item
+  const handleSaveItem = async (data: { description: string; amount: number }) => {
+    if (!selectedItem) return;
+    
+    setIsUpdatingItem(true);
+    try {
+      await payrollService.updatePayrollItem(selectedItem.payrollItemId, data);
+      showSuccess('Item atualizado com sucesso!');
+      setEditItemDialogOpen(false);
+      setSelectedItem(null);
+      // Recarregar dados da folha
+      await loadPayrollDetails();
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsUpdatingItem(false);
+    }
+  };
+
+  // Handler para abrir dialog de horas/dias trabalhados
+  const handleEditWorkedUnits = (employee: PayrollEmployeeDetailed) => {
+    if (payroll?.isClosed) return;
+    setSelectedEmployee(employee);
+    setWorkedUnitsDialogOpen(true);
+  };
+
+  // Handler para salvar horas/dias trabalhados
+  const handleSaveWorkedUnits = async (workedUnits: number) => {
+    if (!selectedEmployee) return;
+    
+    setIsUpdatingWorkedUnits(true);
+    try {
+      await payrollService.updateWorkedUnits(selectedEmployee.payrollEmployeeId, { workedUnits });
+      showSuccess('Horas/dias trabalhados atualizados com sucesso!');
+      setWorkedUnitsDialogOpen(false);
+      setSelectedEmployee(null);
+      // Recarregar dados da folha
+      await loadPayrollDetails();
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsUpdatingWorkedUnits(false);
+    }
   };
 
   const formatCurrency = (valueInCents: number) => {
@@ -360,6 +428,41 @@ export function PayrollDetails() {
                 {/* Employee Details - Expandable */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 bg-gray-50 p-4">
+                    {/* Botão de Horas/Dias para Horistas e Diaristas */}
+                    {(employee.contractType === 'Horista' || employee.contractType === 'Diarista') && !payroll.isClosed && (
+                      <Protected requires="payroll.canEdit">
+                        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-blue-600" />
+                              <div>
+                                <p className="text-sm font-medium text-blue-900">
+                                  {employee.contractType === 'Horista' ? 'Horas Trabalhadas' : 'Dias Trabalhados'}
+                                </p>
+                                <p className="text-xs text-blue-600">
+                                  {employee.workedUnits 
+                                    ? `${employee.workedUnits} ${employee.contractType === 'Horista' ? 'horas' : 'dias'} × ${formatCurrency(employee.contractValue || 0)}`
+                                    : 'Clique para informar'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditWorkedUnits(employee);
+                              }}
+                              className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                            >
+                              <Edit2 className="h-3 w-3 mr-1" />
+                              {employee.workedUnits ? 'Alterar' : 'Informar'}
+                            </Button>
+                          </div>
+                        </div>
+                      </Protected>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Credits */}
                       <div>
@@ -372,14 +475,25 @@ export function PayrollDetails() {
                             <p className="text-sm text-gray-500 italic">Nenhum crédito</p>
                           ) : (
                             credits.map((item) => (
-                              <div key={item.payrollItemId} className="flex justify-between items-start bg-white p-3 rounded-lg">
+                              <div 
+                                key={item.payrollItemId} 
+                                className={`flex justify-between items-start bg-white p-3 rounded-lg ${
+                                  !payroll.isClosed ? 'cursor-pointer hover:bg-green-50 transition-colors' : ''
+                                }`}
+                                onClick={() => !payroll.isClosed && handleEditItem(item)}
+                              >
                                 <div className="flex-1">
                                   <p className="text-sm font-medium text-gray-900">{item.description}</p>
                                   <p className="text-xs text-gray-500">{item.category}</p>
                                 </div>
-                                <p className="text-sm font-semibold text-green-600 ml-2">
-                                  {formatCurrency(item.amount)}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-green-600">
+                                    {formatCurrency(item.amount)}
+                                  </p>
+                                  {!payroll.isClosed && (
+                                    <Edit2 className="h-3 w-3 text-gray-400" />
+                                  )}
+                                </div>
                               </div>
                             ))
                           )}
@@ -397,14 +511,25 @@ export function PayrollDetails() {
                             <p className="text-sm text-gray-500 italic">Nenhum débito</p>
                           ) : (
                             debits.map((item) => (
-                              <div key={item.payrollItemId} className="flex justify-between items-start bg-white p-3 rounded-lg">
+                              <div 
+                                key={item.payrollItemId} 
+                                className={`flex justify-between items-start bg-white p-3 rounded-lg ${
+                                  !payroll.isClosed ? 'cursor-pointer hover:bg-red-50 transition-colors' : ''
+                                }`}
+                                onClick={() => !payroll.isClosed && handleEditItem(item)}
+                              >
                                 <div className="flex-1">
                                   <p className="text-sm font-medium text-gray-900">{item.description}</p>
                                   <p className="text-xs text-gray-500">{item.category}</p>
                                 </div>
-                                <p className="text-sm font-semibold text-red-600 ml-2">
-                                  {formatCurrency(item.amount)}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-red-600">
+                                    {formatCurrency(item.amount)}
+                                  </p>
+                                  {!payroll.isClosed && (
+                                    <Edit2 className="h-3 w-3 text-gray-400" />
+                                  )}
+                                </div>
                               </div>
                             ))
                           )}
@@ -430,6 +555,30 @@ export function PayrollDetails() {
         cancelText="Cancelar"
         variant="danger"
         isLoading={isRecalculating}
+      />
+
+      {/* Edit Payroll Item Dialog */}
+      <EditPayrollItemDialog
+        isOpen={editItemDialogOpen}
+        onClose={() => {
+          setEditItemDialogOpen(false);
+          setSelectedItem(null);
+        }}
+        onSave={handleSaveItem}
+        item={selectedItem}
+        isLoading={isUpdatingItem}
+      />
+
+      {/* Worked Units Dialog */}
+      <WorkedUnitsDialog
+        isOpen={workedUnitsDialogOpen}
+        onClose={() => {
+          setWorkedUnitsDialogOpen(false);
+          setSelectedEmployee(null);
+        }}
+        onSave={handleSaveWorkedUnits}
+        employee={selectedEmployee}
+        isLoading={isUpdatingWorkedUnits}
       />
     </MainLayout>
   );

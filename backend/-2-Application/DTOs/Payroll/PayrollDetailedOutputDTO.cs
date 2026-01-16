@@ -42,6 +42,12 @@ namespace ERP.Application.DTOs
         public long TotalDeductions { get; set; }
         public long TotalNetPay { get; set; }
         
+        // Informações do contrato
+        public long? ContractId { get; set; }
+        public string? ContractType { get; set; } // "Mensalista", "Horista", "Diarista"
+        public long? ContractValue { get; set; } // Valor base do contrato em centavos
+        public decimal? WorkedUnits { get; set; } // Horas ou dias trabalhados (para horistas/diaristas)
+        
         // Itens da folha (débitos e créditos)
         public List<PayrollItemDetailedDTO> Items { get; set; } = new();
     }

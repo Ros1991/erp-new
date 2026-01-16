@@ -87,6 +87,13 @@ namespace ERP.Application.Services
                 // Buscar dados do empregado
                 var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(payrollEmployee.EmployeeId);
                 
+                // Buscar dados do contrato
+                Contract? contract = null;
+                if (payrollEmployee.ContractId.HasValue)
+                {
+                    contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+                }
+                
                 // Buscar itens do empregado na folha
                 var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployee.PayrollEmployeeId);
                 
@@ -116,6 +123,10 @@ namespace ERP.Application.Services
                     TotalGrossPay = payrollEmployee.TotalGrossPay,
                     TotalDeductions = payrollEmployee.TotalDeductions,
                     TotalNetPay = payrollEmployee.TotalNetPay,
+                    ContractId = payrollEmployee.ContractId,
+                    ContractType = contract?.Type,
+                    ContractValue = contract?.Value,
+                    WorkedUnits = payrollEmployee.WorkedUnits,
                     Items = itemsList
                 });
             }
@@ -312,9 +323,45 @@ namespace ERP.Application.Services
 
         // ========== MÉTODOS PRIVADOS ==========
 
+        /// <summary>
+        /// Calcula o número de dias úteis (segunda a sexta) em um período
+        /// </summary>
+        private int CalculateBusinessDays(DateTime startDate, DateTime endDate)
+        {
+            int businessDays = 0;
+            var current = startDate;
+            
+            while (current <= endDate)
+            {
+                if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    businessDays++;
+                }
+                current = current.AddDays(1);
+            }
+            
+            return businessDays;
+        }
+
         private async System.Threading.Tasks.Task CreatePayrollEmployeeWithItemsAsync(Payroll payroll, Contract contract, long userId)
         {
             var now = DateTime.UtcNow;
+
+            // Calcular dias úteis do período da folha
+            var businessDays = CalculateBusinessDays(payroll.PeriodStartDate, payroll.PeriodEndDate);
+            
+            // Para Horista: 8 horas por dia útil. Para Diarista: 1 dia por dia útil
+            decimal? workedUnits = null;
+            if (contract.Type == "Horista")
+            {
+                workedUnits = businessDays * 8; // 8 horas por dia útil
+                Console.WriteLine($"[PAYROLL DEBUG] Horista: {businessDays} dias úteis x 8 horas = {workedUnits} horas");
+            }
+            else if (contract.Type == "Diarista")
+            {
+                workedUnits = businessDays; // 1 diária por dia útil
+                Console.WriteLine($"[PAYROLL DEBUG] Diarista: {businessDays} dias úteis = {workedUnits} dias");
+            }
 
             // 1. Criar PayrollEmployee
             var payrollEmployee = new PayrollEmployee
@@ -323,6 +370,7 @@ namespace ERP.Application.Services
                 EmployeeId = contract.EmployeeId,
                 ContractId = contract.ContractId,
                 BaseSalary = contract.Value,
+                WorkedUnits = workedUnits,
                 IsOnVacation = false,
                 TotalGrossPay = 0,
                 TotalDeductions = 0,
@@ -409,11 +457,25 @@ namespace ERP.Application.Services
             
             Console.WriteLine($"[PAYROLL DEBUG] ProportionalFactor (anual): {annualProportionalFactor:P2} (Contract Start: {contract.StartDate:d}, Reference: {payroll.PeriodEndDate:d})");
 
-            // 2. Criar item de salário base (sempre proporcional se contrato começou no período)
+            // 2. Criar item de salário base
+            // Para Horista/Diarista: valor do contrato × unidades trabalhadas
+            // Para Mensalista: valor do contrato (proporcional se iniciou no período)
             var salaryAmount = contract.Value;
             var salaryDescription = "Salário Base";
             
-            if (proportionalFactor < 1.0m)
+            if (contract.Type == "Horista" && workedUnits.HasValue)
+            {
+                salaryAmount = (long)Math.Round(contract.Value * workedUnits.Value);
+                salaryDescription = $"Salário Base ({workedUnits.Value:0.##} horas)";
+                Console.WriteLine($"[PAYROLL DEBUG] Salário Horista: {contract.Value} x {workedUnits.Value} horas = {salaryAmount}");
+            }
+            else if (contract.Type == "Diarista" && workedUnits.HasValue)
+            {
+                salaryAmount = (long)Math.Round(contract.Value * workedUnits.Value);
+                salaryDescription = $"Salário Base ({workedUnits.Value:0.##} dias)";
+                Console.WriteLine($"[PAYROLL DEBUG] Salário Diarista: {contract.Value} x {workedUnits.Value} dias = {salaryAmount}");
+            }
+            else if (proportionalFactor < 1.0m)
             {
                 salaryAmount = (long)Math.Round(contract.Value * proportionalFactor);
                 salaryDescription = $"Salário Base (proporcional {proportionalFactor:P0})";
@@ -605,12 +667,20 @@ namespace ERP.Application.Services
                         ? loan.Description 
                         : $"Empréstimo #{loan.LoanAdvanceId}";
 
+                    // Se for parcela única, não mostrar "Parcela 1/1"
+                    var itemDescription = loan.Installments == 1 
+                        ? loanDescription 
+                        : $"{loanDescription} - Parcela {nextInstallment}/{loan.Installments}";
+
+                    // Categoria: Adiantamento (1 parcela) ou Emprestimo (múltiplas)
+                    var itemCategory = loan.Installments == 1 ? "Adiantamento" : "Emprestimo";
+
                     items.Add(new PayrollItem
                     {
                         PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
-                        Description = $"{loanDescription} - Parcela {nextInstallment}/{loan.Installments}",
+                        Description = itemDescription,
                         Type = "Desconto",
-                        Category = "Emprestimo",
+                        Category = itemCategory,
                         Amount = Convert.ToInt64(installmentAmount),
                         SourceType = "loan",
                         ReferenceId = loan.LoanAdvanceId,
@@ -882,6 +952,166 @@ namespace ERP.Application.Services
             payroll.TotalNetPay = totalNetPay;
 
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<PayrollItemDetailedDTO> UpdatePayrollItemAsync(long payrollItemId, UpdatePayrollItemDTO dto, long currentUserId)
+        {
+            var item = await _unitOfWork.PayrollItemRepository.GetOneByIdAsync(payrollItemId);
+            if (item == null)
+            {
+                throw new EntityNotFoundException("PayrollItem", payrollItemId);
+            }
+
+            // Buscar o PayrollEmployee para verificar se a folha está fechada
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(item.PayrollEmployeeId);
+            if (payrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", item.PayrollEmployeeId);
+            }
+
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollEmployee.PayrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollEmployee.PayrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível editar itens de uma folha de pagamento fechada.");
+            }
+
+            // Atualizar item
+            item.Description = dto.Description;
+            item.Amount = dto.Amount;
+            item.IsManual = true; // Marca como editado manualmente
+            item.AtualizadoPor = currentUserId;
+            item.AtualizadoEm = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Recalcular totais
+            await RecalculatePayrollEmployeeTotalsAsync(payrollEmployee.PayrollEmployeeId);
+            await RecalculatePayrollTotalsAsync(payroll.PayrollId);
+
+            return new PayrollItemDetailedDTO
+            {
+                PayrollItemId = item.PayrollItemId,
+                PayrollEmployeeId = item.PayrollEmployeeId,
+                Description = item.Description,
+                Type = item.Type,
+                Category = item.Category,
+                Amount = item.Amount,
+                ReferenceId = item.ReferenceId,
+                CalculationBasis = item.CalculationBasis,
+                CalculationDetails = item.CalculationDetails
+            };
+        }
+
+        public async Task<PayrollEmployeeDetailedDTO> UpdateWorkedUnitsAsync(long payrollEmployeeId, UpdateWorkedUnitsDTO dto, long currentUserId)
+        {
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(payrollEmployeeId);
+            if (payrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", payrollEmployeeId);
+            }
+
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollEmployee.PayrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollEmployee.PayrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível editar uma folha de pagamento fechada.");
+            }
+
+            // Buscar contrato para obter o valor base
+            Contract? contract = null;
+            if (payrollEmployee.ContractId.HasValue)
+            {
+                contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+            }
+
+            if (contract == null)
+            {
+                throw new ValidationException("Contract", "Contrato não encontrado para este empregado.");
+            }
+
+            // Verificar se é horista ou diarista
+            if (contract.Type != "Horista" && contract.Type != "Diarista")
+            {
+                throw new ValidationException("Contract", "Esta função é apenas para contratos de horistas ou diaristas.");
+            }
+
+            // Atualizar unidades trabalhadas
+            payrollEmployee.WorkedUnits = dto.WorkedUnits;
+            payrollEmployee.AtualizadoPor = currentUserId;
+            payrollEmployee.AtualizadoEm = DateTime.UtcNow;
+
+            // Calcular novo valor do salário base
+            var newBaseSalary = (long)(contract.Value * dto.WorkedUnits);
+
+            // Buscar e atualizar o item de Salário Base
+            var salaryItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployeeId);
+            var salaryItem = salaryItems.FirstOrDefault(i => i.Category == "Salario" && i.Type == "Provento");
+            
+            if (salaryItem != null)
+            {
+                salaryItem.Amount = newBaseSalary;
+                salaryItem.Description = contract.Type == "Horista" 
+                    ? $"Salário Base ({dto.WorkedUnits:0.##} horas)" 
+                    : $"Salário Base ({dto.WorkedUnits:0.##} dias)";
+                salaryItem.IsManual = true;
+                salaryItem.AtualizadoPor = currentUserId;
+                salaryItem.AtualizadoEm = DateTime.UtcNow;
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Recalcular totais
+            await RecalculatePayrollEmployeeTotalsAsync(payrollEmployeeId);
+            await RecalculatePayrollTotalsAsync(payroll.PayrollId);
+
+            // Buscar dados do empregado para retorno
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(payrollEmployee.EmployeeId);
+            var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployeeId);
+            
+            // Recarregar payrollEmployee após recálculo
+            payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(payrollEmployeeId);
+
+            var itemsList = payrollItems.Select(item => new PayrollItemDetailedDTO
+            {
+                PayrollItemId = item.PayrollItemId,
+                PayrollEmployeeId = item.PayrollEmployeeId,
+                Description = item.Description,
+                Type = item.Type,
+                Category = item.Category,
+                Amount = item.Amount,
+                ReferenceId = item.ReferenceId,
+                CalculationBasis = item.CalculationBasis,
+                CalculationDetails = item.CalculationDetails
+            }).ToList();
+
+            return new PayrollEmployeeDetailedDTO
+            {
+                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                PayrollId = payrollEmployee.PayrollId,
+                EmployeeId = payrollEmployee.EmployeeId,
+                EmployeeName = employee?.Nickname ?? employee?.FullName ?? "Desconhecido",
+                EmployeeDocument = employee?.Cpf,
+                IsOnVacation = payrollEmployee.IsOnVacation,
+                VacationDays = payrollEmployee.VacationDays,
+                VacationAdvanceAmount = payrollEmployee.VacationAdvanceAmount,
+                TotalGrossPay = payrollEmployee.TotalGrossPay,
+                TotalDeductions = payrollEmployee.TotalDeductions,
+                TotalNetPay = payrollEmployee.TotalNetPay,
+                ContractId = payrollEmployee.ContractId,
+                ContractType = contract?.Type,
+                ContractValue = contract?.Value,
+                WorkedUnits = payrollEmployee.WorkedUnits,
+                Items = itemsList
+            };
         }
     }
 }

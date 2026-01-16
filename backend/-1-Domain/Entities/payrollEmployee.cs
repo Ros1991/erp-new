@@ -61,6 +61,9 @@ namespace ERP.Domain.Entities
 		[Column("payroll_employee_notes")]
 		public string? Notes { get; set; }
 
+		[Column("payroll_employee_worked_units")]
+		public decimal? WorkedUnits { get; set; } // Horas ou dias trabalhados (para horistas/diaristas)
+
 		[Column("payroll_employee_total_gross_pay")]
 		public long TotalGrossPay { get; set; }
 

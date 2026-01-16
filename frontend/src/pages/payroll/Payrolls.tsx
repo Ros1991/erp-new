@@ -21,7 +21,6 @@ import {
   DollarSign,
   Lock,
   Unlock,
-  Edit,
   Trash2,
   ChevronDown,
   ChevronUp,
@@ -267,7 +266,11 @@ export function Payrolls() {
                   </tr>
                 ) : (
                   payrolls.map((payroll) => (
-                    <tr key={payroll.payrollId} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={payroll.payrollId} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/payroll/${payroll.payrollId}`)}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-5 w-5 text-gray-400" />
@@ -310,18 +313,8 @@ export function Payrolls() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
-                          <Protected requires="payroll.canView">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              title="Ver detalhes"
-                              onClick={() => navigate(`/payroll/${payroll.payrollId}`)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </Protected>
                           {payroll.isLastPayroll && !payroll.isClosed && (
                             <Protected requires="payroll.canDelete">
                               <Button 

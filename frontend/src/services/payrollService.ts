@@ -68,7 +68,20 @@ export interface PayrollEmployeeDetailed {
   totalGrossPay: number; // em centavos
   totalDeductions: number; // em centavos
   totalNetPay: number; // em centavos
+  contractId?: number;
+  contractType?: string; // "Mensalista", "Horista", "Diarista"
+  contractValue?: number; // Valor base do contrato em centavos
+  workedUnits?: number; // Horas ou dias trabalhados (para horistas/diaristas)
   items: PayrollItem[];
+}
+
+export interface UpdatePayrollItemData {
+  description: string;
+  amount: number; // em centavos
+}
+
+export interface UpdateWorkedUnitsData {
+  workedUnits: number;
 }
 
 export interface PayrollDetailed extends Payroll {
@@ -131,6 +144,16 @@ class PayrollService {
 
   async recalculatePayroll(id: number): Promise<PayrollDetailed> {
     const response = await api.post(`/payroll/${id}/recalculate`);
+    return response.data.data;
+  }
+
+  async updatePayrollItem(payrollItemId: number, data: UpdatePayrollItemData): Promise<PayrollItem> {
+    const response = await api.put(`/payroll/item/${payrollItemId}`, data);
+    return response.data.data;
+  }
+
+  async updateWorkedUnits(payrollEmployeeId: number, data: UpdateWorkedUnitsData): Promise<PayrollEmployeeDetailed> {
+    const response = await api.put(`/payroll/employee/${payrollEmployeeId}/worked-units`, data);
     return response.data.data;
   }
 }
