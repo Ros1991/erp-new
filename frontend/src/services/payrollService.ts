@@ -156,6 +156,56 @@ class PayrollService {
     const response = await api.put(`/payroll/employee/${payrollEmployeeId}/worked-units`, data);
     return response.data.data;
   }
+
+  async recalculateEmployee(payrollEmployeeId: number): Promise<PayrollEmployeeDetailed> {
+    const response = await api.post(`/payroll/employee/${payrollEmployeeId}/recalculate`);
+    return response.data.data;
+  }
+
+  // Helpers para atualização local do estado
+  updatePayrollItemLocally(payroll: PayrollDetailed, updatedItem: PayrollItem): PayrollDetailed {
+    return {
+      ...payroll,
+      employees: payroll.employees.map(emp => ({
+        ...emp,
+        items: emp.items.map(item =>
+          item.payrollItemId === updatedItem.payrollItemId ? updatedItem : item
+        )
+      }))
+    };
+  }
+
+  updateWorkedUnitsLocally(payroll: PayrollDetailed, updatedEmployee: PayrollEmployeeDetailed): PayrollDetailed {
+    return {
+      ...payroll,
+      employees: payroll.employees.map(emp =>
+        emp.payrollEmployeeId === updatedEmployee.payrollEmployeeId ? updatedEmployee : emp
+      ),
+      // Atualizar totais da folha
+      totalGrossPay: payroll.employees.reduce((sum, emp) => 
+        sum + (emp.payrollEmployeeId === updatedEmployee.payrollEmployeeId ? updatedEmployee.totalGrossPay : emp.totalGrossPay), 0),
+      totalDeductions: payroll.employees.reduce((sum, emp) => 
+        sum + (emp.payrollEmployeeId === updatedEmployee.payrollEmployeeId ? updatedEmployee.totalDeductions : emp.totalDeductions), 0),
+      totalNetPay: payroll.employees.reduce((sum, emp) => 
+        sum + (emp.payrollEmployeeId === updatedEmployee.payrollEmployeeId ? updatedEmployee.totalNetPay : emp.totalNetPay), 0)
+    };
+  }
+
+  // Helper para recalcular funcionário (usa employeeId pois o payrollEmployeeId muda)
+  replaceEmployeeLocally(payroll: PayrollDetailed, updatedEmployee: PayrollEmployeeDetailed): PayrollDetailed {
+    const newEmployees = payroll.employees.map(emp =>
+      emp.employeeId === updatedEmployee.employeeId ? updatedEmployee : emp
+    );
+    
+    return {
+      ...payroll,
+      employees: newEmployees,
+      // Recalcular totais da folha
+      totalGrossPay: newEmployees.reduce((sum, emp) => sum + emp.totalGrossPay, 0),
+      totalDeductions: newEmployees.reduce((sum, emp) => sum + emp.totalDeductions, 0),
+      totalNetPay: newEmployees.reduce((sum, emp) => sum + emp.totalNetPay, 0)
+    };
+  }
 }
 
 export default new PayrollService();

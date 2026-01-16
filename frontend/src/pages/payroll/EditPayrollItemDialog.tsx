@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { X } from 'lucide-react';
 import type { PayrollItem } from '../../services/payrollService';
 
@@ -20,39 +21,15 @@ export function EditPayrollItemDialog({
   isLoading = false
 }: EditPayrollItemDialogProps) {
   const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState<number>(0);
   const [errors, setErrors] = useState<{ description?: string; amount?: string }>({});
 
   useEffect(() => {
     if (item) {
       setDescription(item.description);
-      setAmount(formatCurrencyInput(item.amount));
+      setAmount(item.amount);
     }
   }, [item]);
-
-  const formatCurrencyInput = (valueInCents: number): string => {
-    const value = valueInCents / 100;
-    return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
-  const parseCurrencyInput = (value: string): number => {
-    const cleanValue = value.replace(/\./g, '').replace(',', '.');
-    const parsed = parseFloat(cleanValue);
-    return isNaN(parsed) ? 0 : Math.round(parsed * 100);
-  };
-
-  const handleAmountChange = (value: string) => {
-    // Remove tudo exceto números, vírgula e ponto
-    let cleaned = value.replace(/[^\d,\.]/g, '');
-    
-    // Substitui pontos por nada (milhares) e vírgula por ponto (decimal)
-    const parts = cleaned.split(',');
-    if (parts.length > 2) {
-      cleaned = parts[0] + ',' + parts.slice(1).join('');
-    }
-    
-    setAmount(cleaned);
-  };
 
   const validate = (): boolean => {
     const newErrors: { description?: string; amount?: string } = {};
@@ -61,8 +38,7 @@ export function EditPayrollItemDialog({
       newErrors.description = 'Descrição é obrigatória';
     }
     
-    const amountValue = parseCurrencyInput(amount);
-    if (amountValue <= 0) {
+    if (amount <= 0) {
       newErrors.amount = 'Valor deve ser maior que zero';
     }
     
@@ -77,13 +53,13 @@ export function EditPayrollItemDialog({
     
     await onSave({
       description: description.trim(),
-      amount: parseCurrencyInput(amount)
+      amount: amount
     });
   };
 
   const handleClose = () => {
     setDescription('');
-    setAmount('');
+    setAmount(0);
     setErrors({});
     onClose();
   };
@@ -145,13 +121,12 @@ export function EditPayrollItemDialog({
             
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                Valor (R$)
+                Valor
               </label>
-              <Input
+              <CurrencyInput
                 id="amount"
                 value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder="0,00"
+                onChange={(value) => setAmount(parseInt(value) || 0)}
                 className={errors.amount ? 'border-red-500' : ''}
               />
               {errors.amount && (

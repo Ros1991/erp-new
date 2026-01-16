@@ -321,6 +321,109 @@ namespace ERP.Application.Services
             return await GetDetailedByIdAsync(payrollId);
         }
 
+        public async Task<PayrollEmployeeDetailedDTO> RecalculatePayrollEmployeeAsync(long payrollEmployeeId, long currentUserId)
+        {
+            // 1. Buscar o PayrollEmployee existente
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(payrollEmployeeId);
+            if (payrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", payrollEmployeeId);
+            }
+
+            // 2. Buscar a folha de pagamento
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollEmployee.PayrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollEmployee.PayrollId);
+            }
+
+            // 3. Validar se a folha está fechada
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível recalcular uma folha de pagamento fechada.");
+            }
+
+            // 4. Validar e buscar o contrato do funcionário
+            if (!payrollEmployee.ContractId.HasValue)
+            {
+                throw new ValidationException("PayrollEmployee", "Funcionário não possui contrato vinculado.");
+            }
+
+            var contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+            if (contract == null)
+            {
+                throw new EntityNotFoundException("Contract", payrollEmployee.ContractId.Value);
+            }
+
+            // 5. Deletar itens existentes do funcionário
+            var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployeeId);
+            foreach (var item in items)
+            {
+                await _unitOfWork.PayrollItemRepository.DeleteByIdAsync(item.PayrollItemId);
+            }
+
+            // 6. Deletar o PayrollEmployee atual
+            await _unitOfWork.PayrollEmployeeRepository.DeleteByIdAsync(payrollEmployeeId);
+            await _unitOfWork.SaveChangesAsync();
+
+            // 7. Recriar o PayrollEmployee com seus itens
+            await CreatePayrollEmployeeWithItemsAsync(payroll, contract, currentUserId);
+
+            // 8. Recalcular totais da folha
+            await RecalculatePayrollTotalsAsync(payroll.PayrollId);
+
+            // 9. Atualizar informações de modificação da folha
+            payroll.AtualizadoPor = currentUserId;
+            payroll.AtualizadoEm = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync();
+
+            // 10. Buscar o novo PayrollEmployee criado para retornar
+            var newPayrollEmployee = await _unitOfWork.PayrollEmployeeRepository
+                .GetByPayrollAndContractAsync(payroll.PayrollId, contract.ContractId);
+            
+            if (newPayrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", "recém-criado");
+            }
+
+            // 11. Buscar dados complementares para o DTO
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(newPayrollEmployee.EmployeeId);
+            var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(newPayrollEmployee.PayrollEmployeeId);
+
+            var itemsList = payrollItems.Select(item => new PayrollItemDetailedDTO
+            {
+                PayrollItemId = item.PayrollItemId,
+                PayrollEmployeeId = item.PayrollEmployeeId,
+                Description = item.Description,
+                Type = item.Type,
+                Category = item.Category,
+                Amount = item.Amount,
+                ReferenceId = item.ReferenceId,
+                CalculationBasis = item.CalculationBasis,
+                CalculationDetails = item.CalculationDetails
+            }).ToList();
+
+            return new PayrollEmployeeDetailedDTO
+            {
+                PayrollEmployeeId = newPayrollEmployee.PayrollEmployeeId,
+                PayrollId = newPayrollEmployee.PayrollId,
+                EmployeeId = newPayrollEmployee.EmployeeId,
+                EmployeeName = employee?.Nickname ?? employee?.FullName ?? "Desconhecido",
+                EmployeeDocument = employee?.Cpf,
+                IsOnVacation = newPayrollEmployee.IsOnVacation,
+                VacationDays = newPayrollEmployee.VacationDays,
+                VacationAdvanceAmount = newPayrollEmployee.VacationAdvanceAmount,
+                TotalGrossPay = newPayrollEmployee.TotalGrossPay,
+                TotalDeductions = newPayrollEmployee.TotalDeductions,
+                TotalNetPay = newPayrollEmployee.TotalNetPay,
+                ContractId = newPayrollEmployee.ContractId,
+                ContractType = contract?.Type,
+                ContractValue = contract?.Value,
+                WorkedUnits = newPayrollEmployee.WorkedUnits,
+                Items = itemsList
+            };
+        }
+
         // ========== MÉTODOS PRIVADOS ==========
 
         /// <summary>

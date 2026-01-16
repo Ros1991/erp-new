@@ -46,6 +46,11 @@ export function PayrollDetails() {
   const [workedUnitsDialogOpen, setWorkedUnitsDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<PayrollEmployeeDetailed | null>(null);
   const [isUpdatingWorkedUnits, setIsUpdatingWorkedUnits] = useState(false);
+  
+  // Estados para recalcular funcionário específico
+  const [recalculateEmployeeDialogOpen, setRecalculateEmployeeDialogOpen] = useState(false);
+  const [employeeToRecalculate, setEmployeeToRecalculate] = useState<PayrollEmployeeDetailed | null>(null);
+  const [isRecalculatingEmployee, setIsRecalculatingEmployee] = useState(false);
 
   useEffect(() => {
     loadPayrollDetails();
@@ -108,16 +113,17 @@ export function PayrollDetails() {
 
   // Handler para salvar edição de item
   const handleSaveItem = async (data: { description: string; amount: number }) => {
-    if (!selectedItem) return;
+    if (!selectedItem || !payroll) return;
     
     setIsUpdatingItem(true);
     try {
-      await payrollService.updatePayrollItem(selectedItem.payrollItemId, data);
+      const updatedItem = await payrollService.updatePayrollItem(selectedItem.payrollItemId, data);
+      // Atualizar estado local com dados retornados da API
+      const updatedPayroll = payrollService.updatePayrollItemLocally(payroll, updatedItem);
+      setPayroll(updatedPayroll);
       showSuccess('Item atualizado com sucesso!');
       setEditItemDialogOpen(false);
       setSelectedItem(null);
-      // Recarregar dados da folha
-      await loadPayrollDetails();
     } catch (err: any) {
       const { message } = parseBackendError(err);
       showError(message);
@@ -135,21 +141,49 @@ export function PayrollDetails() {
 
   // Handler para salvar horas/dias trabalhados
   const handleSaveWorkedUnits = async (workedUnits: number) => {
-    if (!selectedEmployee) return;
+    if (!selectedEmployee || !payroll) return;
     
     setIsUpdatingWorkedUnits(true);
     try {
-      await payrollService.updateWorkedUnits(selectedEmployee.payrollEmployeeId, { workedUnits });
+      const updatedEmployee = await payrollService.updateWorkedUnits(selectedEmployee.payrollEmployeeId, { workedUnits });
+      // Atualizar estado local com dados retornados da API
+      const updatedPayroll = payrollService.updateWorkedUnitsLocally(payroll, updatedEmployee);
+      setPayroll(updatedPayroll);
       showSuccess('Horas/dias trabalhados atualizados com sucesso!');
       setWorkedUnitsDialogOpen(false);
       setSelectedEmployee(null);
-      // Recarregar dados da folha
-      await loadPayrollDetails();
     } catch (err: any) {
       const { message } = parseBackendError(err);
       showError(message);
     } finally {
       setIsUpdatingWorkedUnits(false);
+    }
+  };
+
+  // Handler para abrir dialog de recalcular funcionário
+  const handleRecalculateEmployeeClick = (employee: PayrollEmployeeDetailed) => {
+    setEmployeeToRecalculate(employee);
+    setRecalculateEmployeeDialogOpen(true);
+  };
+
+  // Handler para recalcular funcionário específico
+  const handleRecalculateEmployee = async () => {
+    if (!employeeToRecalculate || !payroll) return;
+    
+    setIsRecalculatingEmployee(true);
+    try {
+      const updatedEmployee = await payrollService.recalculateEmployee(employeeToRecalculate.payrollEmployeeId);
+      // Atualizar estado local com dados retornados da API (usa employeeId pois payrollEmployeeId muda)
+      const updatedPayroll = payrollService.replaceEmployeeLocally(payroll, updatedEmployee);
+      setPayroll(updatedPayroll);
+      showSuccess(`Funcionário ${employeeToRecalculate.employeeName} recalculado com sucesso!`);
+      setRecalculateEmployeeDialogOpen(false);
+      setEmployeeToRecalculate(null);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsRecalculatingEmployee(false);
     }
   };
 
@@ -428,39 +462,60 @@ export function PayrollDetails() {
                 {/* Employee Details - Expandable */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 bg-gray-50 p-4">
-                    {/* Botão de Horas/Dias para Horistas e Diaristas */}
-                    {(employee.contractType === 'Horista' || employee.contractType === 'Diarista') && !payroll.isClosed && (
-                      <Protected requires="payroll.canEdit">
-                        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-blue-600" />
-                              <div>
-                                <p className="text-sm font-medium text-blue-900">
-                                  {employee.contractType === 'Horista' ? 'Horas Trabalhadas' : 'Dias Trabalhados'}
-                                </p>
-                                <p className="text-xs text-blue-600">
-                                  {employee.workedUnits 
-                                    ? `${employee.workedUnits} ${employee.contractType === 'Horista' ? 'horas' : 'dias'} × ${formatCurrency(employee.contractValue || 0)}`
-                                    : 'Clique para informar'}
-                                </p>
+                    {/* Ações do funcionário */}
+                    {!payroll.isClosed && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {/* Botão de Horas/Dias para Horistas e Diaristas */}
+                        {(employee.contractType === 'Horista' || employee.contractType === 'Diarista') && (
+                          <Protected requires="payroll.canEdit">
+                            <div className="flex-1 min-w-[200px] p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4 text-blue-600" />
+                                  <div>
+                                    <p className="text-sm font-medium text-blue-900">
+                                      {employee.contractType === 'Horista' ? 'Horas Trabalhadas' : 'Dias Trabalhados'}
+                                    </p>
+                                    <p className="text-xs text-blue-600">
+                                      {employee.workedUnits 
+                                        ? `${employee.workedUnits} ${employee.contractType === 'Horista' ? 'horas' : 'dias'} × ${formatCurrency(employee.contractValue || 0)}`
+                                        : 'Clique para informar'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditWorkedUnits(employee);
+                                  }}
+                                  className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                                >
+                                  <Edit2 className="h-3 w-3 mr-1" />
+                                  {employee.workedUnits ? 'Alterar' : 'Informar'}
+                                </Button>
                               </div>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditWorkedUnits(employee);
-                              }}
-                              className="text-blue-700 border-blue-300 hover:bg-blue-100"
-                            >
-                              <Edit2 className="h-3 w-3 mr-1" />
-                              {employee.workedUnits ? 'Alterar' : 'Informar'}
-                            </Button>
-                          </div>
-                        </div>
-                      </Protected>
+                          </Protected>
+                        )}
+
+                        {/* Botão de Recalcular Funcionário */}
+                        <Protected requires="payroll.canEdit">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRecalculateEmployeeClick(employee);
+                            }}
+                            className="text-orange-700 border-orange-300 hover:bg-orange-100"
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Recalcular
+                          </Button>
+                        </Protected>
+                      </div>
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -579,6 +634,22 @@ export function PayrollDetails() {
         onSave={handleSaveWorkedUnits}
         employee={selectedEmployee}
         isLoading={isUpdatingWorkedUnits}
+      />
+
+      {/* Recalculate Employee Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={recalculateEmployeeDialogOpen}
+        onClose={() => {
+          setRecalculateEmployeeDialogOpen(false);
+          setEmployeeToRecalculate(null);
+        }}
+        onConfirm={handleRecalculateEmployee}
+        title="Recalcular Funcionário"
+        description={`Tem certeza que deseja recalcular ${employeeToRecalculate?.employeeName || 'este funcionário'}? Todos os itens (proventos e descontos) serão removidos e recriados com base no contrato atual. Esta ação não pode ser desfeita.`}
+        confirmText="Recalcular"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isRecalculatingEmployee}
       />
     </MainLayout>
   );

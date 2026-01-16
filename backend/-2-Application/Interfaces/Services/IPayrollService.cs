@@ -12,6 +12,7 @@ namespace ERP.Application.Interfaces.Services
         Task<PayrollOutputDTO> UpdateByIdAsync(long payrollId, PayrollInputDTO dto, long currentUserId);
         Task<bool> DeleteByIdAsync(long payrollId);
         Task<PayrollDetailedOutputDTO> RecalculatePayrollAsync(long payrollId, long currentUserId);
+        Task<PayrollEmployeeDetailedDTO> RecalculatePayrollEmployeeAsync(long payrollEmployeeId, long currentUserId);
         Task<PayrollItemDetailedDTO> UpdatePayrollItemAsync(long payrollItemId, UpdatePayrollItemDTO dto, long currentUserId);
         Task<PayrollEmployeeDetailedDTO> UpdateWorkedUnitsAsync(long payrollEmployeeId, UpdateWorkedUnitsDTO dto, long currentUserId);
     }

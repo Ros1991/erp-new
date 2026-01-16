@@ -107,6 +107,18 @@ public class PayrollController : BaseController
         );
     }
 
+    [HttpPost("employee/{payrollEmployeeId}/recalculate")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollEmployeeDetailedDTO>>> RecalculateEmployeeAsync(long payrollEmployeeId)
+    {
+        ValidateId(payrollEmployeeId, nameof(payrollEmployeeId));
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(
+            () => _payrollService.RecalculatePayrollEmployeeAsync(payrollEmployeeId, currentUserId),
+            "Funcionário recalculado com sucesso"
+        );
+    }
+
     [HttpPut("item/{payrollItemId}")]
     [RequirePermissions("payroll.canEdit")]
     public async Task<ActionResult<BaseResponse<PayrollItemDetailedDTO>>> UpdatePayrollItemAsync(long payrollItemId, UpdatePayrollItemDTO dto)
