@@ -153,4 +153,28 @@ public class PayrollController : BaseController
             "Item adicionado com sucesso"
         );
     }
+
+    [HttpPost("{payrollId}/thirteenth-salary")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ApplyThirteenthSalaryAsync(long payrollId, ThirteenthSalaryInputDTO dto)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.ApplyThirteenthSalaryAsync(payrollId, dto, currentUserId),
+            "13º salário aplicado com sucesso"
+        );
+    }
+
+    [HttpDelete("{payrollId}/thirteenth-salary")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> RemoveThirteenthSalaryAsync(long payrollId)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(
+            () => _payrollService.RemoveThirteenthSalaryAsync(payrollId, currentUserId),
+            "13º salário removido com sucesso"
+        );
+    }
 }

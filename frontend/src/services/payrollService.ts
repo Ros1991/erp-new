@@ -10,6 +10,8 @@ export interface Payroll {
   totalNetPay: number;
   totalInss: number;
   totalFgts: number;
+  thirteenthPercentage?: number;
+  thirteenthTaxOption?: string;
   isClosed: boolean;
   closedAt?: string;
   closedBy?: number;
@@ -175,6 +177,16 @@ class PayrollService {
 
   async addPayrollItem(data: PayrollItemInputData): Promise<PayrollEmployeeDetailed> {
     const response = await api.post('/payroll/item', data);
+    return response.data.data;
+  }
+
+  async applyThirteenthSalary(payrollId: number, data: { percentage: number; taxOption: string }): Promise<PayrollDetailed> {
+    const response = await api.post(`/payroll/${payrollId}/thirteenth-salary`, data);
+    return response.data.data;
+  }
+
+  async removeThirteenthSalary(payrollId: number): Promise<PayrollDetailed> {
+    const response = await api.delete(`/payroll/${payrollId}/thirteenth-salary`);
     return response.data.data;
   }
 

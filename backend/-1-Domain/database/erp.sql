@@ -429,6 +429,8 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"payroll_total_net_pay"                decimal (15,2)       DEFAULT 0 NOT NULL,
 	"payroll_total_inss"                   bigint               DEFAULT 0 NOT NULL,
 	"payroll_total_fgts"                   bigint               DEFAULT 0 NOT NULL,
+	"payroll_thirteenth_percentage"        integer              NULL,
+	"payroll_thirteenth_tax_option"        varchar (20)         NULL,
 	"payroll_is_closed"                    boolean              NOT NULL,
 	"payroll_closed_at"                    timestamptz          NULL,
 	"payroll_closed_by"                    bigint               NULL,

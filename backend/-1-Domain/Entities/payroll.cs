@@ -37,6 +37,12 @@ namespace ERP.Domain.Entities
 		[Column("payroll_total_fgts")]
 		public long TotalFgts { get; set; }
 
+		[Column("payroll_thirteenth_percentage")]
+		public int? ThirteenthPercentage { get; set; }
+
+		[Column("payroll_thirteenth_tax_option")]
+		public string? ThirteenthTaxOption { get; set; }
+
 		[Column("payroll_is_closed")]
 		public bool IsClosed { get; set; }
 

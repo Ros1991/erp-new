@@ -279,17 +279,43 @@ export function PayrollDetails() {
     window.print();
   };
 
-  // Handler para gerar 13º (placeholder - apenas frontend)
+  // Handler para gerar/atualizar 13º
   const handleGenerate13th = async () => {
+    if (!payroll) return;
     setIsGenerating13th(true);
-    // TODO: Implementar backend
-    setTimeout(() => {
-      showSuccess(`13º salário gerado com ${thirteenthPercentage}% e opção de impostos: ${thirteenthTaxOption}`);
+    try {
+      const updatedPayroll = await payrollService.applyThirteenthSalary(payroll.payrollId, {
+        percentage: thirteenthPercentage,
+        taxOption: thirteenthTaxOption
+      });
+      setPayroll(updatedPayroll);
+      showSuccess(`13º salário ${payroll.thirteenthPercentage ? 'atualizado' : 'aplicado'} com sucesso!`);
       setThirteenthDialogOpen(false);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
       setIsGenerating13th(false);
+    }
+  };
+
+  // Handler para remover 13º
+  const handleRemove13th = async () => {
+    if (!payroll) return;
+    setIsGenerating13th(true);
+    try {
+      const updatedPayroll = await payrollService.removeThirteenthSalary(payroll.payrollId);
+      setPayroll(updatedPayroll);
+      showSuccess('13º salário removido com sucesso!');
+      setThirteenthDialogOpen(false);
       setThirteenthPercentage(100);
       setThirteenthTaxOption('none');
-    }, 1000);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsGenerating13th(false);
+    }
   };
 
   // Handler para abrir dialog de férias
@@ -478,11 +504,21 @@ export function PayrollDetails() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setThirteenthDialogOpen(true)}
-                className="flex items-center gap-1 text-purple-700 border-purple-300 hover:bg-purple-50"
+                onClick={() => {
+                  // Se já tem 13º aplicado, preencher com valores atuais
+                  if (payroll.thirteenthPercentage) {
+                    setThirteenthPercentage(payroll.thirteenthPercentage);
+                    setThirteenthTaxOption((payroll.thirteenthTaxOption || 'none') as 'none' | 'proportional' | 'full');
+                  } else {
+                    setThirteenthPercentage(100);
+                    setThirteenthTaxOption('none');
+                  }
+                  setThirteenthDialogOpen(true);
+                }}
+                className={`flex items-center gap-1 ${payroll.thirteenthPercentage ? 'text-green-700 border-green-300 hover:bg-green-50' : 'text-purple-700 border-purple-300 hover:bg-purple-50'}`}
               >
                 <Gift className="h-4 w-4" />
-                <span className="hidden sm:inline">Gerar 13º</span>
+                <span className="hidden sm:inline">{payroll.thirteenthPercentage ? `13º (${payroll.thirteenthPercentage}%)` : 'Gerar 13º'}</span>
               </Button>
             </Protected>
             {/* Badge de status */}
@@ -583,6 +619,37 @@ export function PayrollDetails() {
             </div>
           );
         })()}
+
+        {/* 13º Salário Badge */}
+        {payroll.thirteenthPercentage && (
+          <div className="mb-6 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-full">
+                <Gift className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-purple-900">13º Salário Aplicado</p>
+                <p className="text-xs text-purple-700">
+                  {payroll.thirteenthPercentage}% • Impostos: {payroll.thirteenthTaxOption === 'none' ? 'Não' : payroll.thirteenthTaxOption === 'proportional' ? 'Proporcionais' : 'Totais'}
+                </p>
+              </div>
+            </div>
+            <Protected requires="payroll.canEdit">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setThirteenthPercentage(payroll.thirteenthPercentage!);
+                  setThirteenthTaxOption((payroll.thirteenthTaxOption || 'none') as 'none' | 'proportional' | 'full');
+                  setThirteenthDialogOpen(true);
+                }}
+                className="text-purple-700 border-purple-300 hover:bg-purple-100"
+              >
+                Alterar
+              </Button>
+            </Protected>
+          </div>
+        )}
 
         {/* Notes */}
         {payroll.notes && (
@@ -1013,8 +1080,16 @@ export function PayrollDetails() {
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Gift className="h-5 w-5 text-purple-600" />
-              Gerar 13º Salário
+              {payroll.thirteenthPercentage ? 'Alterar 13º Salário' : 'Gerar 13º Salário'}
             </h2>
+
+            {payroll.thirteenthPercentage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800">
+                  13º já aplicado: <strong>{payroll.thirteenthPercentage}%</strong> com impostos: <strong>{payroll.thirteenthTaxOption === 'none' ? 'Não' : payroll.thirteenthTaxOption === 'proportional' ? 'Proporcionais' : 'Totais'}</strong>
+                </p>
+              </div>
+            )}
             
             <div className="space-y-4">
               <div>
@@ -1048,24 +1123,38 @@ export function PayrollDetails() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setThirteenthDialogOpen(false);
-                  setThirteenthPercentage(100);
-                  setThirteenthTaxOption('none');
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleGenerate13th}
-                disabled={isGenerating13th}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isGenerating13th ? 'Gerando...' : 'Gerar 13º'}
-              </Button>
+            <div className="flex justify-between mt-6">
+              {payroll.thirteenthPercentage ? (
+                <Button
+                  variant="outline"
+                  onClick={handleRemove13th}
+                  disabled={isGenerating13th}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  {isGenerating13th ? 'Removendo...' : 'Remover 13º'}
+                </Button>
+              ) : (
+                <div />
+              )}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setThirteenthDialogOpen(false);
+                    setThirteenthPercentage(100);
+                    setThirteenthTaxOption('none');
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleGenerate13th}
+                  disabled={isGenerating13th}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isGenerating13th ? 'Salvando...' : payroll.thirteenthPercentage ? 'Atualizar 13º' : 'Gerar 13º'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

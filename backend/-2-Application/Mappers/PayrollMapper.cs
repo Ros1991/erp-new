@@ -20,6 +20,8 @@ namespace ERP.Application.Mappers
                 TotalNetPay = entity.TotalNetPay,
                 TotalInss = entity.TotalInss,
                 TotalFgts = entity.TotalFgts,
+                ThirteenthPercentage = entity.ThirteenthPercentage,
+                ThirteenthTaxOption = entity.ThirteenthTaxOption,
                 IsClosed = entity.IsClosed,
                 ClosedAt = entity.ClosedAt,
                 ClosedBy = entity.ClosedBy,

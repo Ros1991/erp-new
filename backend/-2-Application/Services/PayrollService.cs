@@ -4,7 +4,7 @@ using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
 using ERP.CrossCutting.Exceptions;
 using ERP.Domain.Entities;
-using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace ERP.Application.Services
 {
@@ -143,6 +143,8 @@ namespace ERP.Application.Services
                 TotalNetPay = entity.TotalNetPay,
                 TotalInss = entity.TotalInss,
                 TotalFgts = entity.TotalFgts,
+                ThirteenthPercentage = entity.ThirteenthPercentage,
+                ThirteenthTaxOption = entity.ThirteenthTaxOption,
                 IsClosed = entity.IsClosed,
                 ClosedAt = entity.ClosedAt,
                 ClosedBy = entity.ClosedBy,
@@ -1361,6 +1363,294 @@ namespace ERP.Application.Services
                 HasFgts = contract?.HasFgts ?? false,
                 Items = itemsList
             };
+        }
+
+        public async Task<PayrollDetailedOutputDTO> ApplyThirteenthSalaryAsync(long payrollId, ThirteenthSalaryInputDTO dto, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível aplicar 13º em uma folha de pagamento fechada.");
+            }
+
+            if (dto.Percentage < 0 || dto.Percentage > 100)
+            {
+                throw new ValidationException("Payroll", "A porcentagem do 13º deve estar entre 0 e 100%.");
+            }
+
+            // Se já tem 13º aplicado, remover primeiro
+            if (payroll.ThirteenthPercentage.HasValue)
+            {
+                await RemoveThirteenthSalaryItemsAsync(payrollId);
+            }
+
+            // Buscar todos os empregados da folha
+            var payrollEmployees = await _unitOfWork.PayrollEmployeeRepository.GetAllByPayrollIdAsync(payrollId);
+
+            foreach (var payrollEmployee in payrollEmployees)
+            {
+                // Buscar contrato do empregado
+                if (!payrollEmployee.ContractId.HasValue) continue;
+                
+                var contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+                if (contract == null || !contract.HasThirteenthSalary) continue;
+
+                // Calcular valor do 13º baseado no salário bruto (proporcionalmente à %)
+                var salaryItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployee.PayrollEmployeeId);
+                var baseSalary = salaryItems
+                    .Where(i => i.Type == "Provento" && i.Category == "Salario")
+                    .Sum(i => i.Amount);
+
+                var thirteenthValue = (long)Math.Round(baseSalary * (dto.Percentage / 100.0));
+
+                // Criar item de 13º Salário
+                var thirteenthItem = new PayrollItem
+                {
+                    PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                    Description = $"13º Salário ({dto.Percentage}%)",
+                    Type = "Provento",
+                    Category = "13º Salário",
+                    Amount = thirteenthValue,
+                    SourceType = "thirteenth_salary",
+                    IsManual = false,
+                    IsActive = true,
+                    CriadoPor = currentUserId,
+                    CriadoEm = DateTime.UtcNow
+                };
+                await _unitOfWork.PayrollItemRepository.CreateAsync(thirteenthItem);
+
+                // Buscar benefícios/descontos do contrato que se aplicam ao 13º
+                var contractBenefitsDiscounts = contract.ContractBenefitDiscountList?
+                    .Where(bd => bd.Application == "13º Salário" || bd.Application == "Todos")
+                    .ToList() ?? new List<ContractBenefitDiscount>();
+
+                foreach (var cbd in contractBenefitsDiscounts)
+                {
+                    // Calcular valor proporcional à % do 13º
+                    var itemValue = (long)Math.Round(cbd.Amount * (dto.Percentage / 100.0));
+                    
+                    var itemType = cbd.Type.ToLower().Contains("desconto") ? "Desconto" : "Provento";
+                    var itemCategory = itemType == "Provento" ? "Benefício 13º" : "Desconto 13º";
+
+                    var benefitItem = new PayrollItem
+                    {
+                        PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                        Description = $"{cbd.Description} (13º)",
+                        Type = itemType,
+                        Category = itemCategory,
+                        Amount = itemValue,
+                        SourceType = "thirteenth_benefit",
+                        ReferenceId = cbd.ContractBenefitDiscountId,
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = currentUserId,
+                        CriadoEm = DateTime.UtcNow
+                    };
+                    await _unitOfWork.PayrollItemRepository.CreateAsync(benefitItem);
+                }
+
+                // Buscar empréstimos que descontam no 13º ou em Todos
+                var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(payrollEmployee.EmployeeId);
+                if (employee != null)
+                {
+                    var loans = await _unitOfWork.LoanAdvanceRepository.GetPendingLoansByEmployeeAsync(employee.EmployeeId);
+                    var thirteenthLoans = loans.Where(l => 
+                        l.IsApproved && 
+                        !l.IsFullyPaid && 
+                        (l.DiscountSource == "13º Salário" || l.DiscountSource == "Todos")
+                    ).ToList();
+
+                    foreach (var loan in thirteenthLoans)
+                    {
+                        var installmentValue = (long)Math.Round((decimal)loan.Amount / loan.Installments);
+                        // Proporcional à % do 13º
+                        var proportionalValue = (long)Math.Round(installmentValue * (dto.Percentage / 100.0));
+
+                        var loanItem = new PayrollItem
+                        {
+                            PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                            Description = $"{loan.Description ?? "Empréstimo"} (13º)",
+                            Type = "Desconto",
+                            Category = "Empréstimo 13º",
+                            Amount = proportionalValue,
+                            SourceType = "thirteenth_loan",
+                            ReferenceId = loan.LoanAdvanceId,
+                            IsManual = false,
+                            IsActive = true,
+                            CriadoPor = currentUserId,
+                            CriadoEm = DateTime.UtcNow
+                        };
+                        await _unitOfWork.PayrollItemRepository.CreateAsync(loanItem);
+                    }
+                }
+
+                // Aplicar impostos se necessário
+                if (dto.TaxOption != "none")
+                {
+                    var taxBase = thirteenthValue;
+                    
+                    // Se for proporcional, usa só o valor do 13º; se for full, usa valor cheio
+                    if (dto.TaxOption == "full")
+                    {
+                        taxBase = baseSalary; // Valor cheio do salário
+                    }
+
+                    // INSS sobre 13º (se contrato tem INSS)
+                    if (contract.HasInss)
+                    {
+                        var inssValue = CalculateINSS(taxBase);
+                        if (inssValue > 0)
+                        {
+                            var inssItem = new PayrollItem
+                            {
+                                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                                Description = "INSS 13º",
+                                Type = "Desconto",
+                                Category = "Imposto 13º",
+                                Amount = inssValue,
+                                SourceType = "thirteenth_tax",
+                                CalculationBasis = taxBase,
+                                IsManual = false,
+                                IsActive = true,
+                                CriadoPor = currentUserId,
+                                CriadoEm = DateTime.UtcNow
+                            };
+                            await _unitOfWork.PayrollItemRepository.CreateAsync(inssItem);
+                        }
+                    }
+                }
+            }
+
+            // Salvar configuração do 13º na folha
+            payroll.ThirteenthPercentage = dto.Percentage;
+            payroll.ThirteenthTaxOption = dto.TaxOption;
+            payroll.AtualizadoPor = currentUserId;
+            payroll.AtualizadoEm = DateTime.UtcNow;
+
+            // Salvar todas as criações primeiro
+            await _unitOfWork.SaveChangesAsync();
+
+            // Depois recalcular totais de cada empregado
+            foreach (var payrollEmployee in payrollEmployees)
+            {
+                if (!payrollEmployee.ContractId.HasValue) continue;
+                var contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+                if (contract == null || !contract.HasThirteenthSalary) continue;
+                
+                await RecalculatePayrollEmployeeTotalsAsync(payrollEmployee.PayrollEmployeeId);
+            }
+
+            // Recalcular totais da folha
+            await RecalculatePayrollTotalsAsync(payrollId);
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
+
+        public async Task<PayrollDetailedOutputDTO> RemoveThirteenthSalaryAsync(long payrollId, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível remover 13º de uma folha de pagamento fechada.");
+            }
+
+            if (!payroll.ThirteenthPercentage.HasValue)
+            {
+                throw new ValidationException("Payroll", "Esta folha não possui 13º salário aplicado.");
+            }
+
+            await RemoveThirteenthSalaryItemsAsync(payrollId);
+
+            // Limpar configuração do 13º na folha
+            payroll.ThirteenthPercentage = null;
+            payroll.ThirteenthTaxOption = null;
+            payroll.AtualizadoPor = currentUserId;
+            payroll.AtualizadoEm = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Recalcular totais da folha
+            await RecalculatePayrollTotalsAsync(payrollId);
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
+
+        private async Task RemoveThirteenthSalaryItemsAsync(long payrollId)
+        {
+            var payrollEmployees = await _unitOfWork.PayrollEmployeeRepository.GetAllByPayrollIdAsync(payrollId);
+
+            // Primeiro deletar todos os itens de 13º
+            foreach (var payrollEmployee in payrollEmployees)
+            {
+                var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployee.PayrollEmployeeId);
+                
+                // Remover itens relacionados ao 13º
+                var thirteenthItems = items.Where(i => 
+                    i.SourceType == "thirteenth_salary" ||
+                    i.SourceType == "thirteenth_benefit" ||
+                    i.SourceType == "thirteenth_loan" ||
+                    i.SourceType == "thirteenth_tax" ||
+                    i.Category == "13º Salário" ||
+                    i.Category == "Benefício 13º" ||
+                    i.Category == "Desconto 13º" ||
+                    i.Category == "Empréstimo 13º" ||
+                    i.Category == "Imposto 13º"
+                ).ToList();
+
+                foreach (var item in thirteenthItems)
+                {
+                    await _unitOfWork.PayrollItemRepository.DeleteByIdAsync(item.PayrollItemId);
+                }
+            }
+
+            // Salvar deleções primeiro
+            await _unitOfWork.SaveChangesAsync();
+
+            // Depois recalcular totais de cada empregado
+            foreach (var payrollEmployee in payrollEmployees)
+            {
+                await RecalculatePayrollEmployeeTotalsAsync(payrollEmployee.PayrollEmployeeId);
+            }
+        }
+
+        private long CalculateINSS(long baseSalary)
+        {
+            // Tabela INSS 2024 (valores em centavos)
+            decimal salarioDecimal = baseSalary / 100m;
+            decimal inss = 0;
+
+            if (salarioDecimal <= 1412.00m)
+            {
+                inss = salarioDecimal * 0.075m;
+            }
+            else if (salarioDecimal <= 2666.68m)
+            {
+                inss = 105.90m + (salarioDecimal - 1412.00m) * 0.09m;
+            }
+            else if (salarioDecimal <= 4000.03m)
+            {
+                inss = 218.82m + (salarioDecimal - 2666.68m) * 0.12m;
+            }
+            else if (salarioDecimal <= 7786.02m)
+            {
+                inss = 378.82m + (salarioDecimal - 4000.03m) * 0.14m;
+            }
+            else
+            {
+                inss = 908.86m; // Teto
+            }
+
+            return (long)Math.Round(inss * 100); // Converter para centavos
         }
     }
 }

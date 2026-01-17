@@ -11,6 +11,8 @@ namespace ERP.Application.DTOs
         public decimal TotalNetPay { get; set; }
         public long TotalInss { get; set; }
         public long TotalFgts { get; set; }
+        public int? ThirteenthPercentage { get; set; }
+        public string? ThirteenthTaxOption { get; set; }
         public bool IsClosed { get; set; }
         public DateTime? ClosedAt { get; set; }
         public long? ClosedBy { get; set; }
