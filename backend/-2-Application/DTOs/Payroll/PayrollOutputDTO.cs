@@ -9,6 +9,8 @@ namespace ERP.Application.DTOs
         public decimal TotalGrossPay { get; set; }
         public decimal TotalDeductions { get; set; }
         public decimal TotalNetPay { get; set; }
+        public long TotalInss { get; set; }
+        public long TotalFgts { get; set; }
         public bool IsClosed { get; set; }
         public DateTime? ClosedAt { get; set; }
         public long? ClosedBy { get; set; }

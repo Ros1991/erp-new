@@ -18,6 +18,8 @@ namespace ERP.Application.Mappers
                 TotalGrossPay = entity.TotalGrossPay,
                 TotalDeductions = entity.TotalDeductions,
                 TotalNetPay = entity.TotalNetPay,
+                TotalInss = entity.TotalInss,
+                TotalFgts = entity.TotalFgts,
                 IsClosed = entity.IsClosed,
                 ClosedAt = entity.ClosedAt,
                 ClosedBy = entity.ClosedBy,

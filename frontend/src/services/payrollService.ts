@@ -8,6 +8,8 @@ export interface Payroll {
   totalGrossPay: number;
   totalDeductions: number;
   totalNetPay: number;
+  totalInss: number;
+  totalFgts: number;
   isClosed: boolean;
   closedAt?: string;
   closedBy?: number;

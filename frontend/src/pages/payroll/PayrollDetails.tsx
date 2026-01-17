@@ -47,7 +47,6 @@ export function PayrollDetails() {
   const printRef = useRef<HTMLDivElement>(null);
   const [payroll, setPayroll] = useState<PayrollDetailed | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showPrintView, setShowPrintView] = useState(false);
   const [expandedEmployees, setExpandedEmployees] = useState<Set<number>>(new Set());
   const [recalculateDialogOpen, setRecalculateDialogOpen] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
@@ -229,40 +228,22 @@ export function PayrollDetails() {
     }
   };
 
-  // Handler para apagar folha (placeholder - apenas frontend)
+  // Handler para apagar folha
   const handleDeletePayroll = async () => {
+    if (!payroll) return;
+    
     setIsDeleting(true);
-    // TODO: Implementar backend
-    setTimeout(() => {
+    try {
+      await payrollService.deletePayroll(payroll.payrollId);
       showSuccess('Folha de pagamento excluída com sucesso!');
       setDeleteDialogOpen(false);
-      setIsDeleting(false);
       navigate('/payroll');
-    }, 1000);
-  };
-
-  // Calcular totais de INSS e FGTS da folha
-  const calculatePayrollTaxes = () => {
-    if (!payroll) return { inss: 0, fgts: 0 };
-    
-    let totalInss = 0;
-    let totalFgts = 0;
-    
-    payroll.employees.forEach(emp => {
-      // INSS - buscar por descrição "INSS" (categoria é "Imposto")
-      emp.items.forEach(item => {
-        if (item.type === 'Desconto' && item.description.toUpperCase() === 'INSS') {
-          totalInss += item.amount;
-        }
-      });
-      
-      // FGTS - calcular 8% apenas dos funcionários que têm FGTS no contrato
-      if (emp.hasFgts) {
-        totalFgts += Math.round(emp.totalGrossPay * 0.08);
-      }
-    });
-    
-    return { inss: totalInss, fgts: totalFgts };
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Handler para abrir dialog de pagar folha
@@ -275,10 +256,9 @@ export function PayrollDetails() {
     const formattedDate = payDate.toISOString().split('T')[0];
     setPaymentDate(formattedDate);
     
-    // Calcular INSS e FGTS
-    const taxes = calculatePayrollTaxes();
-    setInssAmount(taxes.inss);
-    setFgtsAmount(taxes.fgts);
+    // Usar valores salvos no backend
+    setInssAmount(payroll.totalInss);
+    setFgtsAmount(payroll.totalFgts);
     
     setPayDialogOpen(true);
   };
@@ -296,11 +276,7 @@ export function PayrollDetails() {
 
   // Handler para imprimir folha
   const handlePrint = () => {
-    setShowPrintView(true);
-    setTimeout(() => {
-      window.print();
-      setShowPrintView(false);
-    }, 100);
+    window.print();
   };
 
   // Handler para gerar 13º (placeholder - apenas frontend)
@@ -426,6 +402,7 @@ export function PayrollDetails() {
   }
 
   return (
+    <>
     <MainLayout>
       {/* Header */}
       <div className="mb-6">
@@ -533,65 +510,74 @@ export function PayrollDetails() {
           }, 0);
 
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Empregados</p>
-                      <p className="text-2xl font-bold text-gray-900">{payroll.employeeCount}</p>
-                    </div>
-                    <Users className="h-8 w-8 text-blue-600" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <p className="text-xs text-gray-600">Empregados</p>
                   </div>
+                  <p className="text-xl font-bold text-gray-900">{payroll.employeeCount}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Salários</p>
-                      <p className="text-xl font-bold text-gray-900">{formatCurrency(payroll.totalGrossPay - totalBenefits)}</p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-green-600" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <p className="text-xs text-gray-600">Total Salários</p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Card de Benefícios */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Benefícios</p>
-                      <p className="text-xl font-bold text-blue-600">{formatCurrency(totalBenefits)}</p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-blue-600" />
-                  </div>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(payroll.totalGrossPay - totalBenefits)}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Deduções</p>
-                      <p className="text-xl font-bold text-red-600">{formatCurrency(payroll.totalDeductions)}</p>
-                    </div>
-                    <TrendingDown className="h-8 w-8 text-red-600" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                    <p className="text-xs text-gray-600">Total Benefícios</p>
                   </div>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(totalBenefits)}</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Líquido</p>
-                      <p className="text-xl font-bold text-green-600">{formatCurrency(payroll.totalNetPay)}</p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-green-600" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <p className="text-xs text-gray-600">Total Deduções</p>
                   </div>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(payroll.totalDeductions)}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    <p className="text-xs text-gray-600">Total Líquido</p>
+                  </div>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(payroll.totalNetPay)}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <p className="text-xs text-gray-600">INSS a Recolher</p>
+                  </div>
+                  <p className="text-lg font-bold text-orange-600">{formatCurrency(payroll.totalInss)}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-4 w-4 text-purple-600" />
+                    <p className="text-xs text-gray-600">FGTS a Recolher</p>
+                  </div>
+                  <p className="text-lg font-bold text-purple-600">{formatCurrency(payroll.totalFgts)}</p>
                 </CardContent>
               </Card>
             </div>
@@ -1222,18 +1208,16 @@ export function PayrollDetails() {
         </div>
       )}
 
-      {/* Componente de Impressão - invisível na tela, visível apenas na impressão */}
-      {showPrintView && payroll && (
-        <div className="fixed inset-0 bg-white z-[100]">
-          <PayrollPrintReport
-            ref={printRef}
-            payroll={payroll}
-            companyName={selectedCompany?.name || 'Empresa'}
-            inssAmount={inssAmount}
-            fgtsAmount={fgtsAmount}
-          />
-        </div>
-      )}
     </MainLayout>
+
+    {/* Componente de Impressão - fora do MainLayout para evitar página extra */}
+    {payroll && (
+      <PayrollPrintReport
+        ref={printRef}
+        payroll={payroll}
+        companyName={selectedCompany?.name || 'Empresa'}
+      />
+    )}
+    </>
   );
 }

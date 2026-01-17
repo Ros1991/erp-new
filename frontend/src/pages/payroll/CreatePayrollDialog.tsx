@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { useToast } from '../../contexts/ToastContext';
 import payrollService from '../../services/payrollService';
 import { parseBackendError } from '../../utils/errorHandler';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CreatePayrollDialogProps {
   isOpen: boolean;
@@ -12,43 +12,37 @@ interface CreatePayrollDialogProps {
   onSuccess: () => void;
 }
 
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
 export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrollDialogProps) {
   const { showError, showSuccess } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    periodStartDate: '',
-    periodEndDate: '',
-    notes: ''
-  });
+  
+  // Estado para mês e ano selecionados (default: mês atual)
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  // Calcular primeiro e último dia do mês
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).toISOString().split('T')[0];
   };
+
+  const getLastDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).toISOString().split('T')[0];
+  };
+
+  const handlePrevYear = () => setSelectedYear(prev => prev - 1);
+  const handleNextYear = () => setSelectedYear(prev => prev + 1);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.periodStartDate) {
-      newErrors.periodStartDate = 'Data de início é obrigatória';
-    }
-
-    if (!formData.periodEndDate) {
-      newErrors.periodEndDate = 'Data de fim é obrigatória';
-    }
-
-    if (formData.periodStartDate && formData.periodEndDate) {
-      const startDate = new Date(formData.periodStartDate);
-      const endDate = new Date(formData.periodEndDate);
-      
-      if (endDate <= startDate) {
-        newErrors.periodEndDate = 'Data de fim deve ser posterior à data de início';
-      }
-    }
-
+    // Validação básica - mês e ano são sempre válidos pelo seletor
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -60,15 +54,17 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
 
     setIsSubmitting(true);
     try {
+      const periodStartDate = getFirstDayOfMonth(selectedYear, selectedMonth);
+      const periodEndDate = getLastDayOfMonth(selectedYear, selectedMonth);
+
       await payrollService.createPayroll({
-        periodStartDate: formData.periodStartDate,
-        periodEndDate: formData.periodEndDate,
-        notes: formData.notes || undefined
+        periodStartDate,
+        periodEndDate,
+        notes: notes || undefined
       });
 
       showSuccess('Folha de pagamento criada com sucesso!');
-      setFormData({ periodStartDate: '', periodEndDate: '', notes: '' });
-      setErrors({});
+      resetForm();
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -79,10 +75,17 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
     }
   };
 
+  const resetForm = () => {
+    const now = new Date();
+    setSelectedMonth(now.getMonth());
+    setSelectedYear(now.getFullYear());
+    setNotes('');
+    setErrors({});
+  };
+
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ periodStartDate: '', periodEndDate: '', notes: '' });
-      setErrors({});
+      resetForm();
       onClose();
     }
   };
@@ -95,37 +98,58 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+          {/* Seletor de Ano */}
           <div>
-            <label htmlFor="periodStartDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Data de Início do Período *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Período de Referência *
             </label>
-            <Input
-              id="periodStartDate"
-              type="date"
-              value={formData.periodStartDate}
-              onChange={(e) => handleChange('periodStartDate', e.target.value)}
-              className={errors.periodStartDate ? 'border-red-500' : ''}
-              disabled={isSubmitting}
-            />
-            {errors.periodStartDate && (
-              <p className="text-sm text-red-500 mt-1">{errors.periodStartDate}</p>
-            )}
-          </div>
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <button
+                type="button"
+                onClick={handlePrevYear}
+                disabled={isSubmitting}
+                className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <span className="text-xl font-bold min-w-[80px] text-center">{selectedYear}</span>
+              <button
+                type="button"
+                onClick={handleNextYear}
+                disabled={isSubmitting}
+                className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
 
-          <div>
-            <label htmlFor="periodEndDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Data de Fim do Período *
-            </label>
-            <Input
-              id="periodEndDate"
-              type="date"
-              value={formData.periodEndDate}
-              onChange={(e) => handleChange('periodEndDate', e.target.value)}
-              className={errors.periodEndDate ? 'border-red-500' : ''}
-              disabled={isSubmitting}
-            />
-            {errors.periodEndDate && (
-              <p className="text-sm text-red-500 mt-1">{errors.periodEndDate}</p>
+            {/* Grid de Meses */}
+            <div className="grid grid-cols-4 gap-2">
+              {MONTHS.map((month, index) => (
+                <button
+                  key={month}
+                  type="button"
+                  onClick={() => setSelectedMonth(index)}
+                  disabled={isSubmitting}
+                  className={`py-2 px-1 text-sm rounded-md transition-colors ${
+                    selectedMonth === index
+                      ? 'bg-primary-600 text-white font-medium'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  } disabled:opacity-50`}
+                >
+                  {month.substring(0, 3)}
+                </button>
+              ))}
+            </div>
+
+            {/* Preview do período */}
+            <p className="text-center text-sm text-gray-500 mt-3">
+              Período: {new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR')} até{' '}
+              {new Date(selectedYear, selectedMonth + 1, 0).toLocaleDateString('pt-BR')}
+            </p>
+
+            {errors.period && (
+              <p className="text-sm text-red-500 mt-1 text-center">{errors.period}</p>
             )}
           </div>
 
@@ -135,8 +159,8 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
             </label>
             <textarea
               id="notes"
-              value={formData.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Observações sobre esta folha..."

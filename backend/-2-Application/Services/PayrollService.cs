@@ -141,6 +141,8 @@ namespace ERP.Application.Services
                 TotalGrossPay = entity.TotalGrossPay,
                 TotalDeductions = entity.TotalDeductions,
                 TotalNetPay = entity.TotalNetPay,
+                TotalInss = entity.TotalInss,
+                TotalFgts = entity.TotalFgts,
                 IsClosed = entity.IsClosed,
                 ClosedAt = entity.ClosedAt,
                 ClosedBy = entity.ClosedBy,
@@ -240,19 +242,27 @@ namespace ERP.Application.Services
                 throw new EntityNotFoundException("Payroll", payrollId);
             }
 
-            // Validar se é a última folha (só pode deletar a última)
-            var lastPayroll = await _unitOfWork.PayrollRepository.GetLastPayrollAsync(existingEntity.CompanyId);
-            if (lastPayroll == null || existingEntity.PayrollId != lastPayroll.PayrollId)
-            {
-                throw new ValidationException("Payroll", "Só é possível excluir a última folha de pagamento criada.");
-            }
-
             // Validar se a folha está fechada (não pode deletar)
             if (existingEntity.IsClosed)
             {
                 throw new ValidationException("Payroll", "Não é possível excluir uma folha de pagamento fechada.");
             }
 
+            // Deletar registros filhos primeiro
+            var payrollEmployees = await _unitOfWork.PayrollEmployeeRepository.GetAllByPayrollIdAsync(payrollId);
+            foreach (var pe in payrollEmployees)
+            {
+                // Deletar itens do funcionário
+                var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(pe.PayrollEmployeeId);
+                foreach (var item in items)
+                {
+                    await _unitOfWork.PayrollItemRepository.DeleteByIdAsync(item.PayrollItemId);
+                }
+                // Deletar o empregado da folha
+                await _unitOfWork.PayrollEmployeeRepository.DeleteByIdAsync(pe.PayrollEmployeeId);
+            }
+
+            // Deletar a folha
             var result = await _unitOfWork.PayrollRepository.DeleteByIdAsync(payrollId);
             await _unitOfWork.SaveChangesAsync();
             return result;
@@ -1051,10 +1061,51 @@ namespace ERP.Application.Services
             var totalDeductions = employees.Sum(e => e.TotalDeductions);
             var totalNetPay = employees.Sum(e => e.TotalNetPay);
 
+            // Calcular INSS e FGTS
+            long totalInss = 0;
+            long totalFgts = 0;
+
+            foreach (var emp in employees)
+            {
+                // INSS - buscar itens com descrição "INSS"
+                var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(emp.PayrollEmployeeId);
+                totalInss += items.Where(i => i.Type == "Desconto" && i.Description.ToUpper() == "INSS").Sum(i => i.Amount);
+
+                // FGTS - calcular 8% do salário + benefícios com impostos (se o contrato tem FGTS)
+                if (emp.ContractId.HasValue)
+                {
+                    var contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(emp.ContractId.Value);
+                    if (contract != null && contract.HasFgts)
+                    {
+                        // Base: salário (categoria Salario)
+                        var salarioBase = items
+                            .Where(i => i.Type == "Provento" && i.Category == "Salario")
+                            .Sum(i => i.Amount);
+
+                        // Adicionar benefícios que têm incidência de impostos
+                        long beneficiosComImpostos = 0;
+                        var benefitItems = items.Where(i => i.SourceType == "contract_benefit" && i.ReferenceId.HasValue);
+                        foreach (var benefitItem in benefitItems)
+                        {
+                            var benefit = await _unitOfWork.ContractBenefitDiscountRepository.GetOneByIdAsync(benefitItem.ReferenceId.Value);
+                            if (benefit != null && benefit.HasTaxes)
+                            {
+                                beneficiosComImpostos += benefitItem.Amount;
+                            }
+                        }
+
+                        // FGTS = 8% do (salário + benefícios com impostos)
+                        totalFgts += (long)Math.Round((salarioBase + beneficiosComImpostos) * 0.08m);
+                    }
+                }
+            }
+
             // Atualizar Payroll
             payroll.TotalGrossPay = totalGrossPay;
             payroll.TotalDeductions = totalDeductions;
             payroll.TotalNetPay = totalNetPay;
+            payroll.TotalInss = totalInss;
+            payroll.TotalFgts = totalFgts;
 
             await _unitOfWork.SaveChangesAsync();
         }

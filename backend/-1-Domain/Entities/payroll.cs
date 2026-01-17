@@ -31,6 +31,12 @@ namespace ERP.Domain.Entities
 		[Column("payroll_total_net_pay")]
 		public long TotalNetPay { get; set; }
 
+		[Column("payroll_total_inss")]
+		public long TotalInss { get; set; }
+
+		[Column("payroll_total_fgts")]
+		public long TotalFgts { get; set; }
+
 		[Column("payroll_is_closed")]
 		public bool IsClosed { get; set; }
 
