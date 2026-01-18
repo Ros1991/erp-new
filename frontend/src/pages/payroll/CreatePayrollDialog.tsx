@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../contexts/ToastContext';
 import payrollService from '../../services/payrollService';
+import type { PayrollSuggestion } from '../../services/payrollService';
 import { parseBackendError } from '../../utils/errorHandler';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 
 interface CreatePayrollDialogProps {
   isOpen: boolean;
@@ -20,13 +21,40 @@ const MONTHS = [
 export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrollDialogProps) {
   const { showError, showSuccess } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [suggestion, setSuggestion] = useState<PayrollSuggestion | null>(null);
   
-  // Estado para mês e ano selecionados (default: mês atual)
-  const currentDate = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  // Estado para mês e ano selecionados (será preenchido pela sugestão)
+  const [selectedMonth, setSelectedMonth] = useState(0);
+  const [selectedYear, setSelectedYear] = useState(2024);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Buscar sugestão ao abrir o dialog
+  useEffect(() => {
+    if (isOpen) {
+      loadSuggestion();
+    }
+  }, [isOpen]);
+
+  const loadSuggestion = async () => {
+    setIsLoading(true);
+    try {
+      const data = await payrollService.getPayrollSuggestion();
+      setSuggestion(data);
+      // Definir mês e ano sugeridos (mês é 1-indexed no backend, 0-indexed no frontend)
+      setSelectedMonth(data.suggestedMonth - 1);
+      setSelectedYear(data.suggestedYear);
+    } catch (err: any) {
+      // Se falhar, usar mês atual como fallback
+      const now = new Date();
+      setSelectedMonth(now.getMonth());
+      setSelectedYear(now.getFullYear());
+      setSuggestion(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Calcular primeiro e último dia do mês
   const getFirstDayOfMonth = (year: number, month: number) => {
@@ -76,11 +104,9 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
   };
 
   const resetForm = () => {
-    const now = new Date();
-    setSelectedMonth(now.getMonth());
-    setSelectedYear(now.getFullYear());
     setNotes('');
     setErrors({});
+    setSuggestion(null);
   };
 
   const handleClose = () => {
@@ -90,6 +116,9 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
     }
   };
 
+  // Verificar se pode criar folha (não pode se já existir uma em aberto)
+  const canCreate = !suggestion?.hasOpenPayroll;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
@@ -97,7 +126,29 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
           <DialogTitle>Nova Folha de Pagamento</DialogTitle>
         </DialogHeader>
 
+        {isLoading ? (
+          <div className="px-6 pb-6 flex items-center justify-center py-8">
+            <div className="text-gray-500">Carregando...</div>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+          {/* Alerta se já existir folha em aberto */}
+          {suggestion?.hasOpenPayroll && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Folha em aberto</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Já existe uma folha de pagamento em aberto para o período{' '}
+                  <strong>{suggestion.openPayrollPeriod}</strong>.
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Feche ou exclua a folha existente antes de criar uma nova.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Seletor de Ano */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -189,12 +240,13 @@ export function CreatePayrollDialog({ isOpen, onClose, onSuccess }: CreatePayrol
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !canCreate}
             >
               {isSubmitting ? 'Criando...' : 'Criar Folha'}
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

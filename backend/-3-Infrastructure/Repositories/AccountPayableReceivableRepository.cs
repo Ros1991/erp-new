@@ -66,6 +66,8 @@ namespace ERP.Infrastructure.Repositories
         {
             return await _context.Set<AccountPayableReceivable>()
                 .Include(x => x.SupplierCustomer)
+                .Include(x => x.CostCenterDistributions)
+                    .ThenInclude(d => d.CostCenter)
                 .FirstOrDefaultAsync(x => x.AccountPayableReceivableId == accountPayableReceivableId);
         }
 

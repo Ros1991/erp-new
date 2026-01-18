@@ -118,6 +118,22 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<Payroll?> GetLastClosedPayrollByCompanyAsync(long companyId)
+        {
+            return await _context.Set<Payroll>()
+                .Where(p => p.CompanyId == companyId && p.IsClosed)
+                .OrderByDescending(p => p.PeriodEndDate)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<Payroll?> GetOpenPayrollByCompanyAsync(long companyId)
+        {
+            return await _context.Set<Payroll>()
+                .Where(p => p.CompanyId == companyId && !p.IsClosed)
+                .OrderByDescending(p => p.PeriodEndDate)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<int> GetEmployeeCountAsync(long payrollId)
         {
             return await _context.Set<PayrollEmployee>()

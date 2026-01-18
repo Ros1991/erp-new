@@ -83,6 +83,24 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.LoanAdvanceId == loanAdvanceId);
         }
 
+        public async Task<FinancialTransaction> GetByAccountPayableReceivableIdAsync(long accountPayableReceivableId)
+        {
+            return await _context.Set<FinancialTransaction>()
+                .Include(x => x.Account)
+                .Include(x => x.TransactionCostCenterList)
+                    .ThenInclude(tcc => tcc.CostCenter)
+                .FirstOrDefaultAsync(x => x.AccountPayableReceivableId == accountPayableReceivableId);
+        }
+
+        public async Task<FinancialTransaction> GetByPurchaseOrderIdAsync(long purchaseOrderId)
+        {
+            return await _context.Set<FinancialTransaction>()
+                .Include(x => x.Account)
+                .Include(x => x.TransactionCostCenterList)
+                    .ThenInclude(tcc => tcc.CostCenter)
+                .FirstOrDefaultAsync(x => x.PurchaseOrderId == purchaseOrderId);
+        }
+
         public async Task<FinancialTransaction> CreateAsync(FinancialTransaction entity)
         {
             await _context.Set<FinancialTransaction>().AddAsync(entity);

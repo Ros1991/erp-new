@@ -10,15 +10,12 @@ import {
   FileText,
   PieChart,
   DollarSign,
-  MapPin,
-  ShoppingCart,
-  Users as UsersIcon,
-  CheckSquare,
   FolderOpen,
   ChevronDown,
   ChevronRight,
   ArrowRightLeft,
-  Receipt
+  Receipt,
+  Building2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -56,7 +53,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: Users, label: 'Usuários', path: '/users', permission: 'user.canView' },
         { icon: UserCheck, label: 'Empregados', path: '/employees', permission: 'employee.canView' },
         { icon: Wallet, label: 'Contas Correntes', path: '/accounts', permission: 'account.canView' },
-        { icon: UsersIcon, label: 'Fornecedores e Clientes', path: '/supplier-customers', permission: 'supplierCustomer.canView' },
+        { icon: Building2, label: 'Fornecedores e Clientes', path: '/supplier-customers', permission: 'supplierCustomer.canView' },
         { icon: PieChart, label: 'Centros de Custo', path: '/cost-centers', permission: 'costCenter.canView' },
         { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
         { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },

@@ -53,6 +53,7 @@ namespace ERP.Domain.Entities
 		public virtual SupplierCustomer SupplierCustomer { get; set; } = null!;
 		//Parent Relations
 		public virtual ICollection<FinancialTransaction> FinancialTransactionList { get; set; } = new List<FinancialTransaction>();
+		public virtual ICollection<AccountPayableReceivableCostCenter> CostCenterDistributions { get; set; } = new List<AccountPayableReceivableCostCenter>();
 		// Construtor padrão para EF
 		public AccountPayableReceivable() { }
 

@@ -84,7 +84,9 @@ export function PayrollDetails() {
   const [vacationEmployee, setVacationEmployee] = useState<PayrollEmployeeDetailed | null>(null);
   const [vacationStartDate, setVacationStartDate] = useState('');
   const [vacationDays, setVacationDays] = useState(30);
-  const [vacationReferencePeriod, setVacationReferencePeriod] = useState('');
+  const [vacationIncludeTaxes, setVacationIncludeTaxes] = useState(true);
+  const [vacationAdvanceNextMonth, setVacationAdvanceNextMonth] = useState(true);
+  const [vacationNotes, setVacationNotes] = useState('');
   const [isAddingVacation, setIsAddingVacation] = useState(false);
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
   const [addItemEmployee, setAddItemEmployee] = useState<PayrollEmployeeDetailed | null>(null);
@@ -321,22 +323,65 @@ export function PayrollDetails() {
   // Handler para abrir dialog de férias
   const handleAddVacation = (employee: PayrollEmployeeDetailed) => {
     setVacationEmployee(employee);
-    setVacationStartDate('');
-    setVacationDays(30);
-    setVacationReferencePeriod('');
+    // Preencher com valores atuais se já tem férias
+    if (employee.isOnVacation && employee.vacationStartDate) {
+      setVacationStartDate(employee.vacationStartDate.split('T')[0]);
+      setVacationDays(employee.vacationDays || 30);
+      setVacationNotes(employee.vacationNotes || '');
+    } else {
+      // Auto-preencher data início com data inicial da folha
+      setVacationStartDate(payroll?.periodStartDate?.split('T')[0] || '');
+      setVacationDays(30);
+      // Auto-preencher observação com período aquisitivo baseado no ano da folha
+      const payrollYear = payroll?.periodStartDate ? new Date(payroll.periodStartDate).getFullYear() : new Date().getFullYear();
+      setVacationNotes(`Período aquisitivo ${payrollYear - 1}/${payrollYear}`);
+    }
+    setVacationIncludeTaxes(true);
+    setVacationAdvanceNextMonth(true);
     setVacationDialogOpen(true);
   };
 
-  // Handler para salvar férias (placeholder - apenas frontend)
+  // Handler para salvar férias
   const handleSaveVacation = async () => {
+    if (!payroll || !vacationEmployee) return;
     setIsAddingVacation(true);
-    // TODO: Implementar backend
-    setTimeout(() => {
-      showSuccess(`Férias adicionadas para ${vacationEmployee?.employeeName}`);
+    try {
+      const updatedPayroll = await payrollService.applyVacation(payroll.payrollId, {
+        payrollEmployeeId: vacationEmployee.payrollEmployeeId,
+        vacationDays: vacationDays,
+        vacationStartDate: vacationStartDate,
+        includeTaxes: vacationIncludeTaxes,
+        advanceNextMonth: vacationAdvanceNextMonth,
+        notes: vacationNotes || undefined
+      });
+      setPayroll(updatedPayroll);
+      showSuccess(`Férias ${vacationEmployee.isOnVacation ? 'atualizadas' : 'aplicadas'} com sucesso!`);
       setVacationDialogOpen(false);
-      setIsAddingVacation(false);
       setVacationEmployee(null);
-    }, 1000);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsAddingVacation(false);
+    }
+  };
+
+  // Handler para remover férias
+  const handleRemoveVacation = async () => {
+    if (!payroll || !vacationEmployee) return;
+    setIsAddingVacation(true);
+    try {
+      const updatedPayroll = await payrollService.removeVacation(payroll.payrollId, vacationEmployee.payrollEmployeeId);
+      setPayroll(updatedPayroll);
+      showSuccess('Férias removidas com sucesso!');
+      setVacationDialogOpen(false);
+      setVacationEmployee(null);
+    } catch (err: any) {
+      const { message } = parseBackendError(err);
+      showError(message);
+    } finally {
+      setIsAddingVacation(false);
+    }
   };
 
   // Handler para abrir contrato em nova aba
@@ -1163,67 +1208,126 @@ export function PayrollDetails() {
       {/* Vacation Dialog */}
       {vacationDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Palmtree className="h-5 w-5 text-cyan-600" />
-              Adicionar Férias - {vacationEmployee?.employeeName}
+              {vacationEmployee?.isOnVacation ? 'Alterar' : 'Adicionar'} Férias - {vacationEmployee?.employeeName}
             </h2>
+
+            {vacationEmployee?.isOnVacation && (
+              <div className="mb-4 p-3 bg-cyan-50 border border-cyan-200 rounded-lg">
+                <p className="text-sm text-cyan-700">
+                  Este funcionário já possui férias aplicadas. Você pode alterar ou remover.
+                </p>
+              </div>
+            )}
             
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="vacationStartDate">Data de Início</Label>
-                <Input
-                  id="vacationStartDate"
-                  type="date"
-                  value={vacationStartDate}
-                  onChange={(e) => setVacationStartDate(e.target.value)}
-                  className="mt-1"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="vacationStartDate">Data de Início</Label>
+                  <Input
+                    id="vacationStartDate"
+                    type="date"
+                    value={vacationStartDate}
+                    onChange={(e) => setVacationStartDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="vacationDays">Quantidade de Dias</Label>
+                  <Input
+                    id="vacationDays"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={vacationDays}
+                    onChange={(e) => setVacationDays(Number(e.target.value))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500">
+                O 1/3 constitucional será calculado proporcionalmente aos dias.
+              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="vacationIncludeTaxes"
+                    checked={vacationIncludeTaxes}
+                    onChange={(e) => setVacationIncludeTaxes(e.target.checked)}
+                    className="h-4 w-4 text-cyan-600 rounded border-gray-300"
+                  />
+                  <Label htmlFor="vacationIncludeTaxes" className="cursor-pointer">
+                    Incluir INSS sobre férias
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="vacationAdvanceNextMonth"
+                    checked={vacationAdvanceNextMonth}
+                    onChange={(e) => setVacationAdvanceNextMonth(e.target.checked)}
+                    className="h-4 w-4 text-cyan-600 rounded border-gray-300"
+                  />
+                  <Label htmlFor="vacationAdvanceNextMonth" className="cursor-pointer">
+                    Adiantar salário do próximo mês
+                  </Label>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Inclui salário, benefícios, descontos, impostos e parcelas de empréstimos do próximo mês.
+                </p>
               </div>
 
               <div>
-                <Label htmlFor="vacationDays">Quantidade de Dias</Label>
+                <Label htmlFor="vacationNotes">Observações (opcional)</Label>
                 <Input
-                  id="vacationDays"
-                  type="number"
-                  min="1"
-                  max="30"
-                  value={vacationDays}
-                  onChange={(e) => setVacationDays(Number(e.target.value))}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="vacationReferencePeriod">Período de Referência</Label>
-                <Input
-                  id="vacationReferencePeriod"
+                  id="vacationNotes"
                   type="text"
-                  placeholder="Ex: 2024/2025"
-                  value={vacationReferencePeriod}
-                  onChange={(e) => setVacationReferencePeriod(e.target.value)}
+                  placeholder="Ex: Período aquisitivo 2024/2025"
+                  value={vacationNotes}
+                  onChange={(e) => setVacationNotes(e.target.value)}
                   className="mt-1"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setVacationDialogOpen(false);
-                  setVacationEmployee(null);
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSaveVacation}
-                disabled={isAddingVacation || !vacationStartDate}
-                className="bg-cyan-600 hover:bg-cyan-700"
-              >
-                {isAddingVacation ? 'Salvando...' : 'Salvar Férias'}
-              </Button>
+            <div className="flex justify-between gap-3 mt-6">
+              <div>
+                {vacationEmployee?.isOnVacation && (
+                  <Button
+                    variant="outline"
+                    onClick={handleRemoveVacation}
+                    disabled={isAddingVacation}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    {isAddingVacation ? 'Removendo...' : 'Remover Férias'}
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setVacationDialogOpen(false);
+                    setVacationEmployee(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSaveVacation}
+                  disabled={isAddingVacation || !vacationStartDate}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  {isAddingVacation ? 'Salvando...' : vacationEmployee?.isOnVacation ? 'Alterar Férias' : 'Aplicar Férias'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

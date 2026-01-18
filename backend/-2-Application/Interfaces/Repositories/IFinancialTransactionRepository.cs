@@ -9,6 +9,8 @@ namespace ERP.Application.Interfaces.Repositories
         Task<PagedResult<FinancialTransaction>> GetPagedAsync(long companyId, FinancialTransactionFilterDTO filters);
         Task<FinancialTransaction> GetOneByIdAsync(long financialTransactionId);
         Task<FinancialTransaction> GetByLoanAdvanceIdAsync(long loanAdvanceId);
+        Task<FinancialTransaction> GetByAccountPayableReceivableIdAsync(long accountPayableReceivableId);
+        Task<FinancialTransaction> GetByPurchaseOrderIdAsync(long purchaseOrderId);
         Task<FinancialTransaction> CreateAsync(FinancialTransaction entity);
         Task<FinancialTransaction> UpdateByIdAsync(long financialTransactionId, FinancialTransaction entity);
         Task<bool> DeleteByIdAsync(long financialTransactionId);

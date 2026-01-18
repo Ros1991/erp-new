@@ -6,15 +6,20 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { CurrencyInput } from '../../components/ui/CurrencyInput';
 import { EntityPicker, type EntityPickerItem } from '../../components/ui/EntityPicker';
-import { Card, CardContent } from '../../components/ui/Card';
+import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import accountPayableReceivableService from '../../services/accountPayableReceivableService';
 import supplierCustomerService from '../../services/supplierCustomerService';
+import accountService from '../../services/accountService';
+import costCenterService from '../../services/costCenterService';
 import { ArrowLeft, Save } from 'lucide-react';
 
 interface AccountPayableReceivableFormData {
   supplierCustomerId: string;
   supplierCustomerName: string;
+  accountId: string;
+  accountName: string;
   description: string;
   type: string;
   amount: string;
@@ -32,6 +37,8 @@ export function AccountPayableReceivableForm() {
   const [formData, setFormData] = useState<AccountPayableReceivableFormData>({
     supplierCustomerId: '',
     supplierCustomerName: '',
+    accountId: '',
+    accountName: '',
     description: '',
     type: 'Pagar',
     amount: '0',
@@ -39,6 +46,8 @@ export function AccountPayableReceivableForm() {
     isPaid: false,
   });
 
+  const [costCenters, setCostCenters] = useState<CostCenterDistributionItem[]>([]);
+  const [availableCostCenters, setAvailableCostCenters] = useState<any[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof AccountPayableReceivableFormData, string>>>({});
 
   const isEditing = !!id;
@@ -49,6 +58,42 @@ export function AccountPayableReceivableForm() {
     }
   }, [id]);
 
+  useEffect(() => {
+    loadAccountsAndCostCenters();
+  }, []);
+
+  const loadAccountsAndCostCenters = async () => {
+    try {
+      const [accountsData, costCentersData] = await Promise.all([
+        accountService.getAccounts({ page: 1, pageSize: 100 }),
+        costCenterService.getCostCenters({ page: 1, pageSize: 100 })
+      ]);
+      
+      setAvailableCostCenters(costCentersData.items);
+      
+      // Auto-selecionar se houver apenas 1 conta e não estiver editando
+      if (accountsData.items.length === 1 && !isEditing) {
+        setFormData(prev => ({
+          ...prev,
+          accountId: accountsData.items[0].accountId.toString(),
+          accountName: accountsData.items[0].name
+        }));
+      }
+      
+      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
+      if (costCentersData.items.length === 1 && !isEditing) {
+        setCostCenters([{
+          costCenterId: costCentersData.items[0].costCenterId.toString(),
+          costCenterName: costCentersData.items[0].name,
+          percentage: 100,
+          amount: 0
+        }]);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar opções:', err);
+    }
+  };
+
   const loadAccountPayableReceivable = async () => {
     setIsLoading(true);
     try {
@@ -56,12 +101,24 @@ export function AccountPayableReceivableForm() {
       setFormData({
         supplierCustomerId: account.supplierCustomerId?.toString() || '',
         supplierCustomerName: account.supplierCustomerName || '',
+        accountId: account.accountId?.toString() || '',
+        accountName: account.accountName || '',
         description: account.description,
         type: account.type,
         amount: account.amount.toString(),
         dueDate: account.dueDate.split('T')[0],
         isPaid: account.isPaid,
       });
+      
+      // Carregar cost centers se houver
+      if (account.costCenterDistributions && account.costCenterDistributions.length > 0) {
+        setCostCenters(account.costCenterDistributions.map((cc: any) => ({
+          costCenterId: cc.costCenterId.toString(),
+          costCenterName: cc.costCenterName || '',
+          amount: cc.amount,
+          percentage: cc.percentage
+        })));
+      }
     } catch (err: any) {
       handleBackendError(err);
     } finally {
@@ -90,6 +147,11 @@ export function AccountPayableReceivableForm() {
       newErrors.dueDate = 'Data de vencimento é obrigatória';
     }
 
+    // Conta corrente é obrigatória quando marcado como pago
+    if (formData.isPaid && !formData.accountId) {
+      newErrors.accountId = 'Conta corrente é obrigatória quando a conta está marcada como paga';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -102,15 +164,40 @@ export function AccountPayableReceivableForm() {
       return;
     }
 
+    // Validar centros de custo se houver
+    if (costCenters.length > 0) {
+      const totalPercentage = costCenters.reduce((sum, c) => sum + c.percentage, 0);
+      
+      if (Math.abs(totalPercentage - 100) > 0.01) {
+        showError('A soma das porcentagens dos centros de custo deve ser 100%');
+        return;
+      }
+
+      const hasEmptyCostCenter = costCenters.some((c) => !c.costCenterId);
+      if (hasEmptyCostCenter) {
+        showError('Selecione um centro de custo para todas as distribuições');
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const accountData = {
         supplierCustomerId: formData.supplierCustomerId ? Number(formData.supplierCustomerId) : undefined,
+        accountId: formData.accountId ? Number(formData.accountId) : undefined,
         description: formData.description.trim(),
         type: formData.type.trim(),
         amount: Number(formData.amount),
         dueDate: new Date(formData.dueDate).toISOString(),
         isPaid: formData.isPaid,
+        costCenterDistributions:
+          costCenters.length > 0
+            ? costCenters.map((c) => ({
+                costCenterId: Number(c.costCenterId),
+                percentage: c.percentage,
+                amount: c.amount,
+              }))
+            : undefined,
       };
 
       if (isEditing) {
@@ -162,6 +249,41 @@ export function AccountPayableReceivableForm() {
       supplierCustomerId: item ? item.id.toString() : '',
       supplierCustomerName: item ? item.displayText : ''
     }));
+  };
+
+  const handleAccountChange = (item: EntityPickerItem | null) => {
+    setFormData(prev => ({
+      ...prev,
+      accountId: item ? item.id.toString() : '',
+      accountName: item ? item.displayText : ''
+    }));
+  };
+
+  const handleSearchAccount = async (searchTerm: string, page: number) => {
+    try {
+      const result = await accountService.getAccounts({
+        search: searchTerm,
+        page: page,
+        pageSize: 10,
+      });
+
+      return {
+        items: result.items.map(item => ({
+          id: item.accountId,
+          displayText: item.name,
+          secondaryText: item.type || undefined
+        })),
+        totalPages: result.totalPages,
+        totalCount: result.totalCount
+      };
+    } catch (error) {
+      console.error('Erro ao buscar contas:', error);
+      return {
+        items: [],
+        totalPages: 1,
+        totalCount: 0
+      };
+    }
   };
 
   const handleChange = (field: keyof AccountPayableReceivableFormData, value: string | boolean) => {
@@ -289,10 +411,43 @@ export function AccountPayableReceivableForm() {
                     Conta paga
                   </label>
                 </div>
+
+                {formData.isPaid && (
+                  <div>
+                    <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
+                      Conta Corrente <span className="text-red-500">*</span>
+                    </label>
+                    <EntityPicker
+                      value={formData.accountId ? Number(formData.accountId) : null}
+                      selectedLabel={formData.accountName}
+                      onChange={handleAccountChange}
+                      onSearch={handleSearchAccount}
+                      placeholder="Selecione uma conta corrente"
+                      label="Selecionar Conta Corrente"
+                    />
+                    {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
+                  </div>
+                )}
               </div>
 
             </CardContent>
           </Card>
+
+          {/* Rateio de Centros de Custo - só exibe se tiver mais de 1 */}
+          {availableCostCenters.length > 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição por Centro de Custo</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <CostCenterDistribution
+                  distributions={costCenters}
+                  onChange={setCostCenters}
+                  totalAmount={Number(formData.amount) || 0}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex gap-3 justify-end">
                 <Button type="submit" disabled={isSaving} className="flex-1 sm:flex-none">

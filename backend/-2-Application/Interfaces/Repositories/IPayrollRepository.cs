@@ -11,6 +11,8 @@ namespace ERP.Application.Interfaces.Repositories
         Task<Payroll> GetOneByIdWithIncludesAsync(long payrollId);
         Task<Payroll> GetByCompanyAndPeriodAsync(long companyId, DateTime startDate, DateTime endDate);
         Task<Payroll> GetLastPayrollAsync(long companyId);
+        Task<Payroll?> GetLastClosedPayrollByCompanyAsync(long companyId);
+        Task<Payroll?> GetOpenPayrollByCompanyAsync(long companyId);
         Task<int> GetEmployeeCountAsync(long payrollId);
         Task<Payroll> CreateAsync(Payroll entity);
         Task<Payroll> UpdateByIdAsync(long payrollId, Payroll entity);

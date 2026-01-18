@@ -1,15 +1,25 @@
 import api from './api';
 
+export interface CostCenterDistribution {
+  costCenterId: number;
+  costCenterName?: string;
+  percentage: number;
+  amount?: number;
+}
+
 export interface AccountPayableReceivable {
   accountPayableReceivableId: number;
   companyId: number;
   supplierCustomerId?: number;
   supplierCustomerName?: string;
+  accountId?: number;
+  accountName?: string;
   description: string;
   type: string;
   amount: number;
   dueDate: string;
   isPaid: boolean;
+  costCenterDistributions?: CostCenterDistribution[];
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
@@ -59,11 +69,13 @@ class AccountPayableReceivableService {
 
   async createAccountPayableReceivable(data: {
     supplierCustomerId?: number;
+    accountId?: number;
     description: string;
     type: string;
     amount: number;
     dueDate: string;
     isPaid: boolean;
+    costCenterDistributions?: { costCenterId: number; percentage: number; amount?: number }[];
   }): Promise<AccountPayableReceivable> {
     const response = await api.post('/account-payable-receivable/create', data);
     return response.data.data;
@@ -71,11 +83,13 @@ class AccountPayableReceivableService {
 
   async updateAccountPayableReceivable(id: number, data: {
     supplierCustomerId?: number;
+    accountId?: number;
     description: string;
     type: string;
     amount: number;
     dueDate: string;
     isPaid: boolean;
+    costCenterDistributions?: { costCenterId: number; percentage: number; amount?: number }[];
   }): Promise<AccountPayableReceivable> {
     const response = await api.put(`/account-payable-receivable/${id}`, data);
     return response.data.data;

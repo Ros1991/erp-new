@@ -73,6 +73,17 @@ namespace ERP.Application.Services
 
             PurchaseOrderMapper.UpdateEntity(existingEntity, dto, currentUserId);
             
+            // Buscar e atualizar a transação financeira relacionada
+            var transaction = await _unitOfWork.FinancialTransactionRepository.GetByPurchaseOrderIdAsync(purchaseOrderId);
+            if (transaction != null)
+            {
+                // Atualizar descrição e valor da transação
+                transaction.Description = dto.Description;
+                transaction.Amount = dto.TotalAmount;
+                transaction.AtualizadoPor = currentUserId;
+                transaction.AtualizadoEm = DateTime.UtcNow;
+            }
+            
             await _unitOfWork.SaveChangesAsync();
             return PurchaseOrderMapper.ToPurchaseOrderOutputDTO(existingEntity);
         }

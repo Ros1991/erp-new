@@ -116,6 +116,25 @@ namespace ERP.Application.Services
                 throw new EntityNotFoundException("FinancialTransaction", financialTransactionId);
             }
 
+            // Validar se a transação está associada a algum registro de origem - não pode editar diretamente
+            if (existingEntity.LoanAdvanceId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível editar esta transação pois ela está associada a um Empréstimo ou Adiantamento. Edite o empréstimo para atualizar a transação.");
+            }
+
+            if (existingEntity.AccountPayableReceivableId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível editar esta transação pois ela está associada a uma Conta a Pagar/Receber. Edite a conta para atualizar a transação.");
+            }
+
+            if (existingEntity.PurchaseOrderId.HasValue)
+            {
+                throw new ValidationException("FinancialTransaction", 
+                    "Não é possível editar esta transação pois ela está associada a um Pedido de Compra. Edite o pedido para atualizar a transação.");
+            }
+
             FinancialTransactionMapper.UpdateEntity(existingEntity, dto, currentUserId);
 
             // Remover distribuições antigas

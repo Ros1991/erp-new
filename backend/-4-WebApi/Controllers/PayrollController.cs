@@ -44,6 +44,14 @@ public class PayrollController : BaseController
         return await ExecuteAsync(() => _payrollService.GetPagedAsync(companyId, filters), "Folhas de pagamento listadas com sucesso");
     }
 
+    [HttpGet("suggestion")]
+    [RequirePermissions("payroll.canView")]
+    public async Task<ActionResult<BaseResponse<PayrollSuggestionDTO>>> GetPayrollSuggestionAsync()
+    {
+        var companyId = GetCompanyId();
+        return await ExecuteAsync(() => _payrollService.GetPayrollSuggestionAsync(companyId), "Sugestão de folha obtida com sucesso");
+    }
+
     [HttpGet("{payrollId}")]
     [RequirePermissions("payroll.canView")]
     public async Task<ActionResult<BaseResponse<PayrollOutputDTO>>> GetOneByIdAsync(long payrollId)
@@ -175,6 +183,31 @@ public class PayrollController : BaseController
         return await ExecuteAsync(
             () => _payrollService.RemoveThirteenthSalaryAsync(payrollId, currentUserId),
             "13º salário removido com sucesso"
+        );
+    }
+
+    [HttpPost("{payrollId}/vacation")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ApplyVacationAsync(long payrollId, VacationInputDTO dto)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.ApplyVacationAsync(payrollId, dto, currentUserId),
+            "Férias aplicadas com sucesso"
+        );
+    }
+
+    [HttpDelete("{payrollId}/vacation/{payrollEmployeeId}")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> RemoveVacationAsync(long payrollId, long payrollEmployeeId)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        ValidateId(payrollEmployeeId, nameof(payrollEmployeeId));
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(
+            () => _payrollService.RemoveVacationAsync(payrollId, payrollEmployeeId, currentUserId),
+            "Férias removidas com sucesso"
         );
     }
 }

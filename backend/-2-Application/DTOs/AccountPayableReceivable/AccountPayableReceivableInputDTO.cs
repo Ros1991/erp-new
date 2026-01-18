@@ -6,6 +6,8 @@ namespace ERP.Application.DTOs
     {
         public long? SupplierCustomerId { get; set; }
 
+        public long? AccountId { get; set; }
+
         [Required(ErrorMessage = "Descrição é obrigatória")]
         [StringLength(255, ErrorMessage = "Descrição deve ter no máximo 255 caracteres")]
         public string Description { get; set; }
@@ -22,5 +24,8 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Status de pagamento é obrigatório")]
         public bool IsPaid { get; set; }
+
+        // Lista de distribuição por centro de custo (opcional)
+        public List<CostCenterDistributionDTO>? CostCenterDistributions { get; set; }
     }
 }

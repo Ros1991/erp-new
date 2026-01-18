@@ -47,22 +47,57 @@ export function CostCenterDistribution({
     }).format(value / 100);
   };
 
-  // Adicionar nova distribuição
+  // Arredondar para múltiplo de 5
+  const roundToFive = (value: number): number => {
+    return Math.max(0, Math.min(100, Math.round(value / 5) * 5));
+  };
+
+  // Adicionar nova distribuição e redistribuir porcentagens igualmente
   const handleAdd = () => {
+    const currentCount = distributions.length;
+    const newCount = currentCount + 1;
+    
+    // Calcular nova porcentagem para cada item (distribuição igual, múltiplo de 5)
+    const basePercentage = roundToFive(100 / newCount);
+    const totalBase = basePercentage * newCount;
+    const adjustment = 100 - totalBase; // Ajuste para chegar a 100%
+    
+    // Atualizar itens existentes
+    const updated = distributions.map((item, index) => ({
+      ...item,
+      percentage: index === 0 ? basePercentage + adjustment : basePercentage
+    }));
+    
+    // Adicionar novo item
     const newDistribution: CostCenterDistributionItem = {
       costCenterId: '',
       costCenterName: '',
-      percentage: remaining > 0 ? Math.min(remaining, 100) : 0,
+      percentage: basePercentage,
       amount: 0
     };
 
-    const updated = [...distributions, newDistribution];
+    updated.push(newDistribution);
     updateAmounts(updated);
   };
 
-  // Remover distribuição
+  // Remover distribuição e redistribuir porcentagens
   const handleRemove = (index: number) => {
     const updated = distributions.filter((_, i) => i !== index);
+    
+    // Se sobrou apenas 1 item, colocar 100%
+    if (updated.length === 1) {
+      updated[0] = { ...updated[0], percentage: 100 };
+    } else if (updated.length > 1) {
+      // Redistribuir igualmente entre os restantes
+      const basePercentage = roundToFive(100 / updated.length);
+      const totalBase = basePercentage * updated.length;
+      const adjustment = 100 - totalBase;
+      
+      updated.forEach((item, i) => {
+        updated[i] = { ...item, percentage: i === 0 ? basePercentage + adjustment : basePercentage };
+      });
+    }
+    
     updateAmounts(updated);
   };
 
@@ -77,13 +112,114 @@ export function CostCenterDistribution({
     updateAmounts(updated);
   };
 
-  // Atualizar porcentagem
+  // Atualizar porcentagem com balanceamento automático para manter 100%
   const handlePercentageChange = (index: number, percentage: number) => {
     const updated = [...distributions];
-    updated[index] = {
-      ...updated[index],
-      percentage: Math.max(0, Math.min(100, Math.round(percentage / 5) * 5))
-    };
+    const newPercentage = roundToFive(percentage);
+    const oldPercentage = updated[index].percentage;
+    
+    // Se só tem 1 item, sempre deve ser 100%
+    if (updated.length === 1) {
+      updated[0] = { ...updated[0], percentage: 100 };
+      updateAmounts(updated);
+      return;
+    }
+
+    // Se tem 2 itens, ajustar o outro automaticamente
+    if (updated.length === 2) {
+      const otherIndex = index === 0 ? 1 : 0;
+      const otherPercentage = 100 - newPercentage;
+      
+      // Verificar se o outro valor é válido (entre 0 e 100)
+      if (otherPercentage >= 0 && otherPercentage <= 100) {
+        updated[index] = { ...updated[index], percentage: newPercentage };
+        updated[otherIndex] = { ...updated[otherIndex], percentage: otherPercentage };
+      }
+      updateAmounts(updated);
+      return;
+    }
+
+    // Se tem 3+ itens, distribuir a diferença entre os outros proporcionalmente
+    const difference = oldPercentage - newPercentage; // Diferença a distribuir (positivo = sobrou, negativo = precisa tirar)
+    
+    if (difference === 0) {
+      updateAmounts(updated);
+      return;
+    }
+
+    // Aplicar a nova porcentagem ao item alterado
+    updated[index] = { ...updated[index], percentage: newPercentage };
+
+    // Calcular a soma atual dos outros itens
+    const otherItems = updated.filter((_, i) => i !== index);
+    const otherTotal = otherItems.reduce((sum, item) => sum + item.percentage, 0);
+
+    if (otherTotal === 0) {
+      // Se todos os outros estão em 0, distribuir igualmente
+      const share = roundToFive(difference / otherItems.length);
+      let remaining = difference;
+      
+      updated.forEach((item, i) => {
+        if (i !== index) {
+          const newVal = roundToFive(Math.max(0, Math.min(100, item.percentage + share)));
+          remaining -= (newVal - item.percentage);
+          updated[i] = { ...item, percentage: newVal };
+        }
+      });
+    } else {
+      // Distribuir proporcionalmente, de 5 em 5
+      let remainingDiff = difference;
+      const otherIndices = updated.map((_, i) => i).filter(i => i !== index);
+      
+      // Ordenar outros itens por porcentagem (maior primeiro se precisamos tirar, menor primeiro se precisamos adicionar)
+      otherIndices.sort((a, b) => {
+        if (difference > 0) {
+          // Precisamos adicionar, começar pelos menores
+          return updated[a].percentage - updated[b].percentage;
+        } else {
+          // Precisamos tirar, começar pelos maiores
+          return updated[b].percentage - updated[a].percentage;
+        }
+      });
+
+      // Distribuir de 5 em 5
+      while (Math.abs(remainingDiff) >= 5) {
+        for (const i of otherIndices) {
+          if (Math.abs(remainingDiff) < 5) break;
+          
+          const currentPercentage = updated[i].percentage;
+          const adjustment = difference > 0 ? 5 : -5;
+          const newVal = currentPercentage + adjustment;
+          
+          // Verificar limites
+          if (newVal >= 0 && newVal <= 100) {
+            updated[i] = { ...updated[i], percentage: newVal };
+            remainingDiff -= adjustment;
+          }
+        }
+        
+        // Se não conseguiu ajustar nenhum item, sair do loop
+        const currentTotal = updated.reduce((sum, item) => sum + item.percentage, 0);
+        if (currentTotal === 100) break;
+      }
+    }
+
+    // Garantir que a soma seja 100% fazendo ajuste final se necessário
+    const finalTotal = updated.reduce((sum, item) => sum + item.percentage, 0);
+    if (finalTotal !== 100) {
+      const finalDiff = 100 - finalTotal;
+      // Encontrar um item (que não seja o alterado) para ajustar
+      for (let i = 0; i < updated.length; i++) {
+        if (i !== index) {
+          const newVal = updated[i].percentage + finalDiff;
+          if (newVal >= 0 && newVal <= 100) {
+            updated[i] = { ...updated[i], percentage: roundToFive(newVal) };
+            break;
+          }
+        }
+      }
+    }
+
     updateAmounts(updated);
   };
 

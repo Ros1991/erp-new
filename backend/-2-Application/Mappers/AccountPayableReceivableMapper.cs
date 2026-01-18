@@ -5,11 +5,11 @@ namespace ERP.Application.Mappers
 {
     public static class AccountPayableReceivableMapper
     {
-        public static AccountPayableReceivableOutputDTO ToAccountPayableReceivableOutputDTO(AccountPayableReceivable entity)
+        public static AccountPayableReceivableOutputDTO ToAccountPayableReceivableOutputDTO(AccountPayableReceivable entity, FinancialTransaction? transaction = null)
         {
             if (entity == null) return null;
 
-            return new AccountPayableReceivableOutputDTO
+            var dto = new AccountPayableReceivableOutputDTO
             {
                 AccountPayableReceivableId = entity.AccountPayableReceivableId,
                 CompanyId = entity.CompanyId,
@@ -23,14 +23,38 @@ namespace ERP.Application.Mappers
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
-                AtualizadoEm = entity.AtualizadoEm
+                AtualizadoEm = entity.AtualizadoEm,
+                CostCenterDistributions = new List<CostCenterDistributionDTO>()
             };
+
+            // Pegar distribuições da tabela própria (sempre disponíveis)
+            if (entity.CostCenterDistributions != null && entity.CostCenterDistributions.Any())
+            {
+                dto.CostCenterDistributions = entity.CostCenterDistributions
+                    .Select(d => new CostCenterDistributionDTO
+                    {
+                        CostCenterId = d.CostCenterId,
+                        CostCenterName = d.CostCenter?.Name,
+                        Percentage = d.Percentage,
+                        Amount = d.Amount
+                    })
+                    .ToList();
+            }
+
+            // Adicionar dados da transação financeira se existir (quando isPaid=true)
+            if (transaction != null)
+            {
+                dto.AccountId = transaction.AccountId;
+                dto.AccountName = transaction.Account?.Name;
+            }
+
+            return dto;
         }
 
         public static List<AccountPayableReceivableOutputDTO> ToAccountPayableReceivableOutputDTOList(List<AccountPayableReceivable> entities)
         {
             if (entities == null) return new List<AccountPayableReceivableOutputDTO>();
-            return entities.Select(ToAccountPayableReceivableOutputDTO).ToList();
+            return entities.Select(e => ToAccountPayableReceivableOutputDTO(e, null)).ToList();
         }
 
         public static AccountPayableReceivable ToEntity(AccountPayableReceivableInputDTO dto, long companyId, long userId)

@@ -120,6 +120,10 @@ namespace ERP.Application.Services
                     IsOnVacation = payrollEmployee.IsOnVacation,
                     VacationDays = payrollEmployee.VacationDays,
                     VacationAdvanceAmount = payrollEmployee.VacationAdvanceAmount,
+                    VacationAdvancePaid = payrollEmployee.VacationAdvancePaid,
+                    VacationStartDate = payrollEmployee.VacationStartDate,
+                    VacationEndDate = payrollEmployee.VacationEndDate,
+                    VacationNotes = payrollEmployee.VacationNotes,
                     TotalGrossPay = payrollEmployee.TotalGrossPay,
                     TotalDeductions = payrollEmployee.TotalDeductions,
                     TotalNetPay = payrollEmployee.TotalNetPay,
@@ -426,6 +430,10 @@ namespace ERP.Application.Services
                 IsOnVacation = newPayrollEmployee.IsOnVacation,
                 VacationDays = newPayrollEmployee.VacationDays,
                 VacationAdvanceAmount = newPayrollEmployee.VacationAdvanceAmount,
+                VacationAdvancePaid = newPayrollEmployee.VacationAdvancePaid,
+                VacationStartDate = newPayrollEmployee.VacationStartDate,
+                VacationEndDate = newPayrollEmployee.VacationEndDate,
+                VacationNotes = newPayrollEmployee.VacationNotes,
                 TotalGrossPay = newPayrollEmployee.TotalGrossPay,
                 TotalDeductions = newPayrollEmployee.TotalDeductions,
                 TotalNetPay = newPayrollEmployee.TotalNetPay,
@@ -613,6 +621,38 @@ namespace ERP.Application.Services
                 CriadoPor = userId,
                 CriadoEm = now
             });
+
+            // 2.5. Verificar se o empregado teve férias na folha anterior e descontar o adiantamento
+            var previousPayrollEmployee = await _unitOfWork.PayrollEmployeeRepository
+                .GetPreviousPayrollEmployeeAsync(contract.EmployeeId, payroll.PayrollId);
+            
+            if (previousPayrollEmployee != null && previousPayrollEmployee.VacationAdvancePaid && previousPayrollEmployee.VacationAdvanceAmount.HasValue && previousPayrollEmployee.VacationAdvanceAmount.Value > 0)
+            {
+                // Descontar o adiantamento de férias da folha anterior
+                var advanceAmount = previousPayrollEmployee.VacationAdvanceAmount.Value;
+                var vacationDays = previousPayrollEmployee.VacationDays ?? 30;
+                
+                // Calcular proporção: se tirou 30 dias de férias, desconta 100% do adiantamento
+                // Se tirou 15 dias, desconta 50% do adiantamento (proporcional aos dias de férias)
+                var advanceProportionalFactor = vacationDays / 30.0;
+                var discountAmount = (long)Math.Round(advanceAmount * advanceProportionalFactor);
+                
+                Console.WriteLine($"[PAYROLL DEBUG] Desconto de adiantamento de férias: Valor original: {advanceAmount}, Dias férias: {vacationDays}, Proporção: {advanceProportionalFactor:P0}, Desconto: {discountAmount}");
+                
+                items.Add(new PayrollItem
+                {
+                    PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                    Description = $"Desconto Adiantamento Férias ({vacationDays} dias)",
+                    Type = "Desconto",
+                    Category = "Desconto Adiantamento",
+                    Amount = discountAmount,
+                    SourceType = "vacation_advance_deduction",
+                    IsManual = false,
+                    IsActive = true,
+                    CriadoPor = userId,
+                    CriadoEm = now
+                });
+            }
 
             // 3. Adicionar benefícios do contrato (apenas os que se aplicam ao salário)
             // Função para verificar se a Application se aplica ao salário
@@ -1261,6 +1301,10 @@ namespace ERP.Application.Services
                 IsOnVacation = payrollEmployee.IsOnVacation,
                 VacationDays = payrollEmployee.VacationDays,
                 VacationAdvanceAmount = payrollEmployee.VacationAdvanceAmount,
+                VacationAdvancePaid = payrollEmployee.VacationAdvancePaid,
+                VacationStartDate = payrollEmployee.VacationStartDate,
+                VacationEndDate = payrollEmployee.VacationEndDate,
+                VacationNotes = payrollEmployee.VacationNotes,
                 TotalGrossPay = payrollEmployee.TotalGrossPay,
                 TotalDeductions = payrollEmployee.TotalDeductions,
                 TotalNetPay = payrollEmployee.TotalNetPay,
@@ -1353,6 +1397,10 @@ namespace ERP.Application.Services
                 IsOnVacation = payrollEmployee.IsOnVacation,
                 VacationDays = payrollEmployee.VacationDays,
                 VacationAdvanceAmount = payrollEmployee.VacationAdvanceAmount,
+                VacationAdvancePaid = payrollEmployee.VacationAdvancePaid,
+                VacationStartDate = payrollEmployee.VacationStartDate,
+                VacationEndDate = payrollEmployee.VacationEndDate,
+                VacationNotes = payrollEmployee.VacationNotes,
                 TotalGrossPay = payrollEmployee.TotalGrossPay,
                 TotalDeductions = payrollEmployee.TotalDeductions,
                 TotalNetPay = payrollEmployee.TotalNetPay,
@@ -1651,6 +1699,418 @@ namespace ERP.Application.Services
             }
 
             return (long)Math.Round(inss * 100); // Converter para centavos
+        }
+
+        public async Task<PayrollDetailedOutputDTO> ApplyVacationAsync(long payrollId, VacationInputDTO dto, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível aplicar férias em uma folha de pagamento fechada.");
+            }
+
+            if (dto.VacationDays < 1 || dto.VacationDays > 30)
+            {
+                throw new ValidationException("Payroll", "Os dias de férias devem estar entre 1 e 30.");
+            }
+
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(dto.PayrollEmployeeId);
+            if (payrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", dto.PayrollEmployeeId);
+            }
+
+            // Se já tem férias aplicadas, remover primeiro
+            if (payrollEmployee.IsOnVacation)
+            {
+                await RemoveVacationItemsAsync(payrollEmployee.PayrollEmployeeId);
+            }
+
+            // Buscar contrato do empregado
+            if (!payrollEmployee.ContractId.HasValue)
+            {
+                throw new ValidationException("Payroll", "Funcionário sem contrato ativo.");
+            }
+
+            var contract = await _unitOfWork.ContractRepository.GetOneByIdAsync(payrollEmployee.ContractId.Value);
+            if (contract == null)
+            {
+                throw new ValidationException("Payroll", "Contrato não encontrado.");
+            }
+
+            // Buscar salário base do empregado
+            var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployee.PayrollEmployeeId);
+            var baseSalary = items
+                .Where(i => i.Type == "Provento" && i.Category == "Salario" && i.IsActive)
+                .Sum(i => i.Amount);
+
+            // Calcular valor proporcional aos dias de férias
+            var dailyRate = baseSalary / 30.0;
+            var proportionalValue = (long)Math.Round(dailyRate * dto.VacationDays);
+
+            // Calcular 1/3 constitucional proporcional aos dias de férias
+            // 1/3 = (Salário / 3) * (dias / 30)
+            var oneThirdBonus = (long)Math.Round(proportionalValue / 3.0);
+
+            // Criar item de 1/3 de Férias (ÚNICO item de férias - o salário base já está sendo pago normalmente)
+            var oneThirdItem = new PayrollItem
+            {
+                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                Description = $"1/3 Constitucional de Férias ({dto.VacationDays} dias)",
+                Type = "Provento",
+                Category = "Férias",
+                Amount = oneThirdBonus,
+                SourceType = "vacation_bonus",
+                IsManual = false,
+                IsActive = true,
+                CriadoPor = currentUserId,
+                CriadoEm = DateTime.UtcNow
+            };
+            await _unitOfWork.PayrollItemRepository.CreateAsync(oneThirdItem);
+
+            // Total para base de cálculo de INSS férias = apenas o 1/3
+            var totalVacationValue = oneThirdBonus;
+
+            // Buscar benefícios/descontos do contrato que se aplicam a Férias
+            var contractBenefitsDiscounts = contract.ContractBenefitDiscountList?
+                .Where(bd => bd.Application == "Férias" || bd.Application == "Todos")
+                .ToList() ?? new List<ContractBenefitDiscount>();
+
+            foreach (var cbd in contractBenefitsDiscounts)
+            {
+                var benefitItem = new PayrollItem
+                {
+                    PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                    Description = $"{cbd.Description} (Férias)",
+                    Type = cbd.Type,
+                    Category = cbd.Type == "Provento" ? "Benefício Férias" : "Desconto Férias",
+                    Amount = cbd.Amount,
+                    SourceType = "vacation_benefit",
+                    IsManual = false,
+                    IsActive = true,
+                    CriadoPor = currentUserId,
+                    CriadoEm = DateTime.UtcNow
+                };
+                await _unitOfWork.PayrollItemRepository.CreateAsync(benefitItem);
+            }
+
+            // Buscar empréstimos que descontam APENAS em Férias (não incluir "Todos" - esses são apenas para salário e 13º)
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(payrollEmployee.EmployeeId);
+            if (employee != null)
+            {
+                var loans = await _unitOfWork.LoanAdvanceRepository.GetPendingLoansByEmployeeAsync(employee.EmployeeId);
+                var vacationLoans = loans.Where(l => 
+                    l.IsApproved && 
+                    !l.IsFullyPaid && 
+                    l.DiscountSource == "Férias"
+                ).ToList();
+
+                foreach (var loan in vacationLoans)
+                {
+                    var remainingInstallments = loan.Installments - loan.InstallmentsPaid;
+                    if (remainingInstallments > 0)
+                    {
+                        var installmentValue = (long)Math.Round((decimal)loan.Amount / loan.Installments);
+                        
+                        var loanItem = new PayrollItem
+                        {
+                            PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                            Description = $"{loan.Description ?? "Empréstimo"} - Parcela Férias",
+                            Type = "Desconto",
+                            Category = "Empréstimo Férias",
+                            Amount = installmentValue,
+                            SourceType = "vacation_loan",
+                            ReferenceId = loan.LoanAdvanceId,
+                            IsManual = false,
+                            IsActive = true,
+                            CriadoPor = currentUserId,
+                            CriadoEm = DateTime.UtcNow
+                        };
+                        await _unitOfWork.PayrollItemRepository.CreateAsync(loanItem);
+                    }
+                }
+            }
+
+            // Aplicar INSS se configurado para incluir impostos
+            if (dto.IncludeTaxes && contract.HasInss)
+            {
+                var inssValue = CalculateINSS(totalVacationValue);
+                if (inssValue > 0)
+                {
+                    var inssItem = new PayrollItem
+                    {
+                        PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                        Description = "INSS Férias",
+                        Type = "Desconto",
+                        Category = "Imposto Férias",
+                        Amount = inssValue,
+                        SourceType = "vacation_tax",
+                        CalculationBasis = totalVacationValue,
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = currentUserId,
+                        CriadoEm = DateTime.UtcNow
+                    };
+                    await _unitOfWork.PayrollItemRepository.CreateAsync(inssItem);
+                }
+            }
+
+            // Adiantar salário do próximo mês se configurado (proporcional aos dias de férias)
+            if (dto.AdvanceNextMonth)
+            {
+                // Adiantamento proporcional aos dias de férias
+                var advanceAmount = proportionalValue;
+                
+                var advanceSalaryItem = new PayrollItem
+                {
+                    PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                    Description = $"Adiantamento Salário ({dto.VacationDays} dias)",
+                    Type = "Provento",
+                    Category = "Adiantamento Férias",
+                    Amount = advanceAmount,
+                    SourceType = "vacation_advance_salary",
+                    IsManual = false,
+                    IsActive = true,
+                    CriadoPor = currentUserId,
+                    CriadoEm = DateTime.UtcNow
+                };
+                await _unitOfWork.PayrollItemRepository.CreateAsync(advanceSalaryItem);
+
+                // INSS do adiantamento (proporcional)
+                if (dto.IncludeTaxes && contract.HasInss)
+                {
+                    var advanceInssValue = CalculateINSS(advanceAmount);
+                    if (advanceInssValue > 0)
+                    {
+                        var advanceInssItem = new PayrollItem
+                        {
+                            PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                            Description = $"INSS Adiantamento ({dto.VacationDays} dias)",
+                            Type = "Desconto",
+                            Category = "Imposto Férias",
+                            Amount = advanceInssValue,
+                            SourceType = "vacation_advance_tax",
+                            CalculationBasis = advanceAmount,
+                            IsManual = false,
+                            IsActive = true,
+                            CriadoPor = currentUserId,
+                            CriadoEm = DateTime.UtcNow
+                        };
+                        await _unitOfWork.PayrollItemRepository.CreateAsync(advanceInssItem);
+                    }
+                }
+
+                // Benefícios e descontos mensais adiantados
+                var monthlyBenefitsDiscounts = contract.ContractBenefitDiscountList?
+                    .Where(bd => bd.Application == "Mensal" || bd.Application == "Todos")
+                    .ToList() ?? new List<ContractBenefitDiscount>();
+
+                foreach (var cbd in monthlyBenefitsDiscounts)
+                {
+                    var advanceBenefitItem = new PayrollItem
+                    {
+                        PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                        Description = $"{cbd.Description} (Adiantamento)",
+                        Type = cbd.Type,
+                        Category = cbd.Type == "Provento" ? "Adiantamento Férias" : "Desconto Adiantamento",
+                        Amount = cbd.Amount,
+                        SourceType = "vacation_advance_benefit",
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = currentUserId,
+                        CriadoEm = DateTime.UtcNow
+                    };
+                    await _unitOfWork.PayrollItemRepository.CreateAsync(advanceBenefitItem);
+                }
+
+                // Empréstimos mensais adiantados (verificar se ainda tem parcelas)
+                // Inclui "Mensal" e "Todos" pois estamos adiantando o salário do próximo mês
+                if (employee != null)
+                {
+                    var monthlyLoans = await _unitOfWork.LoanAdvanceRepository.GetPendingLoansByEmployeeAsync(employee.EmployeeId);
+                    var activeMonthlyLoans = monthlyLoans.Where(l => 
+                        l.IsApproved && 
+                        !l.IsFullyPaid && 
+                        (l.DiscountSource == "Mensal" || l.DiscountSource == "Todos")
+                    ).ToList();
+
+                    foreach (var loan in activeMonthlyLoans)
+                    {
+                        // Verificar quantas parcelas já foram pagas e quantas ainda restam
+                        var remainingInstallments = loan.Installments - loan.InstallmentsPaid;
+                        
+                        // Se ainda tem mais de 1 parcela restante, pode adiantar
+                        // (1 parcela já está sendo descontada no mês atual)
+                        if (remainingInstallments > 1)
+                        {
+                            var installmentValue = (long)Math.Round((decimal)loan.Amount / loan.Installments);
+                            
+                            var advanceLoanItem = new PayrollItem
+                            {
+                                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                                Description = $"{loan.Description ?? "Empréstimo"} - Parcela Adiantada (Férias)",
+                                Type = "Desconto",
+                                Category = "Empréstimo Adiantamento",
+                                Amount = installmentValue,
+                                SourceType = "vacation_advance_loan",
+                                ReferenceId = loan.LoanAdvanceId,
+                                IsManual = false,
+                                IsActive = true,
+                                CriadoPor = currentUserId,
+                                CriadoEm = DateTime.UtcNow
+                            };
+                            await _unitOfWork.PayrollItemRepository.CreateAsync(advanceLoanItem);
+                        }
+                    }
+                }
+            }
+
+            // Atualizar PayrollEmployee com informações de férias
+            // Calcular data final automaticamente: data início + dias - 1
+            var vacationEndDate = dto.VacationStartDate.AddDays(dto.VacationDays - 1);
+            
+            payrollEmployee.IsOnVacation = true;
+            payrollEmployee.VacationDays = dto.VacationDays;
+            payrollEmployee.VacationStartDate = dto.VacationStartDate;
+            payrollEmployee.VacationEndDate = vacationEndDate;
+            payrollEmployee.VacationAdvanceAmount = dto.AdvanceNextMonth ? baseSalary : 0;
+            payrollEmployee.VacationAdvancePaid = dto.AdvanceNextMonth;
+            payrollEmployee.VacationNotes = dto.Notes;
+            payrollEmployee.AtualizadoPor = currentUserId;
+            payrollEmployee.AtualizadoEm = DateTime.UtcNow;
+
+            // Salvar todas as criações primeiro
+            await _unitOfWork.SaveChangesAsync();
+
+            // Depois recalcular totais
+            await RecalculatePayrollEmployeeTotalsAsync(payrollEmployee.PayrollEmployeeId);
+            await RecalculatePayrollTotalsAsync(payrollId);
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
+
+        public async Task<PayrollDetailedOutputDTO> RemoveVacationAsync(long payrollId, long payrollEmployeeId, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollId);
+            if (payroll == null)
+            {
+                throw new EntityNotFoundException("Payroll", payrollId);
+            }
+
+            if (payroll.IsClosed)
+            {
+                throw new ValidationException("Payroll", "Não é possível remover férias de uma folha de pagamento fechada.");
+            }
+
+            var payrollEmployee = await _unitOfWork.PayrollEmployeeRepository.GetOneByIdAsync(payrollEmployeeId);
+            if (payrollEmployee == null)
+            {
+                throw new EntityNotFoundException("PayrollEmployee", payrollEmployeeId);
+            }
+
+            await RemoveVacationItemsAsync(payrollEmployeeId);
+
+            // Limpar informações de férias do PayrollEmployee
+            payrollEmployee.IsOnVacation = false;
+            payrollEmployee.VacationDays = null;
+            payrollEmployee.VacationStartDate = null;
+            payrollEmployee.VacationEndDate = null;
+            payrollEmployee.VacationAdvanceAmount = null;
+            payrollEmployee.VacationAdvancePaid = false;
+            payrollEmployee.VacationNotes = null;
+            payrollEmployee.AtualizadoPor = currentUserId;
+            payrollEmployee.AtualizadoEm = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Recalcular totais
+            await RecalculatePayrollTotalsAsync(payrollId);
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
+
+        private async Task RemoveVacationItemsAsync(long payrollEmployeeId)
+        {
+            var items = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(payrollEmployeeId);
+            
+            // Remover itens relacionados a férias
+            var vacationItems = items.Where(i => 
+                i.SourceType == "vacation" ||
+                i.SourceType == "vacation_bonus" ||
+                i.SourceType == "vacation_benefit" ||
+                i.SourceType == "vacation_loan" ||
+                i.SourceType == "vacation_tax" ||
+                i.SourceType == "vacation_advance_salary" ||
+                i.SourceType == "vacation_advance_tax" ||
+                i.SourceType == "vacation_advance_benefit" ||
+                i.SourceType == "vacation_advance_loan" ||
+                i.Category == "Férias" ||
+                i.Category == "Benefício Férias" ||
+                i.Category == "Desconto Férias" ||
+                i.Category == "Empréstimo Férias" ||
+                i.Category == "Imposto Férias" ||
+                i.Category == "Adiantamento Férias" ||
+                i.Category == "Desconto Adiantamento" ||
+                i.Category == "Empréstimo Adiantamento"
+            ).ToList();
+
+            foreach (var item in vacationItems)
+            {
+                await _unitOfWork.PayrollItemRepository.DeleteByIdAsync(item.PayrollItemId);
+            }
+
+            // Salvar deleções primeiro
+            await _unitOfWork.SaveChangesAsync();
+
+            // Depois recalcular totais
+            await RecalculatePayrollEmployeeTotalsAsync(payrollEmployeeId);
+        }
+
+        public async Task<PayrollSuggestionDTO> GetPayrollSuggestionAsync(long companyId)
+        {
+            var now = DateTime.UtcNow;
+            
+            // Buscar a última folha fechada da empresa (ordenada por data de término do período)
+            var lastClosedPayroll = await _unitOfWork.PayrollRepository
+                .GetLastClosedPayrollByCompanyAsync(companyId);
+            
+            // Verificar se existe folha em aberto
+            var openPayroll = await _unitOfWork.PayrollRepository
+                .GetOpenPayrollByCompanyAsync(companyId);
+            
+            int suggestedMonth;
+            int suggestedYear;
+            
+            if (lastClosedPayroll != null)
+            {
+                // Sugerir o próximo mês após a última folha fechada
+                var lastPeriodEnd = lastClosedPayroll.PeriodEndDate;
+                var nextMonth = lastPeriodEnd.AddMonths(1);
+                suggestedMonth = nextMonth.Month;
+                suggestedYear = nextMonth.Year;
+            }
+            else
+            {
+                // Se não tiver nenhuma folha, sugerir o mês atual
+                suggestedMonth = now.Month;
+                suggestedYear = now.Year;
+            }
+            
+            return new PayrollSuggestionDTO
+            {
+                SuggestedMonth = suggestedMonth,
+                SuggestedYear = suggestedYear,
+                HasOpenPayroll = openPayroll != null,
+                OpenPayrollId = openPayroll?.PayrollId,
+                OpenPayrollPeriod = openPayroll != null 
+                    ? $"{openPayroll.PeriodStartDate:dd/MM/yyyy} - {openPayroll.PeriodEndDate:dd/MM/yyyy}"
+                    : null
+            };
         }
     }
 }

@@ -18,5 +18,8 @@ namespace ERP.Application.Interfaces.Services
         Task<PayrollEmployeeDetailedDTO> AddPayrollItemAsync(PayrollItemInputDTO dto, long currentUserId);
         Task<PayrollDetailedOutputDTO> ApplyThirteenthSalaryAsync(long payrollId, ThirteenthSalaryInputDTO dto, long currentUserId);
         Task<PayrollDetailedOutputDTO> RemoveThirteenthSalaryAsync(long payrollId, long currentUserId);
+        Task<PayrollDetailedOutputDTO> ApplyVacationAsync(long payrollId, VacationInputDTO dto, long currentUserId);
+        Task<PayrollDetailedOutputDTO> RemoveVacationAsync(long payrollId, long payrollEmployeeId, long currentUserId);
+        Task<PayrollSuggestionDTO> GetPayrollSuggestionAsync(long companyId);
     }
 }

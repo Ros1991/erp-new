@@ -463,6 +463,32 @@ export function LoanAdvanceForm() {
                 </div>
 
                 <div>
+                  <label htmlFor="discountSource" className="block text-sm font-medium text-gray-700 mb-1">
+                    Fonte de Desconto <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    id="discountSource"
+                    value={formData.discountSource}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      handleChange('discountSource', newValue);
+                      // Se for Férias ou 13º, forçar 1 parcela
+                      if (newValue === DiscountSourceCode.VACATION || newValue === DiscountSourceCode.THIRTEENTH_SALARY) {
+                        handleChange('installments', 1);
+                      }
+                    }}
+                    className={errors.discountSource ? 'border-red-500' : ''}
+                  >
+                    {DISCOUNT_SOURCE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                  {errors.discountSource && <p className="text-sm text-red-600 mt-1">{errors.discountSource}</p>}
+                </div>
+
+                <div>
                   <label htmlFor="installments" className="block text-sm font-medium text-gray-700 mb-1">
                     Número de Parcelas <span className="text-red-500">*</span>
                   </label>
@@ -471,8 +497,14 @@ export function LoanAdvanceForm() {
                     onChange={(value) => handleChange('installments', value)}
                     min={1}
                     max={999}
+                    disabled={formData.discountSource === DiscountSourceCode.VACATION || formData.discountSource === DiscountSourceCode.THIRTEENTH_SALARY}
                     className={errors.installments ? 'border-red-500' : ''}
                   />
+                  {(formData.discountSource === DiscountSourceCode.VACATION || formData.discountSource === DiscountSourceCode.THIRTEENTH_SALARY) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Empréstimos de Férias ou 13º têm sempre 1 parcela.
+                    </p>
+                  )}
                   {errors.installments && <p className="text-sm text-red-600 mt-1">{errors.installments}</p>}
                 </div>
 
@@ -484,25 +516,6 @@ export function LoanAdvanceForm() {
                     </p>
                   </div>
                 )}
-
-                <div>
-                  <label htmlFor="discountSource" className="block text-sm font-medium text-gray-700 mb-1">
-                    Fonte de Desconto <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    id="discountSource"
-                    value={formData.discountSource}
-                    onChange={(e) => handleChange('discountSource', e.target.value)}
-                    className={errors.discountSource ? 'border-red-500' : ''}
-                  >
-                    {DISCOUNT_SOURCE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </Select>
-                  {errors.discountSource && <p className="text-sm text-red-600 mt-1">{errors.discountSource}</p>}
-                </div>
 
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">

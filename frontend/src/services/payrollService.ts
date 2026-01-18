@@ -69,6 +69,10 @@ export interface PayrollEmployeeDetailed {
   isOnVacation: boolean;
   vacationDays?: number;
   vacationAdvanceAmount?: number; // em centavos
+  vacationAdvancePaid?: boolean;
+  vacationStartDate?: string;
+  vacationEndDate?: string;
+  vacationNotes?: string;
   totalGrossPay: number; // em centavos
   totalDeductions: number; // em centavos
   totalNetPay: number; // em centavos
@@ -101,7 +105,20 @@ export interface PayrollDetailed extends Payroll {
   employees: PayrollEmployeeDetailed[];
 }
 
+export interface PayrollSuggestion {
+  suggestedMonth: number;
+  suggestedYear: number;
+  hasOpenPayroll: boolean;
+  openPayrollId?: number;
+  openPayrollPeriod?: string;
+}
+
 class PayrollService {
+  async getPayrollSuggestion(): Promise<PayrollSuggestion> {
+    const response = await api.get('/payroll/suggestion');
+    return response.data.data;
+  }
+
   async getAllPayrolls(): Promise<Payroll[]> {
     const response = await api.get('/payroll/getAll');
     return response.data.data;
@@ -187,6 +204,23 @@ class PayrollService {
 
   async removeThirteenthSalary(payrollId: number): Promise<PayrollDetailed> {
     const response = await api.delete(`/payroll/${payrollId}/thirteenth-salary`);
+    return response.data.data;
+  }
+
+  async applyVacation(payrollId: number, data: {
+    payrollEmployeeId: number;
+    vacationDays: number;
+    vacationStartDate: string;
+    includeTaxes: boolean;
+    advanceNextMonth: boolean;
+    notes?: string;
+  }): Promise<PayrollDetailed> {
+    const response = await api.post(`/payroll/${payrollId}/vacation`, data);
+    return response.data.data;
+  }
+
+  async removeVacation(payrollId: number, payrollEmployeeId: number): Promise<PayrollDetailed> {
+    const response = await api.delete(`/payroll/${payrollId}/vacation/${payrollEmployeeId}`);
     return response.data.data;
   }
 

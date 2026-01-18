@@ -42,6 +42,10 @@ namespace ERP.Application.DTOs
         public bool IsOnVacation { get; set; }
         public long? VacationDays { get; set; }
         public long? VacationAdvanceAmount { get; set; }
+        public bool VacationAdvancePaid { get; set; }
+        public DateTime? VacationStartDate { get; set; }
+        public DateTime? VacationEndDate { get; set; }
+        public string? VacationNotes { get; set; }
         public long TotalGrossPay { get; set; }
         public long TotalDeductions { get; set; }
         public long TotalNetPay { get; set; }
