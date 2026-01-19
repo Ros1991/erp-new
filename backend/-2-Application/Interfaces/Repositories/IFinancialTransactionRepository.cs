@@ -14,5 +14,11 @@ namespace ERP.Application.Interfaces.Repositories
         Task<FinancialTransaction> CreateAsync(FinancialTransaction entity);
         Task<FinancialTransaction> UpdateByIdAsync(long financialTransactionId, FinancialTransaction entity);
         Task<bool> DeleteByIdAsync(long financialTransactionId);
+        
+        // Métodos para relatórios
+        Task<List<FinancialTransaction>> GetByDateRangeAsync(long companyId, DateTime startDate, DateTime endDate);
+        Task<List<FinancialTransaction>> GetByDateRangeWithCostCentersAsync(long companyId, DateTime startDate, DateTime endDate);
+        Task<(long Entradas, long Saidas)> GetSumBeforeDateAsync(long companyId, DateTime date);
+        Task<(long Entradas, long Saidas)> GetSumUpToDateAsync(long companyId, DateTime date);
     }
 }

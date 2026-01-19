@@ -98,5 +98,20 @@ namespace ERP.Infrastructure.Repositories
             _context.Set<Account>().Remove(existing);
             return true;
         }
+
+        // Métodos para relatórios
+        public async Task<long> GetTotalInitialBalanceAsync(long companyId)
+        {
+            return await _context.Set<Account>()
+                .Where(a => a.CompanyId == companyId)
+                .SumAsync(a => a.InitialBalance);
+        }
+
+        public async Task<int> CountAsync(long companyId)
+        {
+            return await _context.Set<Account>()
+                .Where(a => a.CompanyId == companyId)
+                .CountAsync();
+        }
     }
 }

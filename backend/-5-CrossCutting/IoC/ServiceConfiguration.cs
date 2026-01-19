@@ -31,6 +31,7 @@ namespace ERP.CrossCutting.IoC
             services.AddScoped<ISupplierCustomerService, SupplierCustomerService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IPayrollService, PayrollService>();
+            services.AddScoped<IReportService, ReportService>();
 
             // Register Infrastructure Services
             services.AddSingleton<IPasswordHashService, PasswordHashService>();

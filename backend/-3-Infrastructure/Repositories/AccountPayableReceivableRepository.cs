@@ -104,5 +104,57 @@ namespace ERP.Infrastructure.Repositories
             _context.Set<AccountPayableReceivable>().Remove(existing);
             return true;
         }
+
+        // Métodos para relatórios
+        public async Task<List<AccountPayableReceivable>> GetPendingAsync(long companyId, string? type = null)
+        {
+            var query = _context.Set<AccountPayableReceivable>()
+                .Where(apr => apr.CompanyId == companyId && !apr.IsPaid)
+                .Include(x => x.SupplierCustomer)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(type) && type != "Todos")
+            {
+                query = query.Where(apr => apr.Type == type);
+            }
+
+            return await query.OrderBy(apr => apr.DueDate).ToListAsync();
+        }
+
+        public async Task<List<AccountPayableReceivable>> GetPaidByDateRangeAsync(long companyId, DateTime startDate, DateTime endDate, string? type = null)
+        {
+            var query = _context.Set<AccountPayableReceivable>()
+                .Where(apr => apr.CompanyId == companyId && 
+                              apr.IsPaid && 
+                              apr.DueDate >= startDate && 
+                              apr.DueDate <= endDate)
+                .Include(x => x.SupplierCustomer)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(type) && type != "Todos")
+            {
+                query = query.Where(apr => apr.Type == type);
+            }
+
+            return await query.OrderBy(apr => apr.DueDate).ToListAsync();
+        }
+
+        public async Task<List<AccountPayableReceivable>> GetPendingByDueDateRangeAsync(long companyId, DateTime startDate, DateTime endDate, string? type = null)
+        {
+            var query = _context.Set<AccountPayableReceivable>()
+                .Where(apr => apr.CompanyId == companyId && 
+                              !apr.IsPaid && 
+                              apr.DueDate >= startDate && 
+                              apr.DueDate <= endDate)
+                .Include(x => x.SupplierCustomer)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(type) && type != "Todos")
+            {
+                query = query.Where(apr => apr.Type == type);
+            }
+
+            return await query.OrderBy(apr => apr.DueDate).ToListAsync();
+        }
     }
 }

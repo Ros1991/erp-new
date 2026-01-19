@@ -46,6 +46,17 @@ import { TaskForm } from '../pages/tasks/TaskForm';
 import { Payrolls } from '../pages/payroll/Payrolls';
 import { PayrollDetails } from '../pages/payroll/PayrollDetails';
 import AccessDenied from '../pages/AccessDenied';
+
+// Reports
+import { 
+  FinancialDashboard,
+  CostCenterReport,
+  AccountReport,
+  SupplierCustomerReport,
+  CashFlowReport,
+  AccountsPayableReceivableReport,
+  FinancialForecastReport
+} from '../pages/reports';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
 // Protected Route Component
@@ -633,6 +644,78 @@ export function AppRoutes() {
               <PermissionProtectedRoute requires="payroll.canView">
                 <Payrolls />
               </PermissionProtectedRoute>
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Reports */}
+      <Route
+        path="/reports/financial-dashboard"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <FinancialDashboard />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/cost-center"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <CostCenterReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/account"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <AccountReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/supplier-customer"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <SupplierCustomerReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/cash-flow"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <CashFlowReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/accounts-payable-receivable"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <AccountsPayableReceivableReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/financial-forecast"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <FinancialForecastReport />
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }

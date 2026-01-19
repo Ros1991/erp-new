@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { usePermissions } from '../../contexts/PermissionContext';
 import {
@@ -15,7 +15,13 @@ import {
   ChevronRight,
   ArrowRightLeft,
   Receipt,
-  Building2
+  Building2,
+  BarChart3,
+  TrendingUp,
+  Landmark,
+  HandCoins,
+  Activity,
+  ClipboardList
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,7 +39,22 @@ interface MenuItem {
 export function Sidebar({ sidebarOpen }: SidebarProps) {
   const location = useLocation();
   const { hasPermission } = usePermissions();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['Cadastros']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['Cadastros', 'Relatórios']);
+
+  // Manter menus expandidos quando um item filho está ativo
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Verificar se a rota atual pertence a algum menu
+    if (currentPath.startsWith('/reports/')) {
+      setExpandedMenus(prev => prev.includes('Relatórios') ? prev : [...prev, 'Relatórios']);
+    }
+    if (['/roles', '/users', '/employees', '/accounts', '/supplier-customers', '/cost-centers', 
+         '/account-payable-receivable', '/loan-advances', '/financial-transactions', '/payroll']
+        .some(path => currentPath.startsWith(path))) {
+      setExpandedMenus(prev => prev.includes('Cadastros') ? prev : [...prev, 'Cadastros']);
+    }
+  }, [location.pathname]);
 
   const toggleMenu = (label: string) => {
     setExpandedMenus(prev => 
@@ -59,9 +80,19 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },
         { icon: ArrowRightLeft, label: 'Transações Financeiras', path: '/financial-transactions', permission: 'financialTransaction.canView' },
         { icon: Receipt, label: 'Folha de Pagamento', path: '/payroll', permission: 'payroll.canView' },
-        // { icon: MapPin, label: 'Locais', path: '/locations', permission: 'location.canView' },
-        // { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
-        // { icon: CheckSquare, label: 'Tarefas', path: '/tasks', permission: 'task.canView' },
+      ]
+    },
+    {
+      icon: BarChart3,
+      label: 'Relatórios',
+      children: [
+        { icon: TrendingUp, label: 'Dashboard Financeiro', path: '/reports/financial-dashboard' },
+        { icon: PieChart, label: 'Por Centro de Custo', path: '/reports/cost-center' },
+        { icon: Landmark, label: 'Por Conta Corrente', path: '/reports/account' },
+        { icon: HandCoins, label: 'Por Fornecedor/Cliente', path: '/reports/supplier-customer' },
+        { icon: Activity, label: 'Fluxo de Caixa', path: '/reports/cash-flow' },
+        { icon: ClipboardList, label: 'Contas a Pagar/Receber', path: '/reports/accounts-payable-receivable' },
+        { icon: BarChart3, label: 'Previsão Financeira', path: '/reports/financial-forecast' },
       ]
     },
   ];
@@ -95,7 +126,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
     <aside
       className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-transform z-30 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 lg:w-64 w-64 overflow-y-auto`}
+      } lg:translate-x-0 lg:w-72 w-72 overflow-y-auto`}
     >
       <nav className="p-4 space-y-1">
         {visibleItems.map((item) => {

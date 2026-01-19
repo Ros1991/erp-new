@@ -134,5 +134,60 @@ namespace ERP.Infrastructure.Repositories
             _context.Set<FinancialTransaction>().Remove(existing);
             return true;
         }
+
+        // Métodos para relatórios
+        public async Task<List<FinancialTransaction>> GetByDateRangeAsync(long companyId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Set<FinancialTransaction>()
+                .Where(t => t.CompanyId == companyId && 
+                            t.TransactionDate >= startDate && 
+                            t.TransactionDate <= endDate)
+                .Include(x => x.Account)
+                .Include(x => x.SupplierCustomer)
+                .ToListAsync();
+        }
+
+        public async Task<List<FinancialTransaction>> GetByDateRangeWithCostCentersAsync(long companyId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Set<FinancialTransaction>()
+                .Where(t => t.CompanyId == companyId && 
+                            t.TransactionDate >= startDate && 
+                            t.TransactionDate <= endDate)
+                .Include(x => x.Account)
+                .Include(x => x.SupplierCustomer)
+                .Include(x => x.TransactionCostCenterList)
+                    .ThenInclude(tcc => tcc.CostCenter)
+                .ToListAsync();
+        }
+
+        public async Task<(long Entradas, long Saidas)> GetSumBeforeDateAsync(long companyId, DateTime date)
+        {
+            var result = await _context.Set<FinancialTransaction>()
+                .Where(t => t.CompanyId == companyId && t.TransactionDate < date)
+                .GroupBy(t => 1)
+                .Select(g => new
+                {
+                    Entradas = g.Where(t => t.Type == "Entrada").Sum(t => t.Amount),
+                    Saidas = g.Where(t => t.Type == "Saida").Sum(t => t.Amount)
+                })
+                .FirstOrDefaultAsync();
+
+            return result != null ? (result.Entradas, result.Saidas) : (0, 0);
+        }
+
+        public async Task<(long Entradas, long Saidas)> GetSumUpToDateAsync(long companyId, DateTime date)
+        {
+            var result = await _context.Set<FinancialTransaction>()
+                .Where(t => t.CompanyId == companyId && t.TransactionDate <= date)
+                .GroupBy(t => 1)
+                .Select(g => new
+                {
+                    Entradas = g.Where(t => t.Type == "Entrada").Sum(t => t.Amount),
+                    Saidas = g.Where(t => t.Type == "Saida").Sum(t => t.Amount)
+                })
+                .FirstOrDefaultAsync();
+
+            return result != null ? (result.Entradas, result.Saidas) : (0, 0);
+        }
     }
 }

@@ -11,5 +11,10 @@ namespace ERP.Application.Interfaces.Repositories
         Task<AccountPayableReceivable> CreateAsync(AccountPayableReceivable entity);
         Task<AccountPayableReceivable> UpdateByIdAsync(long accountPayableReceivableId, AccountPayableReceivable entity);
         Task<bool> DeleteByIdAsync(long accountPayableReceivableId);
+        
+        // Métodos para relatórios
+        Task<List<AccountPayableReceivable>> GetPendingAsync(long companyId, string? type = null);
+        Task<List<AccountPayableReceivable>> GetPaidByDateRangeAsync(long companyId, DateTime startDate, DateTime endDate, string? type = null);
+        Task<List<AccountPayableReceivable>> GetPendingByDueDateRangeAsync(long companyId, DateTime startDate, DateTime endDate, string? type = null);
     }
 }
