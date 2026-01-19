@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ERP.Application.DTOs;
 using ERP.Application.Services;
 using ERP.WebApi.Controllers.Base;
+using ERP.WebApi.Attributes;
 
 namespace ERP.WebApi.Controllers
 {
@@ -19,6 +20,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("financial-summary")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<FinancialSummaryDTO>>> GetFinancialSummary([FromQuery] ReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -29,6 +31,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("cost-center")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<List<CostCenterReportDTO>>>> GetCostCenterReport([FromQuery] ReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -39,6 +42,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("account")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<List<AccountReportDTO>>>> GetAccountReport([FromQuery] ReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -49,6 +53,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("supplier-customer")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<List<SupplierCustomerReportDTO>>>> GetSupplierCustomerReport([FromQuery] SupplierCustomerReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -59,6 +64,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("cash-flow")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<List<CashFlowItemDTO>>>> GetCashFlow([FromQuery] ReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -69,6 +75,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("accounts-payable-receivable")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<AccountPayableReceivableReportDTO>>> GetAccountPayableReceivableReport([FromQuery] AccountPayableReceivableReportFilterDTO filters)
         {
             var companyId = GetCompanyId();
@@ -79,6 +86,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("financial-forecast")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<FinancialForecastDTO>>> GetFinancialForecast([FromQuery] int months = 6)
         {
             var companyId = GetCompanyId();
@@ -89,6 +97,7 @@ namespace ERP.WebApi.Controllers
         }
 
         [HttpGet("employee-account")]
+        [RequirePermissions("report.canView")]
         public async Task<ActionResult<BaseResponse<EmployeeAccountReportDTO>>> GetEmployeeAccountReport([FromQuery] EmployeeAccountReportFilterDTO filters)
         {
             var companyId = GetCompanyId();

@@ -20,6 +20,7 @@ namespace ERP.Application.Mappers
                 SupplierCustomerId = entity.SupplierCustomerId,
                 SupplierCustomerName = entity.SupplierCustomer?.Name,
                 LoanAdvanceId = entity.LoanAdvanceId,
+                PayrollId = entity.PayrollId,
                 Description = entity.Description,
                 Type = entity.Type,
                 Amount = entity.Amount,

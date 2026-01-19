@@ -33,8 +33,7 @@ import { CostCenters } from '../pages/cost-centers/CostCenters';
 import { CostCenterForm } from '../pages/cost-centers/CostCenterForm';
 import { LoanAdvances } from '../pages/loan-advances/LoanAdvances';
 import { LoanAdvanceForm } from '../pages/loan-advances/LoanAdvanceForm';
-import { FinancialTransactions } from '../pages/financial-transactions/FinancialTransactions';
-import { FinancialTransactionForm } from '../pages/financial-transactions/FinancialTransactionForm';
+import { FinancialTransactions, FinancialTransactionDetails } from '../pages/financial-transactions';
 import { Locations } from '../pages/locations/Locations';
 import { LocationForm } from '../pages/locations/LocationForm';
 import { PurchaseOrders } from '../pages/purchase-orders/PurchaseOrders';
@@ -448,24 +447,12 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/financial-transactions/new"
+        path="/financial-transactions/:id"
         element={
           <ProtectedRoute>
             <CompanyProtectedRoute>
-              <PermissionProtectedRoute requires="financialTransaction.canCreate">
-                <FinancialTransactionForm />
-              </PermissionProtectedRoute>
-            </CompanyProtectedRoute>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/financial-transactions/:id/edit"
-        element={
-          <ProtectedRoute>
-            <CompanyProtectedRoute>
-              <PermissionProtectedRoute requires="financialTransaction.canEdit">
-                <FinancialTransactionForm />
+              <PermissionProtectedRoute requires="financialTransaction.canView">
+                <FinancialTransactionDetails />
               </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>

@@ -206,7 +206,7 @@
     {
       "key": "financialTransaction",
       "name": "Transações Financeiras",
-      "description": "Gerenciar transações financeiras",
+      "description": "Visualizar transações financeiras (somente leitura)",
       "icon": "arrow-right-left",
       "isActive": true,
       "permissions": [
@@ -214,21 +214,6 @@
           "key": "canView",
           "name": "Visualizar",
           "description": "Visualizar lista e detalhes de transações financeiras"
-        },
-        {
-          "key": "canCreate",
-          "name": "Criar",
-          "description": "Criar novas transações financeiras"
-        },
-        {
-          "key": "canEdit",
-          "name": "Editar",
-          "description": "Editar transações financeiras existentes"
-        },
-        {
-          "key": "canDelete",
-          "name": "Excluir",
-          "description": "Excluir transações financeiras"
         }
       ]
     },
@@ -384,6 +369,20 @@
           "key": "canReopen",
           "name": "Reabrir",
           "description": "Reabrir folhas de pagamento fechadas"
+        }
+      ]
+    },
+    {
+      "key": "report",
+      "name": "Relatórios",
+      "description": "Acessar relatórios do sistema",
+      "icon": "bar-chart-2",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar relatórios do sistema"
         }
       ]
     }

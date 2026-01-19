@@ -212,7 +212,7 @@ public class PayrollController : BaseController
     }
 
     [HttpPost("{payrollId}/close")]
-    [RequirePermissions("payroll.canEdit")]
+    [RequirePermissions("payroll.canClose")]
     public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ClosePayrollAsync(long payrollId, ClosePayrollInputDTO dto)
     {
         ValidateId(payrollId, nameof(payrollId));
@@ -224,7 +224,7 @@ public class PayrollController : BaseController
     }
 
     [HttpPost("{payrollId}/reopen")]
-    [RequirePermissions("payroll.canEdit")]
+    [RequirePermissions("payroll.canReopen")]
     public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ReopenPayrollAsync(long payrollId)
     {
         ValidateId(payrollId, nameof(payrollId));

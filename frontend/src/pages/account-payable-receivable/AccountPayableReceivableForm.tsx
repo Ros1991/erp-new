@@ -25,6 +25,7 @@ interface AccountPayableReceivableFormData {
   amount: string;
   dueDate: string;
   isPaid: boolean;
+  paymentDate: string;
 }
 
 export function AccountPayableReceivableForm() {
@@ -44,6 +45,7 @@ export function AccountPayableReceivableForm() {
     amount: '0',
     dueDate: '',
     isPaid: false,
+    paymentDate: '',
   });
 
   const [costCenters, setCostCenters] = useState<CostCenterDistributionItem[]>([]);
@@ -108,6 +110,7 @@ export function AccountPayableReceivableForm() {
         amount: account.amount.toString(),
         dueDate: account.dueDate.split('T')[0],
         isPaid: account.isPaid,
+        paymentDate: '',
       });
       
       // Carregar cost centers se houver
@@ -190,6 +193,7 @@ export function AccountPayableReceivableForm() {
         amount: Number(formData.amount),
         dueDate: new Date(formData.dueDate).toISOString(),
         isPaid: formData.isPaid,
+        paymentDate: formData.isPaid && formData.paymentDate ? new Date(formData.paymentDate).toISOString() : undefined,
         costCenterDistributions:
           costCenters.length > 0
             ? costCenters.map((c) => ({
@@ -413,20 +417,34 @@ export function AccountPayableReceivableForm() {
                 </div>
 
                 {formData.isPaid && (
-                  <div>
-                    <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
-                      Conta Corrente <span className="text-red-500">*</span>
-                    </label>
-                    <EntityPicker
-                      value={formData.accountId ? Number(formData.accountId) : null}
-                      selectedLabel={formData.accountName}
-                      onChange={handleAccountChange}
-                      onSearch={handleSearchAccount}
-                      placeholder="Selecione uma conta corrente"
-                      label="Selecionar Conta Corrente"
-                    />
-                    {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
-                  </div>
+                  <>
+                    <div>
+                      <label htmlFor="paymentDate" className="block text-sm font-medium text-gray-700 mb-1">
+                        Data do Pagamento
+                      </label>
+                      <Input
+                        id="paymentDate"
+                        type="date"
+                        value={formData.paymentDate}
+                        onChange={(e) => handleChange('paymentDate', e.target.value)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Se não informada, será usada a data de vencimento</p>
+                    </div>
+                    <div>
+                      <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">
+                        Conta Corrente <span className="text-red-500">*</span>
+                      </label>
+                      <EntityPicker
+                        value={formData.accountId ? Number(formData.accountId) : null}
+                        selectedLabel={formData.accountName}
+                        onChange={handleAccountChange}
+                        onSearch={handleSearchAccount}
+                        placeholder="Selecione uma conta corrente"
+                        label="Selecionar Conta Corrente"
+                      />
+                      {errors.accountId && <p className="text-sm text-red-600 mt-1">{errors.accountId}</p>}
+                    </div>
+                  </>
                 )}
               </div>
 

@@ -25,6 +25,9 @@ namespace ERP.Application.DTOs
         [Required(ErrorMessage = "Status de pagamento é obrigatório")]
         public bool IsPaid { get; set; }
 
+        // Data do pagamento (usada quando IsPaid=true, opcional - se não informada, usa DueDate)
+        public DateTime? PaymentDate { get; set; }
+
         // Lista de distribuição por centro de custo (opcional)
         public List<CostCenterDistributionDTO>? CostCenterDistributions { get; set; }
     }

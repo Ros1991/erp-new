@@ -96,6 +96,7 @@ namespace ERP.Infrastructure.Repositories
                     .ThenInclude(pe => pe.Employee)
                 .Include(p => p.PayrollEmployeeList)
                     .ThenInclude(pe => pe.Contract)
+                        .ThenInclude(c => c.ContractCostCenterList)
                 .Include(p => p.PayrollEmployeeList)
                     .ThenInclude(pe => pe.PayrollItemList)
                 .FirstOrDefaultAsync(p => p.PayrollId == payrollId);

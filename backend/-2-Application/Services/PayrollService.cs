@@ -2356,6 +2356,7 @@ namespace ERP.Application.Services
                     {
                         CompanyId = payroll.CompanyId,
                         AccountId = dto.AccountId,
+                        PayrollId = payroll.PayrollId,
                         Description = $"Pagamento Folha {payroll.PeriodStartDate:MM/yyyy} - {employee.Nickname}",
                         Type = "Saída",
                         Amount = netPay,
@@ -2429,6 +2430,7 @@ namespace ERP.Application.Services
                 {
                     CompanyId = payroll.CompanyId,
                     AccountId = dto.AccountId,
+                    PayrollId = payroll.PayrollId,
                     Description = $"INSS Folha {payroll.PeriodStartDate:MM/yyyy}",
                     Type = "Saída",
                     Amount = dto.InssAmount,
@@ -2463,6 +2465,7 @@ namespace ERP.Application.Services
                 {
                     CompanyId = payroll.CompanyId,
                     AccountId = dto.AccountId,
+                    PayrollId = payroll.PayrollId,
                     Description = $"FGTS Folha {payroll.PeriodStartDate:MM/yyyy}",
                     Type = "Saída",
                     Amount = dto.FgtsAmount,

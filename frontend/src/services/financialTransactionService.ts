@@ -9,6 +9,8 @@ export interface FinancialTransaction {
   accountPayableReceivableId?: number;
   supplierCustomerId?: number;
   supplierCustomerName?: string;
+  loanAdvanceId?: number;
+  payrollId?: number;
   description: string;
   type: string;
   amount: number;

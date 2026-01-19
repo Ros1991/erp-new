@@ -54,9 +54,13 @@ export function ModulePermissions({
   const [isExpanded, setIsExpanded] = useState(false);
   const checkboxRef = useRef<HTMLInputElement>(null);
 
-  // Checkbox marcado apenas se TODAS as permissões estiverem marcadas
-  const allPermissionsSelected = Object.values(permissions).every(p => p);
-  const hasAnyPermission = Object.values(permissions).some(p => p);
+  // Usar apenas as permissões definidas no módulo
+  const modulePermissionKeys = (module.permissionDetails || []).map(p => p.key as keyof Permissions);
+  
+  // Checkbox marcado apenas se TODAS as permissões do módulo estiverem marcadas
+  const allPermissionsSelected = modulePermissionKeys.length > 0 && 
+    modulePermissionKeys.every(key => permissions[key]);
+  const hasAnyPermission = modulePermissionKeys.some(key => permissions[key]);
   const isIndeterminate = hasAnyPermission && !allPermissionsSelected;
 
   // Atualizar estado indeterminado do checkbox
@@ -67,7 +71,7 @@ export function ModulePermissions({
   }, [isIndeterminate]);
 
   const handleSelectAll = (value: boolean) => {
-    (Object.keys(permissions) as Array<keyof Permissions>).forEach(key => {
+    modulePermissionKeys.forEach(key => {
       onChange(key, value);
     });
   };
@@ -75,10 +79,8 @@ export function ModulePermissions({
   // Obter ícone do módulo
   const ModuleIcon = module.icon && ICON_MAP[module.icon] ? ICON_MAP[module.icon] : Shield;
 
-  // Obter detalhes de uma permissão específica
-  const getPermissionDetails = (key: keyof Permissions): PermissionDetail | undefined => {
-    return module.permissionDetails?.find(p => p.key === key);
-  };
+  // Contar permissões ativas do módulo
+  const activePermissionsCount = modulePermissionKeys.filter(key => permissions[key]).length;
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -118,7 +120,7 @@ export function ModulePermissions({
         <div className="flex items-center gap-2">
           {hasAnyPermission && !isExpanded && (
             <span className="text-xs text-primary-600 font-medium">
-              {Object.values(permissions).filter(p => p).length} permissões
+              {activePermissionsCount} permissões
             </span>
           )}
           {isExpanded ? (
@@ -132,8 +134,8 @@ export function ModulePermissions({
       {/* Permissions Details */}
       {isExpanded && (
         <div className="p-4 bg-white space-y-2">
-          {(Object.keys(PERMISSION_LABELS) as Array<keyof Permissions>).map(key => {
-            const details = getPermissionDetails(key);
+          {(module.permissionDetails || []).map(detail => {
+            const key = detail.key as keyof Permissions;
             return (
               <label
                 key={key}
@@ -141,18 +143,18 @@ export function ModulePermissions({
               >
                 <input
                   type="checkbox"
-                  checked={permissions[key]}
+                  checked={permissions[key] || false}
                   onChange={(e) => onChange(key, e.target.checked)}
                   disabled={disabled}
                   className="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 <div className="flex-1">
                   <div className="font-medium text-sm text-gray-900">
-                    {details?.name || PERMISSION_LABELS[key]}
+                    {detail.name || PERMISSION_LABELS[key]}
                   </div>
-                  {details?.description && (
+                  {detail.description && (
                     <div className="text-xs text-gray-500 mt-0.5">
-                      {details.description}
+                      {detail.description}
                     </div>
                   )}
                 </div>

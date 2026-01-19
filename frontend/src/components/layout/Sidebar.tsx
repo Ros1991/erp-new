@@ -21,7 +21,8 @@ import {
   Landmark,
   HandCoins,
   Activity,
-  ClipboardList
+  ClipboardList,
+  ShoppingCart
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -50,7 +51,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
       setExpandedMenus(prev => prev.includes('Relatórios') ? prev : [...prev, 'Relatórios']);
     }
     if (['/roles', '/users', '/employees', '/accounts', '/supplier-customers', '/cost-centers', 
-         '/account-payable-receivable', '/loan-advances', '/financial-transactions', '/payroll']
+         '/account-payable-receivable', '/loan-advances', '/financial-transactions', '/payroll', '/purchase-orders']
         .some(path => currentPath.startsWith(path))) {
       setExpandedMenus(prev => prev.includes('Cadastros') ? prev : [...prev, 'Cadastros']);
     }
@@ -78,6 +79,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: PieChart, label: 'Centros de Custo', path: '/cost-centers', permission: 'costCenter.canView' },
         { icon: FileText, label: 'Contas a Pagar e Receber', path: '/account-payable-receivable', permission: 'accountPayableReceivable.canView' },
         { icon: DollarSign, label: 'Empréstimos e Adiantamentos', path: '/loan-advances', permission: 'loanAdvance.canView' },
+        { icon: ShoppingCart, label: 'Ordens de Compra', path: '/purchase-orders', permission: 'purchaseOrder.canView' },
         { icon: ArrowRightLeft, label: 'Transações Financeiras', path: '/financial-transactions', permission: 'financialTransaction.canView' },
         { icon: Receipt, label: 'Folha de Pagamento', path: '/payroll', permission: 'payroll.canView' },
       ]
@@ -86,14 +88,14 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
       icon: BarChart3,
       label: 'Relatórios',
       children: [
-        { icon: TrendingUp, label: 'Dashboard Financeiro', path: '/reports/financial-dashboard' },
-        { icon: PieChart, label: 'Por Centro de Custo', path: '/reports/cost-center' },
-        { icon: Landmark, label: 'Por Conta Corrente', path: '/reports/account' },
-        { icon: HandCoins, label: 'Por Fornecedor/Cliente', path: '/reports/supplier-customer' },
-        { icon: Activity, label: 'Fluxo de Caixa', path: '/reports/cash-flow' },
-        { icon: ClipboardList, label: 'Contas a Pagar/Receber', path: '/reports/accounts-payable-receivable' },
-        { icon: BarChart3, label: 'Previsão Financeira', path: '/reports/financial-forecast' },
-        { icon: Users, label: 'Conta Corrente Funcionário', path: '/reports/employee-account' },
+        { icon: TrendingUp, label: 'Dashboard Financeiro', path: '/reports/financial-dashboard', permission: 'report.canView' },
+        { icon: PieChart, label: 'Por Centro de Custo', path: '/reports/cost-center', permission: 'report.canView' },
+        { icon: Landmark, label: 'Por Conta Corrente', path: '/reports/account', permission: 'report.canView' },
+        { icon: HandCoins, label: 'Por Fornecedor/Cliente', path: '/reports/supplier-customer', permission: 'report.canView' },
+        { icon: Activity, label: 'Fluxo de Caixa', path: '/reports/cash-flow', permission: 'report.canView' },
+        { icon: ClipboardList, label: 'Contas a Pagar/Receber', path: '/reports/accounts-payable-receivable', permission: 'report.canView' },
+        { icon: BarChart3, label: 'Previsão Financeira', path: '/reports/financial-forecast', permission: 'report.canView' },
+        { icon: Users, label: 'Conta Corrente Funcionário', path: '/reports/employee-account', permission: 'report.canView' },
       ]
     },
   ];

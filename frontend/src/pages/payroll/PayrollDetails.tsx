@@ -559,7 +559,7 @@ export function PayrollDetails() {
                     <span className="hidden sm:inline">Recalcular</span>
                   </Button>
                 </Protected>
-                <Protected requires="payroll.canEdit">
+                <Protected requires="payroll.canClose">
                   <Button
                     variant="outline"
                     size="sm"
@@ -585,7 +585,7 @@ export function PayrollDetails() {
             )}
             {/* Botão para reabrir folha fechada */}
             {payroll.isClosed && (
-              <Protected requires="payroll.canEdit">
+              <Protected requires="payroll.canReopen">
                 <Button
                   variant="outline"
                   size="sm"

@@ -75,6 +75,7 @@ class AccountPayableReceivableService {
     amount: number;
     dueDate: string;
     isPaid: boolean;
+    paymentDate?: string;
     costCenterDistributions?: { costCenterId: number; percentage: number; amount?: number }[];
   }): Promise<AccountPayableReceivable> {
     const response = await api.post('/account-payable-receivable/create', data);
@@ -89,6 +90,7 @@ class AccountPayableReceivableService {
     amount: number;
     dueDate: string;
     isPaid: boolean;
+    paymentDate?: string;
     costCenterDistributions?: { costCenterId: number; percentage: number; amount?: number }[];
   }): Promise<AccountPayableReceivable> {
     const response = await api.put(`/account-payable-receivable/${id}`, data);

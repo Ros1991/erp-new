@@ -227,6 +227,11 @@ namespace ERP.Application.Services
             // Tipo da transação baseado no tipo da conta (Pagar = Saída, Receber = Entrada)
             var transactionType = dto.Type == "Pagar" ? "Saída" : "Entrada";
 
+            // Usar PaymentDate se informada, senão usa DueDate
+            var transactionDate = dto.PaymentDate.HasValue 
+                ? DateTime.SpecifyKind(dto.PaymentDate.Value, DateTimeKind.Utc)
+                : DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc);
+
             var financialTransaction = new Domain.Entities.FinancialTransaction(
                 companyId,
                 dto.AccountId!.Value,
@@ -237,7 +242,7 @@ namespace ERP.Application.Services
                 dto.Description,
                 transactionType,
                 dto.Amount,
-                DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc),
+                transactionDate,
                 currentUserId,
                 null,
                 now,
@@ -277,11 +282,16 @@ namespace ERP.Application.Services
             long currentUserId,
             DateTime now)
         {
+            // Usar PaymentDate se informada, senão usa DueDate
+            var transactionDate = dto.PaymentDate.HasValue 
+                ? DateTime.SpecifyKind(dto.PaymentDate.Value, DateTimeKind.Utc)
+                : DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc);
+
             // Atualizar dados da transação
             transaction.AccountId = dto.AccountId!.Value;
             transaction.Description = dto.Description;
             transaction.Amount = dto.Amount;
-            transaction.TransactionDate = DateTime.SpecifyKind(dto.DueDate, DateTimeKind.Utc);
+            transaction.TransactionDate = transactionDate;
             transaction.SupplierCustomerId = dto.SupplierCustomerId;
             transaction.Type = dto.Type == "Pagar" ? "Saída" : "Entrada";
             transaction.AtualizadoPor = currentUserId;

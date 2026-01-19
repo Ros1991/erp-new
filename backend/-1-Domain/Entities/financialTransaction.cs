@@ -31,6 +31,9 @@ namespace ERP.Domain.Entities
 		[Column("loan_advance_id")]
 		public long? LoanAdvanceId { get; set; }
 
+		[Column("payroll_id")]
+		public long? PayrollId { get; set; }
+
 		[Column("financial_transaction_description")]
 		public string Description { get; set; }
 

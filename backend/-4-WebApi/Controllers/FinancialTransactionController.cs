@@ -49,35 +49,38 @@ namespace ERP.WebApi.Controllers
             return await ExecuteAsync(() => _financialTransactionService.GetOneByIdAsync(financialTransactionId), "Transação encontrada com sucesso");
         }
 
-        [HttpPost("create")]
-        [RequirePermissions("financialTransaction.canCreate")]
-        public async Task<ActionResult<BaseResponse<FinancialTransactionOutputDTO>>> CreateAsync(FinancialTransactionInputDTO dto)
-        {
-            var companyId = GetCompanyId();
-            var currentUserId = GetCurrentUserId();
-            return await ValidateAndExecuteCreateAsync(
-                () => _financialTransactionService.CreateAsync(dto, companyId, currentUserId),
-                nameof(GetOneByIdAsync),
-                result => new { financialTransactionId = result.FinancialTransactionId },
-                "Transação criada com sucesso"
-            );
-        }
+        // DESABILITADO: Transações financeiras são criadas apenas por outros módulos (folha, empréstimos, contas a pagar/receber)
+        // [HttpPost("create")]
+        // [RequirePermissions("financialTransaction.canCreate")]
+        // public async Task<ActionResult<BaseResponse<FinancialTransactionOutputDTO>>> CreateAsync(FinancialTransactionInputDTO dto)
+        // {
+        //     var companyId = GetCompanyId();
+        //     var currentUserId = GetCurrentUserId();
+        //     return await ValidateAndExecuteCreateAsync(
+        //         () => _financialTransactionService.CreateAsync(dto, companyId, currentUserId),
+        //         nameof(GetOneByIdAsync),
+        //         result => new { financialTransactionId = result.FinancialTransactionId },
+        //         "Transação criada com sucesso"
+        //     );
+        // }
 
-        [HttpPut("{financialTransactionId}")]
-        [RequirePermissions("financialTransaction.canEdit")]
-        public async Task<ActionResult<BaseResponse<FinancialTransactionOutputDTO>>> UpdateByIdAsync(long financialTransactionId, FinancialTransactionInputDTO dto)
-        {
-            ValidateId(financialTransactionId, nameof(financialTransactionId));
-            var currentUserId = GetCurrentUserId();
-            return await ValidateAndExecuteAsync(() => _financialTransactionService.UpdateByIdAsync(financialTransactionId, dto, currentUserId), "Transação atualizada com sucesso");
-        }
+        // DESABILITADO: Transações financeiras não podem ser editadas diretamente
+        // [HttpPut("{financialTransactionId}")]
+        // [RequirePermissions("financialTransaction.canEdit")]
+        // public async Task<ActionResult<BaseResponse<FinancialTransactionOutputDTO>>> UpdateByIdAsync(long financialTransactionId, FinancialTransactionInputDTO dto)
+        // {
+        //     ValidateId(financialTransactionId, nameof(financialTransactionId));
+        //     var currentUserId = GetCurrentUserId();
+        //     return await ValidateAndExecuteAsync(() => _financialTransactionService.UpdateByIdAsync(financialTransactionId, dto, currentUserId), "Transação atualizada com sucesso");
+        // }
 
-        [HttpDelete("{financialTransactionId}")]
-        [RequirePermissions("financialTransaction.canDelete")]
-        public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long financialTransactionId)
-        {
-            ValidateId(financialTransactionId, nameof(financialTransactionId));
-            return await ValidateAndExecuteAsync(() => _financialTransactionService.DeleteByIdAsync(financialTransactionId), "Transação excluída com sucesso");
-        }
+        // DESABILITADO: Transações financeiras não podem ser excluídas diretamente
+        // [HttpDelete("{financialTransactionId}")]
+        // [RequirePermissions("financialTransaction.canDelete")]
+        // public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long financialTransactionId)
+        // {
+        //     ValidateId(financialTransactionId, nameof(financialTransactionId));
+        //     return await ValidateAndExecuteAsync(() => _financialTransactionService.DeleteByIdAsync(financialTransactionId), "Transação excluída com sucesso");
+        // }
     }
 }
