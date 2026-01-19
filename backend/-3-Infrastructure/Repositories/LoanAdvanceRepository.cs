@@ -95,6 +95,14 @@ namespace ERP.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<LoanAdvance>> GetByEmployeeIdAsync(long employeeId)
+        {
+            return await _context.Set<LoanAdvance>()
+                .Where(la => la.EmployeeId == employeeId)
+                .OrderBy(la => la.CriadoEm)
+                .ToListAsync();
+        }
+
         public async Task<LoanAdvance> CreateAsync(LoanAdvance entity)
         {
             await _context.Set<LoanAdvance>().AddAsync(entity);

@@ -87,5 +87,15 @@ namespace ERP.WebApi.Controllers
                 "Previsão financeira obtida com sucesso"
             );
         }
+
+        [HttpGet("employee-account")]
+        public async Task<ActionResult<BaseResponse<EmployeeAccountReportDTO>>> GetEmployeeAccountReport([FromQuery] EmployeeAccountReportFilterDTO filters)
+        {
+            var companyId = GetCompanyId();
+            return await ExecuteAsync(
+                () => _reportService.GetEmployeeAccountReportAsync(companyId, filters),
+                "Conta corrente do funcionário obtida com sucesso"
+            );
+        }
     }
 }

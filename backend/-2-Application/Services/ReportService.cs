@@ -388,5 +388,163 @@ namespace ERP.Application.Services
                 ContasAReceber = contasAReceber
             };
         }
+
+        public async Task<EmployeeAccountReportDTO> GetEmployeeAccountReportAsync(long companyId, EmployeeAccountReportFilterDTO filters)
+        {
+            var startDate = filters.StartDate ?? DateTime.UtcNow.AddMonths(-12);
+            var endDate = filters.EndDate ?? DateTime.UtcNow;
+
+            // Buscar funcionário
+            var employee = await _unitOfWork.EmployeeRepository.GetOneByIdAsync(filters.EmployeeId);
+            if (employee == null || employee.CompanyId != companyId)
+            {
+                return new EmployeeAccountReportDTO();
+            }
+
+            // Buscar todos os dados do funcionário
+            var loans = await _unitOfWork.LoanAdvanceRepository.GetByEmployeeIdAsync(filters.EmployeeId);
+            var payrollEmployees = await _unitOfWork.PayrollEmployeeRepository.GetByEmployeeIdAsync(filters.EmployeeId);
+
+            // ========================================
+            // 1. CALCULAR SALDO ANTERIOR AO PERÍODO
+            // ========================================
+            long saldoAnterior = 0;
+
+            // Empréstimos anteriores ao período
+            foreach (var loan in loans.Where(l => l.CriadoEm < startDate))
+            {
+                saldoAnterior -= loan.Amount; // Negativo - funcionário recebeu dinheiro
+            }
+
+            // Folhas anteriores ao período
+            foreach (var pe in payrollEmployees)
+            {
+                var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(pe.PayrollId);
+                if (payroll == null || !payroll.IsClosed || payroll.CompanyId != companyId)
+                    continue;
+
+                var paymentDate = payroll.PaymentDate ?? payroll.PeriodEndDate;
+                if (paymentDate >= startDate)
+                    continue; // Só considerar anteriores ao período
+
+                var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(pe.PayrollEmployeeId);
+                
+                foreach (var item in payrollItems)
+                {
+                    if (item.SourceType == "loan" || item.SourceType == "thirteenth_loan" || item.SourceType == "vacation_loan")
+                        continue;
+
+                    if (item.Type == "Provento")
+                        saldoAnterior += item.Amount;
+                    else if (item.Type == "Desconto")
+                        saldoAnterior -= item.Amount;
+                }
+
+                saldoAnterior -= pe.TotalNetPay; // Líquido pago
+            }
+
+            // ========================================
+            // 2. ITENS DO PERÍODO
+            // ========================================
+            var items = new List<EmployeeAccountItemDTO>();
+
+            // Adicionar saldo anterior como primeiro item (se houver)
+            if (saldoAnterior != 0)
+            {
+                items.Add(new EmployeeAccountItemDTO
+                {
+                    Date = startDate.AddDays(-1),
+                    Description = "Saldo Anterior",
+                    Value = saldoAnterior,
+                    Type = saldoAnterior >= 0 ? "Credito" : "Debito",
+                    Source = "Folha"
+                });
+            }
+
+            // Empréstimos do período
+            foreach (var loan in loans.Where(l => l.CriadoEm >= startDate && l.CriadoEm <= endDate))
+            {
+                items.Add(new EmployeeAccountItemDTO
+                {
+                    Date = loan.CriadoEm,
+                    Description = $"Empréstimo em {loan.Installments} parcelas",
+                    Value = -loan.Amount,
+                    Type = "Debito",
+                    Source = "Emprestimo"
+                });
+            }
+
+            // Folhas do período
+            foreach (var pe in payrollEmployees)
+            {
+                var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(pe.PayrollId);
+                if (payroll == null || !payroll.IsClosed || payroll.CompanyId != companyId)
+                    continue;
+
+                var paymentDate = payroll.PaymentDate ?? payroll.PeriodEndDate;
+                if (paymentDate < startDate || paymentDate > endDate)
+                    continue;
+
+                var payrollItems = await _unitOfWork.PayrollItemRepository.GetAllByPayrollEmployeeIdAsync(pe.PayrollEmployeeId);
+                
+                foreach (var item in payrollItems)
+                {
+                    if (item.SourceType == "loan" || item.SourceType == "thirteenth_loan" || item.SourceType == "vacation_loan")
+                        continue;
+
+                    if (item.Type == "Provento")
+                    {
+                        items.Add(new EmployeeAccountItemDTO
+                        {
+                            Date = paymentDate,
+                            Description = item.Description,
+                            Value = item.Amount,
+                            Type = "Credito",
+                            Source = "Folha"
+                        });
+                    }
+                    else if (item.Type == "Desconto")
+                    {
+                        items.Add(new EmployeeAccountItemDTO
+                        {
+                            Date = paymentDate,
+                            Description = item.Description,
+                            Value = -item.Amount,
+                            Type = "Debito",
+                            Source = "Folha"
+                        });
+                    }
+                }
+
+                items.Add(new EmployeeAccountItemDTO
+                {
+                    Date = paymentDate,
+                    Description = $"Total Líquido Pago - {payroll.PeriodStartDate:MM/yyyy}",
+                    Value = -pe.TotalNetPay,
+                    Type = "Debito",
+                    Source = "Folha"
+                });
+            }
+
+            // Ordenar por data
+            items = items.OrderBy(i => i.Date).ThenBy(i => i.Description).ToList();
+
+            // Calcular saldo acumulado
+            long saldo = 0;
+            foreach (var item in items)
+            {
+                saldo += item.Value;
+                item.Balance = saldo;
+            }
+
+            return new EmployeeAccountReportDTO
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeName = employee.FullName,
+                EmployeeNickname = employee.Nickname ?? "",
+                SaldoFinal = saldo,
+                Items = items
+            };
+        }
     }
 }

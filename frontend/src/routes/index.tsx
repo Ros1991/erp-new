@@ -55,7 +55,8 @@ import {
   SupplierCustomerReport,
   CashFlowReport,
   AccountsPayableReceivableReport,
-  FinancialForecastReport
+  FinancialForecastReport,
+  EmployeeAccountReport
 } from '../pages/reports';
 import { PermissionProtectedRoute } from '../components/permissions/PermissionProtectedRoute';
 
@@ -716,6 +717,16 @@ export function AppRoutes() {
           <ProtectedRoute>
             <CompanyProtectedRoute>
               <FinancialForecastReport />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports/employee-account"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <EmployeeAccountReport />
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }

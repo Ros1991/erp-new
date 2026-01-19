@@ -93,6 +93,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
         { icon: Activity, label: 'Fluxo de Caixa', path: '/reports/cash-flow' },
         { icon: ClipboardList, label: 'Contas a Pagar/Receber', path: '/reports/accounts-payable-receivable' },
         { icon: BarChart3, label: 'Previsão Financeira', path: '/reports/financial-forecast' },
+        { icon: Users, label: 'Conta Corrente Funcionário', path: '/reports/employee-account' },
       ]
     },
   ];

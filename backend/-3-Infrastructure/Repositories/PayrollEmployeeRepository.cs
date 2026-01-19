@@ -60,6 +60,16 @@ namespace ERP.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<PayrollEmployee>> GetByEmployeeIdAsync(long employeeId)
+        {
+            return await _context.Set<PayrollEmployee>()
+                .Include(pe => pe.Payroll)
+                .Include(pe => pe.PayrollItemList)
+                .Where(pe => pe.EmployeeId == employeeId)
+                .OrderBy(pe => pe.Payroll.PeriodStartDate)
+                .ToListAsync();
+        }
+
         public async Task<PayrollEmployee> CreateAsync(PayrollEmployee entity)
         {
             await _context.Set<PayrollEmployee>().AddAsync(entity);

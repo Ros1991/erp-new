@@ -8,6 +8,7 @@ namespace ERP.Application.Interfaces.Repositories
         Task<PayrollEmployee> GetOneByIdAsync(long payrollEmployeeId);
         Task<PayrollEmployee> GetByPayrollAndContractAsync(long payrollId, long contractId);
         Task<PayrollEmployee?> GetPreviousPayrollEmployeeAsync(long employeeId, long currentPayrollId);
+        Task<List<PayrollEmployee>> GetByEmployeeIdAsync(long employeeId);
         Task<PayrollEmployee> CreateAsync(PayrollEmployee entity);
         Task<PayrollEmployee> UpdateByIdAsync(long payrollEmployeeId, PayrollEmployee entity);
         Task<bool> DeleteByIdAsync(long payrollEmployeeId);

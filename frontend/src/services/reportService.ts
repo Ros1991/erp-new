@@ -92,12 +92,30 @@ export interface FinancialForecast {
   }[];
 }
 
+export interface EmployeeAccountItem {
+  date: string;
+  description: string;
+  value: number;
+  balance: number;
+  type: 'Credito' | 'Debito';
+  source: 'Emprestimo' | 'Folha';
+}
+
+export interface EmployeeAccountReport {
+  employeeId: number;
+  employeeName: string;
+  employeeNickname: string;
+  saldoFinal: number;
+  items: EmployeeAccountItem[];
+}
+
 export interface ReportFilters {
   startDate?: string;
   endDate?: string;
   costCenterId?: number;
   accountId?: number;
   supplierCustomerId?: number;
+  employeeId?: number;
   type?: 'Pagar' | 'Receber' | 'Todos';
 }
 
@@ -159,6 +177,16 @@ class ReportService {
 
   async getFinancialForecast(months: number = 6): Promise<FinancialForecast> {
     const response = await api.get(`/report/financial-forecast?months=${months}`);
+    return response.data.data;
+  }
+
+  async getEmployeeAccountReport(filters: ReportFilters): Promise<EmployeeAccountReport> {
+    const params = new URLSearchParams();
+    if (filters.employeeId) params.append('EmployeeId', filters.employeeId.toString());
+    if (filters.startDate) params.append('StartDate', filters.startDate);
+    if (filters.endDate) params.append('EndDate', filters.endDate);
+    
+    const response = await api.get(`/report/employee-account?${params.toString()}`);
     return response.data.data;
   }
 }

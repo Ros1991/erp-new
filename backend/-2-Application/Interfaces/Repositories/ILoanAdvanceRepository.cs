@@ -9,6 +9,7 @@ namespace ERP.Application.Interfaces.Repositories
         Task<PagedResult<LoanAdvance>> GetPagedAsync(long companyId, LoanAdvanceFilterDTO filters);
         Task<LoanAdvance> GetOneByIdAsync(long loanAdvanceId);
         Task<List<LoanAdvance>> GetPendingLoansByEmployeeAsync(long employeeId, DateTime? referenceDate = null);
+        Task<List<LoanAdvance>> GetByEmployeeIdAsync(long employeeId);
         Task<LoanAdvance> CreateAsync(LoanAdvance entity);
         Task<LoanAdvance> UpdateByIdAsync(long loanAdvanceId, LoanAdvance entity);
         Task<bool> DeleteByIdAsync(long loanAdvanceId);
