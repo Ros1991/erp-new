@@ -33,12 +33,12 @@ export function CompanySettings() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [settings, costCentersData] = await Promise.all([
+      const [settings, allCostCenters] = await Promise.all([
         companySettingService.getSettings(),
-        costCenterService.getCostCenters({ page: 1, pageSize: 1 })
+        costCenterService.getAllCostCenters()
       ]);
       
-      setCostCenterCount(costCentersData.totalCount);
+      setCostCenterCount(allCostCenters.length);
       
       setFormData({
         employeeIdGeneralManager: settings.employeeIdGeneralManager,
