@@ -14,8 +14,6 @@ import {
 import reportService from '../../services/reportService';
 import type { FinancialSummary } from '../../services/reportService';
 
-const COLORS = ['#10B981', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899'];
-
 export function FinancialDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
@@ -86,17 +84,40 @@ export function FinancialDashboard() {
     loadData();
   }, [loadData]);
 
-  const chartData = summary ? summary.receitasPorMes.map((r, i) => ({
-    month: r.month,
-    receitas: r.value / 100,
-    despesas: summary.despesasPorMes[i]?.value / 100 || 0,
-    saldo: (r.value - (summary.despesasPorMes[i]?.value || 0)) / 100
-  })) : [];
+  // Criar array unificado com todos os meses (receitas e despesas)
+  const chartData = (() => {
+    if (!summary) return [];
+    
+    // Coletar todos os meses únicos de receitas e despesas
+    const allMonths = new Set<string>();
+    summary.receitasPorMes.forEach(r => allMonths.add(r.month));
+    summary.despesasPorMes.forEach(d => allMonths.add(d.month));
+    
+    // Ordenar meses cronologicamente (formato MM/YYYY)
+    const sortedMonths = Array.from(allMonths).sort((a, b) => {
+      const [monthA, yearA] = a.split('/').map(Number);
+      const [monthB, yearB] = b.split('/').map(Number);
+      if (yearA !== yearB) return yearA - yearB;
+      return monthA - monthB;
+    });
+    
+    // Criar dados para cada mês
+    return sortedMonths.map(month => {
+      const receita = summary.receitasPorMes.find(r => r.month === month)?.value || 0;
+      const despesa = summary.despesasPorMes.find(d => d.month === month)?.value || 0;
+      return {
+        month,
+        receitas: receita / 100,
+        despesas: despesa / 100,
+        saldo: (receita - despesa) / 100
+      };
+    });
+  })();
 
   const pieData = summary ? [
     { name: 'Receitas', value: summary.totalReceitas / 100 },
     { name: 'Despesas', value: summary.totalDespesas / 100 }
-  ] : [];
+  ].filter(item => item.value > 0) : [];
 
   return (
     <MainLayout>
@@ -250,8 +271,11 @@ export function FinancialDashboard() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {pieData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.name === 'Receitas' ? '#10B981' : '#EF4444'} 
+                      />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => formatCurrency(Number(value) * 100)} />

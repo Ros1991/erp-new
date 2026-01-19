@@ -16,6 +16,7 @@ namespace ERP.Application.DTOs
         public decimal InstallmentsPaid { get; set; }
         public decimal RemainingAmount { get; set; }
         public bool IsFullyPaid { get; set; }
+        public DateTime LoanDate { get; set; }
         public List<CostCenterDistributionDTO> CostCenterDistributions { get; set; }  // Da transação financeira relacionada
         public long CriadoPor { get; set; }
         public long? AtualizadoPor { get; set; }

@@ -4,6 +4,7 @@ using ERP.Application.Interfaces.Services;
 using ERP.Application.Mappers;
 using ERP.CrossCutting.Exceptions;
 using ERP.Domain.Entities;
+using ERP.Domain.Enums;
 using Task = System.Threading.Tasks.Task;
 
 namespace ERP.Application.Services
@@ -652,6 +653,48 @@ namespace ERP.Application.Services
                     CriadoPor = userId,
                     CriadoEm = now
                 });
+                
+                // Descontar INSS adiantado nas férias (como PROVENTO para compensar)
+                if (previousPayrollEmployee.VacationAdvanceInss.HasValue && previousPayrollEmployee.VacationAdvanceInss.Value > 0)
+                {
+                    var inssDiscount = previousPayrollEmployee.VacationAdvanceInss.Value;
+                    Console.WriteLine($"[PAYROLL DEBUG] Desconto INSS adiantado férias: R$ {inssDiscount / 100.0m:N2}");
+                    
+                    items.Add(new PayrollItem
+                    {
+                        PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                        Description = $"Dedução INSS Adiantamento Férias",
+                        Type = "Provento",
+                        Category = "Dedução Imposto Adiantado",
+                        Amount = inssDiscount,
+                        SourceType = "vacation_advance_tax_deduction",
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = userId,
+                        CriadoEm = now
+                    });
+                }
+                
+                // Descontar IRRF adiantado nas férias (como PROVENTO para compensar)
+                if (previousPayrollEmployee.VacationAdvanceIrrf.HasValue && previousPayrollEmployee.VacationAdvanceIrrf.Value > 0)
+                {
+                    var irrfDiscount = previousPayrollEmployee.VacationAdvanceIrrf.Value;
+                    Console.WriteLine($"[PAYROLL DEBUG] Desconto IRRF adiantado férias: R$ {irrfDiscount / 100.0m:N2}");
+                    
+                    items.Add(new PayrollItem
+                    {
+                        PayrollEmployeeId = createdPayrollEmployee.PayrollEmployeeId,
+                        Description = $"Dedução IRRF Adiantamento Férias",
+                        Type = "Provento",
+                        Category = "Dedução Imposto Adiantado",
+                        Amount = irrfDiscount,
+                        SourceType = "vacation_advance_tax_deduction",
+                        IsManual = false,
+                        IsActive = true,
+                        CriadoPor = userId,
+                        CriadoEm = now
+                    });
+                }
             }
 
             // 3. Adicionar benefícios do contrato (apenas os que se aplicam ao salário)
@@ -692,13 +735,21 @@ namespace ERP.Application.Services
                 }
             }
             
+            // Verificar se benefícios/descontos já foram adiantados nas férias do mês anterior
+            var skipBenefitsDiscounts = previousPayrollEmployee != null && previousPayrollEmployee.VacationAdvanceBenefits;
+            
+            if (skipBenefitsDiscounts)
+            {
+                Console.WriteLine($"[PAYROLL DEBUG] Benefícios/descontos já foram adiantados nas férias do mês anterior - pulando lançamento");
+            }
+            
             var benefits = contract.ContractBenefitDiscountList?
                 .Where(bd => IsBenefit(bd.Type) && IsSalaryApplication(bd.Application))
                 .ToList() ?? new List<ContractBenefitDiscount>();
             
             Console.WriteLine($"[PAYROLL DEBUG] Benefits filtrados: {benefits.Count}");
 
-            foreach (var benefit in benefits)
+            foreach (var benefit in benefits.Where(_ => !skipBenefitsDiscounts))
             {
                 // Calcular valor: se IsProportional, aplicar fator apropriado
                 var benefitAmount = benefit.Amount;
@@ -750,11 +801,12 @@ namespace ERP.Application.Services
             }
 
             // 4. Adicionar descontos do contrato (apenas os que se aplicam ao salário)
+            // Se benefícios/descontos já foram adiantados, pular
             var discounts = contract.ContractBenefitDiscountList?
                 .Where(bd => IsDiscount(bd.Type) && IsSalaryApplication(bd.Application))
                 .ToList() ?? new List<ContractBenefitDiscount>();
 
-            foreach (var discount in discounts)
+            foreach (var discount in discounts.Where(_ => !skipBenefitsDiscounts))
             {
                 // Calcular valor: se IsProportional, aplicar fator apropriado
                 var discountAmount = discount.Amount;
@@ -806,10 +858,17 @@ namespace ERP.Application.Services
             }
 
             // 5. Buscar e adicionar empréstimos pendentes
+            // Filtrar apenas empréstimos que devem ser descontados na folha normal
+            // Excluir "13SAL" e "FERIAS" - esses só são descontados quando há 13º ou férias
             var pendingLoans = await _unitOfWork.LoanAdvanceRepository
                 .GetPendingLoansByEmployeeAsync(contract.EmployeeId, payroll.PeriodEndDate);
+            
+            var salaryLoans = pendingLoans.Where(l => 
+                l.DiscountSource != DiscountSourceType.ThirteenthSalary && 
+                l.DiscountSource != DiscountSourceType.Vacation
+            ).ToList();
 
-            foreach (var loan in pendingLoans)
+            foreach (var loan in salaryLoans)
             {
                 // Calcular próxima parcela a ser cobrada
                 var nextInstallment = await _unitOfWork.PayrollItemRepository
@@ -1510,7 +1569,7 @@ namespace ERP.Application.Services
                     var thirteenthLoans = loans.Where(l => 
                         l.IsApproved && 
                         !l.IsFullyPaid && 
-                        (l.DiscountSource == "13º Salário" || l.DiscountSource == "Todos")
+                        (l.DiscountSource == DiscountSourceType.ThirteenthSalary || l.DiscountSource == DiscountSourceType.All)
                     ).ToList();
 
                     foreach (var loan in thirteenthLoans)
@@ -1701,6 +1760,50 @@ namespace ERP.Application.Services
             return (long)Math.Round(inss * 100); // Converter para centavos
         }
 
+        private long CalculateIRRF(long grossIncome, long inssValue)
+        {
+            // Converter para reais
+            decimal income = grossIncome / 100.0m;
+            decimal inss = inssValue / 100.0m;
+            
+            // Base de cálculo = Renda - INSS (sem considerar dependentes por enquanto)
+            decimal baseCalculo = income - inss;
+            
+            decimal irrf = 0;
+            
+            // Faixa 1: Até R$ 2.259,20 → Isento
+            if (baseCalculo <= 2259.20m)
+            {
+                irrf = 0;
+            }
+            // Faixa 2: De R$ 2.259,21 até R$ 2.826,65 → 7,5%
+            else if (baseCalculo <= 2826.65m)
+            {
+                irrf = (baseCalculo * 0.075m) - 169.44m;
+            }
+            // Faixa 3: De R$ 2.826,66 até R$ 3.751,05 → 15%
+            else if (baseCalculo <= 3751.05m)
+            {
+                irrf = (baseCalculo * 0.15m) - 381.44m;
+            }
+            // Faixa 4: De R$ 3.751,06 até R$ 4.664,68 → 22,5%
+            else if (baseCalculo <= 4664.68m)
+            {
+                irrf = (baseCalculo * 0.225m) - 662.77m;
+            }
+            // Faixa 5: Acima de R$ 4.664,68 → 27,5%
+            else
+            {
+                irrf = (baseCalculo * 0.275m) - 896.00m;
+            }
+            
+            // IRRF não pode ser negativo
+            if (irrf < 0) irrf = 0;
+            
+            // Converter de volta para centavos
+            return (long)Math.Round(irrf * 100);
+        }
+
         public async Task<PayrollDetailedOutputDTO> ApplyVacationAsync(long payrollId, VacationInputDTO dto, long currentUserId)
         {
             var payroll = await _unitOfWork.PayrollRepository.GetOneByIdAsync(payrollId);
@@ -1807,7 +1910,7 @@ namespace ERP.Application.Services
                 var vacationLoans = loans.Where(l => 
                     l.IsApproved && 
                     !l.IsFullyPaid && 
-                    l.DiscountSource == "Férias"
+                    l.DiscountSource == DiscountSourceType.Vacation
                 ).ToList();
 
                 foreach (var loan in vacationLoans)
@@ -1881,10 +1984,13 @@ namespace ERP.Application.Services
                 };
                 await _unitOfWork.PayrollItemRepository.CreateAsync(advanceSalaryItem);
 
-                // INSS do adiantamento (proporcional)
+                // INSS e IRRF do adiantamento (proporcional)
+                long advanceInssValue = 0;
+                long advanceIrrfValue = 0;
+                
                 if (dto.IncludeTaxes && contract.HasInss)
                 {
-                    var advanceInssValue = CalculateINSS(advanceAmount);
+                    advanceInssValue = CalculateINSS(advanceAmount);
                     if (advanceInssValue > 0)
                     {
                         var advanceInssItem = new PayrollItem
@@ -1903,21 +2009,69 @@ namespace ERP.Application.Services
                         };
                         await _unitOfWork.PayrollItemRepository.CreateAsync(advanceInssItem);
                     }
+                    
+                    // IRRF do adiantamento (calculado sobre base - INSS)
+                    if (contract.HasIrrf)
+                    {
+                        advanceIrrfValue = CalculateIRRF(advanceAmount, advanceInssValue);
+                        if (advanceIrrfValue > 0)
+                        {
+                            var advanceIrrfItem = new PayrollItem
+                            {
+                                PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
+                                Description = $"IRRF Adiantamento ({dto.VacationDays} dias)",
+                                Type = "Desconto",
+                                Category = "Imposto Férias",
+                                Amount = advanceIrrfValue,
+                                SourceType = "vacation_advance_tax",
+                                CalculationBasis = advanceAmount - advanceInssValue,
+                                IsManual = false,
+                                IsActive = true,
+                                CriadoPor = currentUserId,
+                                CriadoEm = DateTime.UtcNow
+                            };
+                            await _unitOfWork.PayrollItemRepository.CreateAsync(advanceIrrfItem);
+                        }
+                    }
                 }
+                
+                // Armazenar valores de impostos adiantados para descontar na folha seguinte
+                payrollEmployee.VacationAdvanceInss = advanceInssValue;
+                payrollEmployee.VacationAdvanceIrrf = advanceIrrfValue;
+                payrollEmployee.VacationAdvanceBenefits = true; // Marcar que benefícios/descontos foram adiantados
 
-                // Benefícios e descontos mensais adiantados
+                // Benefícios e descontos mensais adiantados (integralmente)
+                // Usar mesma lógica do processamento normal - case-insensitive e múltiplos formatos
+                bool IsSalaryApplicationForVacation(string application)
+                {
+                    if (string.IsNullOrEmpty(application)) return true;
+                    var normalized = application.ToLower().Trim();
+                    return normalized == "salario" || normalized == "todos" || normalized == "mensal" || 
+                           normalized == "salário" || normalized == "all";
+                }
+                
                 var monthlyBenefitsDiscounts = contract.ContractBenefitDiscountList?
-                    .Where(bd => bd.Application == "Mensal" || bd.Application == "Todos")
+                    .Where(bd => IsSalaryApplicationForVacation(bd.Application))
                     .ToList() ?? new List<ContractBenefitDiscount>();
+                
+                Console.WriteLine($"[VACATION DEBUG] Benefícios/Descontos para adiantar: {monthlyBenefitsDiscounts.Count}");
+                foreach (var bd in monthlyBenefitsDiscounts)
+                {
+                    Console.WriteLine($"[VACATION DEBUG] - {bd.Description} | Type={bd.Type} | App={bd.Application} | Amount={bd.Amount}");
+                }
 
                 foreach (var cbd in monthlyBenefitsDiscounts)
                 {
+                    // Verificar tipo de forma case-insensitive
+                    var typeNormalized = (cbd.Type ?? "").ToLower().Trim();
+                    var isBenefit = typeNormalized == "benefício" || typeNormalized == "beneficio" || typeNormalized == "provento";
+                    
                     var advanceBenefitItem = new PayrollItem
                     {
                         PayrollEmployeeId = payrollEmployee.PayrollEmployeeId,
                         Description = $"{cbd.Description} (Adiantamento)",
-                        Type = cbd.Type,
-                        Category = cbd.Type == "Provento" ? "Adiantamento Férias" : "Desconto Adiantamento",
+                        Type = isBenefit ? "Provento" : "Desconto",
+                        Category = isBenefit ? "Adiantamento Férias" : "Desconto Adiantamento",
                         Amount = cbd.Amount,
                         SourceType = "vacation_advance_benefit",
                         IsManual = false,
@@ -1936,7 +2090,7 @@ namespace ERP.Application.Services
                     var activeMonthlyLoans = monthlyLoans.Where(l => 
                         l.IsApproved && 
                         !l.IsFullyPaid && 
-                        (l.DiscountSource == "Mensal" || l.DiscountSource == "Todos")
+                        (l.DiscountSource == DiscountSourceType.Salary || l.DiscountSource == DiscountSourceType.All)
                     ).ToList();
 
                     foreach (var loan in activeMonthlyLoans)
@@ -2180,6 +2334,7 @@ namespace ERP.Application.Services
                         Installments = 1,
                         DiscountSource = "Folha",
                         StartDate = payroll.PeriodEndDate.AddMonths(1),
+                        LoanDate = dto.PaymentDate, // Data do empréstimo = data de pagamento da folha
                         Description = $"Adiantamento gerado automaticamente - Folha {payroll.PeriodStartDate:MM/yyyy}",
                         IsApproved = true,
                         InstallmentsPaid = 0,

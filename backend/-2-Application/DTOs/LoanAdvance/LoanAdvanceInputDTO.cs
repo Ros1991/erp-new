@@ -26,6 +26,8 @@ namespace ERP.Application.DTOs
         [Required(ErrorMessage = "Status de aprovação é obrigatório")]
         public bool IsApproved { get; set; }
 
+        public DateTime? LoanDate { get; set; }
+
         public long? AccountId { get; set; }
 
         // Lista de distribuição por centro de custo (opcional)

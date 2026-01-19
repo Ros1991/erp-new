@@ -22,6 +22,7 @@ export interface LoanAdvance {
   installmentsPaid: number;
   remainingAmount: number;
   isFullyPaid: boolean;
+  loanDate: string;
   costCenterDistributions?: CostCenterDistribution[];
   criadoPor: number;
   atualizadoPor?: number;
@@ -79,6 +80,7 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
+    loanDate?: string;
     accountId: number | null;
     costCenterDistributions?: Array<{
       costCenterId: number;
@@ -97,6 +99,7 @@ class LoanAdvanceService {
     discountSource: string;
     startDate: string;
     isApproved: boolean;
+    loanDate?: string;
     accountId: number | null;
     costCenterDistributions?: Array<{
       costCenterId: number;

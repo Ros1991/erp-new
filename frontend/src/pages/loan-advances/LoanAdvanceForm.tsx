@@ -29,6 +29,7 @@ interface LoanAdvanceFormData {
   installments: number;
   discountSource: string;
   startDate: string;
+  loanDate: string;
   description: string;
 }
 
@@ -49,6 +50,7 @@ export function LoanAdvanceForm() {
     installments: 1,
     discountSource: DiscountSourceCode.ALL,
     startDate: new Date().toISOString().split('T')[0], // Data de hoje
+    loanDate: new Date().toISOString().split('T')[0], // Data de hoje
     description: '',
   });
 
@@ -133,6 +135,7 @@ export function LoanAdvanceForm() {
         installments: Number(loanAdvance.installments),
         discountSource: migrateDiscountSourceValue(loanAdvance.discountSource),
         startDate: loanAdvance.startDate.split('T')[0],
+        loanDate: loanAdvance.loanDate ? loanAdvance.loanDate.split('T')[0] : new Date().toISOString().split('T')[0],
         description: loanAdvance.description || '',
       });
       
@@ -223,6 +226,7 @@ export function LoanAdvanceForm() {
         installments: formData.installments,
         discountSource: formData.discountSource.trim(),
         startDate: toUTCString(new Date(formData.startDate))!,
+        loanDate: toUTCString(new Date(formData.loanDate))!,
         description: formData.description.trim() || undefined, // Enviar undefined se vazio
         isApproved: true, // Sempre aprovado
         accountId: formData.accountId ? Number(formData.accountId) : null, // null se não houver conta
@@ -549,6 +553,21 @@ export function LoanAdvanceForm() {
                     </p>
                   </div>
                 )}
+
+                <div>
+                  <label htmlFor="loanDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Data do Empréstimo
+                  </label>
+                  <Input
+                    id="loanDate"
+                    type="date"
+                    value={formData.loanDate}
+                    onChange={(e) => handleChange('loanDate', e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Data em que o empréstimo foi concedido (usada no relatório de conta corrente)
+                  </p>
+                </div>
 
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">

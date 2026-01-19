@@ -46,6 +46,15 @@ namespace ERP.Domain.Entities
 		[Column("payroll_employee_vacation_notes")]
 		public string? VacationNotes { get; set; }
 
+		[Column("payroll_employee_vacation_advance_inss")]
+		public long? VacationAdvanceInss { get; set; }
+
+		[Column("payroll_employee_vacation_advance_irrf")]
+		public long? VacationAdvanceIrrf { get; set; }
+
+		[Column("payroll_employee_vacation_advance_benefits")]
+		public bool VacationAdvanceBenefits { get; set; }
+
 		[Column("payroll_employee_has_13th")]
 		public bool Has13th { get; set; }
 

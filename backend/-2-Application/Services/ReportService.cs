@@ -411,7 +411,7 @@ namespace ERP.Application.Services
             long saldoAnterior = 0;
 
             // Empréstimos anteriores ao período
-            foreach (var loan in loans.Where(l => l.CriadoEm < startDate))
+            foreach (var loan in loans.Where(l => l.LoanDate < startDate))
             {
                 saldoAnterior -= loan.Amount; // Negativo - funcionário recebeu dinheiro
             }
@@ -462,12 +462,31 @@ namespace ERP.Application.Services
             }
 
             // Empréstimos do período
-            foreach (var loan in loans.Where(l => l.CriadoEm >= startDate && l.CriadoEm <= endDate))
+            foreach (var loan in loans.Where(l => l.LoanDate >= startDate && l.LoanDate <= endDate))
             {
+                // Montar descrição:
+                // - Se tem descrição e mais de 1 parcela: "Descrição (X parcelas)"
+                // - Se tem descrição e 1 parcela: "Descrição"
+                // - Se não tem descrição e mais de 1 parcela: "Empréstimo em X parcelas"
+                // - Se não tem descrição e 1 parcela: "Empréstimo"
+                string loanDescription;
+                if (!string.IsNullOrWhiteSpace(loan.Description))
+                {
+                    loanDescription = loan.Installments > 1 
+                        ? $"{loan.Description} ({loan.Installments} parcelas)" 
+                        : loan.Description;
+                }
+                else
+                {
+                    loanDescription = loan.Installments > 1 
+                        ? $"Empréstimo em {loan.Installments} parcelas" 
+                        : "Empréstimo";
+                }
+                
                 items.Add(new EmployeeAccountItemDTO
                 {
-                    Date = loan.CriadoEm,
-                    Description = $"Empréstimo em {loan.Installments} parcelas",
+                    Date = loan.LoanDate,
+                    Description = loanDescription,
                     Value = -loan.Amount,
                     Type = "Debito",
                     Source = "Emprestimo"
@@ -526,8 +545,13 @@ namespace ERP.Application.Services
                 });
             }
 
-            // Ordenar por data
-            items = items.OrderBy(i => i.Date).ThenBy(i => i.Description).ToList();
+            // Ordenar por data, colocando empréstimos por último na mesma data
+            // Isso garante que adiantamentos automáticos apareçam após os itens da folha
+            items = items
+                .OrderBy(i => i.Date)
+                .ThenBy(i => i.Source == "Emprestimo" ? 1 : 0)
+                .ThenBy(i => i.Description)
+                .ToList();
 
             // Calcular saldo acumulado
             long saldo = 0;

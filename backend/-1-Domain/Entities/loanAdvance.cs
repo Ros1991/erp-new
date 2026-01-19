@@ -43,6 +43,9 @@ namespace ERP.Domain.Entities
 		[Column("loan_advance_is_fully_paid")]
 		public bool IsFullyPaid { get; set; }
 
+		[Column("loan_advance_date")]
+		public DateTime LoanDate { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 

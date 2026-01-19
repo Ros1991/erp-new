@@ -23,6 +23,7 @@ namespace ERP.Application.Mappers
                 InstallmentsPaid = entity.InstallmentsPaid,
                 RemainingAmount = entity.RemainingAmount,
                 IsFullyPaid = entity.IsFullyPaid,
+                LoanDate = entity.LoanDate,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -78,6 +79,9 @@ namespace ERP.Application.Mappers
             );
             
             entity.Description = dto.Description;
+            entity.LoanDate = dto.LoanDate.HasValue 
+                ? DateTime.SpecifyKind(dto.LoanDate.Value, DateTimeKind.Utc) 
+                : DateTime.UtcNow.Date;
             return entity;
         }
 
@@ -92,6 +96,8 @@ namespace ERP.Application.Mappers
             entity.StartDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc);
             entity.Description = dto.Description;
             entity.IsApproved = dto.IsApproved;
+            if (dto.LoanDate.HasValue)
+                entity.LoanDate = DateTime.SpecifyKind(dto.LoanDate.Value, DateTimeKind.Utc);
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
             // ✅ CriadoPor e CriadoEm NÃO são alterados
