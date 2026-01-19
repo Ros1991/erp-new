@@ -35,6 +35,7 @@ namespace ERP.Infrastructure.UnitOfWork
         private IPayrollEmployeeRepository _PayrollEmployeeRepository;
         private IPayrollItemRepository _PayrollItemRepository;
         private IContractBenefitDiscountRepository _ContractBenefitDiscountRepository;
+        private ITransactionCostCenterRepository _TransactionCostCenterRepository;
 
         public UnitOfWork(ErpContext context)
         {
@@ -100,6 +101,9 @@ namespace ERP.Infrastructure.UnitOfWork
 
         public IContractBenefitDiscountRepository ContractBenefitDiscountRepository =>
             _ContractBenefitDiscountRepository ??= new ContractBenefitDiscountRepository(_context);
+
+        public ITransactionCostCenterRepository TransactionCostCenterRepository =>
+            _TransactionCostCenterRepository ??= new TransactionCostCenterRepository(_context);
 
         // Transaction Management
         public bool HasActiveTransaction => _transaction != null;

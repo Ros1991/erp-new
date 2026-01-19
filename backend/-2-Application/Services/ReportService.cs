@@ -16,6 +16,7 @@ namespace ERP.Application.Services
         Task<List<CashFlowItemDTO>> GetCashFlowAsync(long companyId, ReportFilterDTO filters);
         Task<AccountPayableReceivableReportDTO> GetAccountPayableReceivableReportAsync(long companyId, AccountPayableReceivableReportFilterDTO filters);
         Task<FinancialForecastDTO> GetFinancialForecastAsync(long companyId, int months);
+        Task<EmployeeAccountReportDTO> GetEmployeeAccountReportAsync(long companyId, EmployeeAccountReportFilterDTO filters);
     }
 
     public class ReportService : IReportService
@@ -36,7 +37,7 @@ namespace ERP.Application.Services
             var transactions = await _unitOfWork.FinancialTransactionRepository.GetByDateRangeAsync(companyId, startDate, endDate);
             
             var receitas = transactions.Where(t => t.Type == "Entrada").ToList();
-            var despesas = transactions.Where(t => t.Type == "Saida").ToList();
+            var despesas = transactions.Where(t => t.Type == "Saída").ToList();
 
             var totalReceitas = receitas.Sum(t => t.Amount);
             var totalDespesas = despesas.Sum(t => t.Amount);
@@ -156,7 +157,7 @@ namespace ERP.Application.Services
                     .ToList();
 
                 var entradas = accountTransactions.Where(t => t.Type == "Entrada").Sum(t => t.Amount);
-                var saidas = accountTransactions.Where(t => t.Type == "Saida").Sum(t => t.Amount);
+                var saidas = accountTransactions.Where(t => t.Type == "Saída").Sum(t => t.Amount);
 
                 result.Add(new AccountReportDTO
                 {
@@ -234,7 +235,7 @@ namespace ERP.Application.Services
             foreach (var dia in dias)
             {
                 var entradas = dia.Where(t => t.Type == "Entrada").Sum(t => t.Amount);
-                var saidas = dia.Where(t => t.Type == "Saida").Sum(t => t.Amount);
+                var saidas = dia.Where(t => t.Type == "Saída").Sum(t => t.Amount);
                 var saldo = entradas - saidas;
                 saldoAcumulado += saldo;
 

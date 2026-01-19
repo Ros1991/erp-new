@@ -18,9 +18,9 @@ export function CostCenterReport() {
   const [data, setData] = useState<CostCenterReportType[]>([]);
   
   const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const twelveMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 11, 1);
   
-  const [startDate, setStartDate] = useState(firstDayOfMonth.toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(twelveMonthsAgo.toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
 
   const formatCurrency = (value: number) => {

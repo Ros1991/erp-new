@@ -46,14 +46,28 @@ namespace ERP.Infrastructure.Repositories
             var total = await query.CountAsync();
 
             // Aplicar ordenação dinâmica
+            IOrderedQueryable<FinancialTransaction> orderedQuery;
             if (!string.IsNullOrWhiteSpace(filters.OrderBy))
             {
-                query = query.OrderByProperty(filters.OrderBy, filters.IsAscending);
+                // Ordenação primária pelo campo solicitado, secundária por descrição
+                if (filters.OrderBy.Equals("transactionDate", StringComparison.OrdinalIgnoreCase))
+                {
+                    orderedQuery = filters.IsAscending
+                        ? query.OrderBy(x => x.TransactionDate).ThenBy(x => x.Description)
+                        : query.OrderByDescending(x => x.TransactionDate).ThenBy(x => x.Description);
+                }
+                else
+                {
+                    // Para outros campos, usar ordenação dinâmica sem ThenBy
+                    orderedQuery = (IOrderedQueryable<FinancialTransaction>)query.OrderByProperty(filters.OrderBy, filters.IsAscending);
+                }
             }
             else
             {
-                query = query.OrderByDescending(x => x.TransactionDate); // Ordenação padrão
+                // Ordenação padrão: data decrescente, descrição ascendente
+                orderedQuery = query.OrderByDescending(x => x.TransactionDate).ThenBy(x => x.Description);
             }
+            query = orderedQuery;
 
             // Aplicar paginação
             var items = await query
@@ -168,7 +182,7 @@ namespace ERP.Infrastructure.Repositories
                 .Select(g => new
                 {
                     Entradas = g.Where(t => t.Type == "Entrada").Sum(t => t.Amount),
-                    Saidas = g.Where(t => t.Type == "Saida").Sum(t => t.Amount)
+                    Saidas = g.Where(t => t.Type == "Saída").Sum(t => t.Amount)
                 })
                 .FirstOrDefaultAsync();
 
@@ -183,7 +197,7 @@ namespace ERP.Infrastructure.Repositories
                 .Select(g => new
                 {
                     Entradas = g.Where(t => t.Type == "Entrada").Sum(t => t.Amount),
-                    Saidas = g.Where(t => t.Type == "Saida").Sum(t => t.Amount)
+                    Saidas = g.Where(t => t.Type == "Saída").Sum(t => t.Amount)
                 })
                 .FirstOrDefaultAsync();
 

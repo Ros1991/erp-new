@@ -52,6 +52,24 @@ namespace ERP.Domain.Entities
 		[Column("payroll_closed_by")]
 		public long? ClosedBy { get; set; }
 
+		[Column("payroll_payment_date")]
+		public DateTime? PaymentDate { get; set; }
+
+		[Column("payroll_account_id")]
+		public long? AccountId { get; set; }
+
+		[Column("payroll_inss_amount")]
+		public long? InssAmount { get; set; }
+
+		[Column("payroll_fgts_amount")]
+		public long? FgtsAmount { get; set; }
+
+		[Column("payroll_generated_transaction_ids")]
+		public string? GeneratedTransactionIds { get; set; }
+
+		[Column("payroll_generated_loan_advance_ids")]
+		public string? GeneratedLoanAdvanceIds { get; set; }
+
 		[Column("payroll_notes")]
 		public string? Notes { get; set; }
 
@@ -76,6 +94,9 @@ namespace ERP.Domain.Entities
 	
 	[ForeignKey("ClosedBy")]
 	public virtual User? ClosedByUser { get; set; }
+
+	[ForeignKey("AccountId")]
+	public virtual Account? Account { get; set; }
 	//Parent Relations
         public virtual ICollection<PayrollEmployee> PayrollEmployeeList { get; set; } = new List<PayrollEmployee>();
 		// Construtor padrão para EF

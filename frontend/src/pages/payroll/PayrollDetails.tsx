@@ -8,6 +8,7 @@ import { Protected } from '../../components/permissions/Protected';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import payrollService, { type PayrollDetailed, type PayrollItem, type PayrollEmployeeDetailed } from '../../services/payrollService';
+import accountService, { type Account } from '../../services/accountService';
 import { parseBackendError } from '../../utils/errorHandler';
 import { EditPayrollItemDialog } from './EditPayrollItemDialog';
 import { WorkedUnitsDialog } from './WorkedUnitsDialog';
@@ -74,6 +75,10 @@ export function PayrollDetails() {
   const [paymentDate, setPaymentDate] = useState('');
   const [inssAmount, setInssAmount] = useState(0);
   const [fgtsAmount, setFgtsAmount] = useState(0);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [isReopening, setIsReopening] = useState(false);
+  const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
   const [thirteenthDialogOpen, setThirteenthDialogOpen] = useState(false);
   const [thirteenthPercentage, setThirteenthPercentage] = useState(100);
   const [thirteenthTaxOption, setThirteenthTaxOption] = useState<'none' | 'proportional' | 'full'>('none');
@@ -97,7 +102,20 @@ export function PayrollDetails() {
 
   useEffect(() => {
     loadPayrollDetails();
+    loadAccounts();
   }, [id]);
+
+  const loadAccounts = async () => {
+    try {
+      const result = await accountService.getAccounts({ pageSize: 100 });
+      setAccounts(result.items);
+      if (result.items.length > 0) {
+        setSelectedAccountId(result.items[0].accountId);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar contas:', error);
+    }
+  };
 
   const handleRecalculate = async () => {
     if (!id) return;
@@ -265,15 +283,45 @@ export function PayrollDetails() {
     setPayDialogOpen(true);
   };
 
-  // Handler para pagar folha (placeholder - apenas frontend)
+  // Handler para pagar folha
   const handlePayPayroll = async () => {
+    if (!payroll || !selectedAccountId || !paymentDate) return;
+    
     setIsPaying(true);
-    // TODO: Implementar backend
-    setTimeout(() => {
-      showSuccess('Folha de pagamento marcada como paga!');
+    try {
+      const updatedPayroll = await payrollService.closePayroll(payroll.payrollId, {
+        accountId: selectedAccountId,
+        paymentDate,
+        inssAmount,
+        fgtsAmount
+      });
+      setPayroll(updatedPayroll);
+      showSuccess('Folha de pagamento fechada com sucesso!');
       setPayDialogOpen(false);
+    } catch (error) {
+      const { message } = parseBackendError(error);
+      showError(message);
+    } finally {
       setIsPaying(false);
-    }, 1000);
+    }
+  };
+
+  // Handler para reabrir folha
+  const handleReopenPayroll = async () => {
+    if (!payroll) return;
+    
+    setIsReopening(true);
+    try {
+      const updatedPayroll = await payrollService.reopenPayroll(payroll.payrollId);
+      setPayroll(updatedPayroll);
+      showSuccess('Folha de pagamento reaberta com sucesso!');
+      setReopenDialogOpen(false);
+    } catch (error) {
+      const { message } = parseBackendError(error);
+      showError(message);
+    } finally {
+      setIsReopening(false);
+    }
   };
 
   // Handler para imprimir folha
@@ -535,6 +583,20 @@ export function PayrollDetails() {
                 </Protected>
               </>
             )}
+            {/* Botão para reabrir folha fechada */}
+            {payroll.isClosed && (
+              <Protected requires="payroll.canEdit">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setReopenDialogOpen(true)}
+                  className="flex items-center gap-1 text-orange-700 border-orange-300 hover:bg-orange-50"
+                >
+                  <Unlock className="h-4 w-4" />
+                  <span className="hidden sm:inline">Reabrir</span>
+                </Button>
+              </Protected>
+            )}
             {/* Botões sempre visíveis */}
             <Button
               variant="outline"
@@ -545,27 +607,29 @@ export function PayrollDetails() {
               <Printer className="h-4 w-4" />
               <span className="hidden sm:inline">Imprimir</span>
             </Button>
-            <Protected requires="payroll.canEdit">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  // Se já tem 13º aplicado, preencher com valores atuais
-                  if (payroll.thirteenthPercentage) {
-                    setThirteenthPercentage(payroll.thirteenthPercentage);
-                    setThirteenthTaxOption((payroll.thirteenthTaxOption || 'none') as 'none' | 'proportional' | 'full');
-                  } else {
-                    setThirteenthPercentage(100);
-                    setThirteenthTaxOption('none');
-                  }
-                  setThirteenthDialogOpen(true);
-                }}
-                className={`flex items-center gap-1 ${payroll.thirteenthPercentage ? 'text-green-700 border-green-300 hover:bg-green-50' : 'text-purple-700 border-purple-300 hover:bg-purple-50'}`}
-              >
-                <Gift className="h-4 w-4" />
-                <span className="hidden sm:inline">{payroll.thirteenthPercentage ? `13º (${payroll.thirteenthPercentage}%)` : 'Gerar 13º'}</span>
-              </Button>
-            </Protected>
+            {!payroll.isClosed && (
+              <Protected requires="payroll.canEdit">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Se já tem 13º aplicado, preencher com valores atuais
+                    if (payroll.thirteenthPercentage) {
+                      setThirteenthPercentage(payroll.thirteenthPercentage);
+                      setThirteenthTaxOption((payroll.thirteenthTaxOption || 'none') as 'none' | 'proportional' | 'full');
+                    } else {
+                      setThirteenthPercentage(100);
+                      setThirteenthTaxOption('none');
+                    }
+                    setThirteenthDialogOpen(true);
+                  }}
+                  className={`flex items-center gap-1 ${payroll.thirteenthPercentage ? 'text-green-700 border-green-300 hover:bg-green-50' : 'text-purple-700 border-purple-300 hover:bg-purple-50'}`}
+                >
+                  <Gift className="h-4 w-4" />
+                  <span className="hidden sm:inline">{payroll.thirteenthPercentage ? `13º (${payroll.thirteenthPercentage}%)` : 'Gerar 13º'}</span>
+                </Button>
+              </Protected>
+            )}
             {/* Badge de status */}
             {payroll.isClosed ? (
               <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
@@ -1067,6 +1131,23 @@ export function PayrollDetails() {
             
             <div className="space-y-4">
               <div>
+                <Label htmlFor="accountId">Conta Corrente</Label>
+                <select
+                  id="accountId"
+                  value={selectedAccountId || ''}
+                  onChange={(e) => setSelectedAccountId(Number(e.target.value))}
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Selecione uma conta...</option>
+                  {accounts.map((account) => (
+                    <option key={account.accountId} value={account.accountId}>
+                      {account.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <Label htmlFor="paymentDate">Data do Pagamento</Label>
                 <Input
                   id="paymentDate"
@@ -1109,7 +1190,7 @@ export function PayrollDetails() {
               </Button>
               <Button
                 onClick={handlePayPayroll}
-                disabled={isPaying || !paymentDate}
+                disabled={isPaying || !paymentDate || !selectedAccountId}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {isPaying ? 'Processando...' : 'Confirmar Pagamento'}
@@ -1400,6 +1481,19 @@ export function PayrollDetails() {
           </div>
         </div>
       )}
+
+    {/* Reopen Payroll Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={reopenDialogOpen}
+        onClose={() => setReopenDialogOpen(false)}
+        onConfirm={handleReopenPayroll}
+        title="Reabrir Folha de Pagamento"
+        description="Tem certeza que deseja reabrir esta folha? Todas as transações financeiras geradas serão revertidas, incluindo lançamentos por funcionário, INSS/FGTS e abatimentos de empréstimos."
+        confirmText="Reabrir"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isReopening}
+      />
 
     </MainLayout>
 

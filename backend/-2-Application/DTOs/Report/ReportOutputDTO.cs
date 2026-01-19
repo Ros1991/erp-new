@@ -123,4 +123,24 @@ namespace ERP.Application.DTOs
         public DateTime DueDate { get; set; }
         public string Type { get; set; } = string.Empty;
     }
+
+    // Relatório Conta Corrente Funcionário
+    public class EmployeeAccountReportDTO
+    {
+        public long EmployeeId { get; set; }
+        public string EmployeeName { get; set; } = string.Empty;
+        public string EmployeeNickname { get; set; } = string.Empty;
+        public long SaldoFinal { get; set; }
+        public List<EmployeeAccountItemDTO> Items { get; set; } = new();
+    }
+
+    public class EmployeeAccountItemDTO
+    {
+        public DateTime Date { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public long Value { get; set; }
+        public long Balance { get; set; }
+        public string Type { get; set; } = string.Empty; // "Credito" ou "Debito"
+        public string Source { get; set; } = string.Empty; // "Emprestimo", "Folha"
+    }
 }

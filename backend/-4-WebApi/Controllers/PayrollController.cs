@@ -210,4 +210,28 @@ public class PayrollController : BaseController
             "Férias removidas com sucesso"
         );
     }
+
+    [HttpPost("{payrollId}/close")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ClosePayrollAsync(long payrollId, ClosePayrollInputDTO dto)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(
+            () => _payrollService.ClosePayrollAsync(payrollId, dto, currentUserId),
+            "Folha de pagamento fechada com sucesso"
+        );
+    }
+
+    [HttpPost("{payrollId}/reopen")]
+    [RequirePermissions("payroll.canEdit")]
+    public async Task<ActionResult<BaseResponse<PayrollDetailedOutputDTO>>> ReopenPayrollAsync(long payrollId)
+    {
+        ValidateId(payrollId, nameof(payrollId));
+        var currentUserId = GetCurrentUserId();
+        return await ExecuteAsync(
+            () => _payrollService.ReopenPayrollAsync(payrollId, currentUserId),
+            "Folha de pagamento reaberta com sucesso"
+        );
+    }
 }

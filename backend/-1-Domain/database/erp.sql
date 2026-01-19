@@ -377,7 +377,7 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"loan_advance_start_date"              date                 NOT NULL,
 	"loan_advance_description"             varchar (500)        NULL,
 	"loan_advance_is_approved"             boolean              NOT NULL,
-	"loan_advance_installments_paid"       int                  DEFAULT 0 NOT NULL,
+	"loan_advance_installments_paid"       decimal (10,2)       DEFAULT 0 NOT NULL,
 	"loan_advance_remaining_amount"        decimal (10,2)       DEFAULT 0 NOT NULL,
 	"loan_advance_is_fully_paid"           boolean              DEFAULT false NOT NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
@@ -434,6 +434,12 @@ ALTER TABLE "erp"."tb_employee_allowed_location" ADD CONSTRAINT "uk_employee_all
 	"payroll_is_closed"                    boolean              NOT NULL,
 	"payroll_closed_at"                    timestamptz          NULL,
 	"payroll_closed_by"                    bigint               NULL,
+	"payroll_payment_date"                 timestamptz          NULL,
+	"payroll_account_id"                   bigint               NULL,
+	"payroll_inss_amount"                  bigint               NULL,
+	"payroll_fgts_amount"                  bigint               NULL,
+	"payroll_generated_transaction_ids"    text                 NULL,
+	"payroll_generated_loan_advance_ids"   text                 NULL,
 	"payroll_notes"                        text                 NULL,
 	"payroll_snapshot"                     jsonb                NULL,
 	"criado_por"                           bigint               DEFAULT 0 NOT NULL,
@@ -1148,6 +1154,12 @@ ALTER TABLE "erp"."tb_payroll" ADD CONSTRAINT "fk_payroll_closed_by"
 		("payroll_closed_by")
 	REFERENCES "erp"."tb_user"
 		("user_id");
+
+ALTER TABLE "erp"."tb_payroll" ADD CONSTRAINT "fk_payroll_account"
+	FOREIGN KEY
+		("payroll_account_id")
+	REFERENCES "erp"."tb_account"
+		("account_id");
 
 ALTER TABLE "erp"."tb_payroll_employee" ADD CONSTRAINT "fk_payroll_employee_contract"
 	FOREIGN KEY

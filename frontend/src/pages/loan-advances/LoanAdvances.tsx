@@ -42,6 +42,7 @@ export function LoanAdvances() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<LoanAdvance | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [onlyOpen, setOnlyOpen] = useState(true);
   const pageSize = 10;
 
   const loadItems = useCallback(async () => {
@@ -51,8 +52,9 @@ export function LoanAdvances() {
         search: searchTerm || undefined,
         page: currentPage,
         pageSize,
-        orderBy: 'startDate',
-        isAscending: sortDirection === 'asc'
+        orderBy: 'criadoEm',
+        isAscending: sortDirection === 'desc',
+        onlyOpen: onlyOpen || undefined
       };
 
       const result = await loanAdvanceService.getLoanAdvances(filters);
@@ -65,7 +67,7 @@ export function LoanAdvances() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, currentPage, handleBackendError]);
+  }, [searchTerm, currentPage, onlyOpen, handleBackendError]);
 
   useEffect(() => {
     loadItems();
@@ -140,23 +142,8 @@ export function LoanAdvances() {
         </div>
 
         {/* Desktop Filters (always visible) */}
-        <div className="hidden sm:block relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Buscar..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-10 h-9"
-          />
-        </div>
-
-        {/* Mobile Filters (collapsible) */}
-        {showMobileFilters && (
-          <div className="sm:hidden relative mb-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="hidden sm:flex sm:items-center gap-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
@@ -168,6 +155,49 @@ export function LoanAdvances() {
               }}
               className="pl-10 h-9"
             />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap cursor-pointer">
+            <input
+              type="checkbox"
+              checked={onlyOpen}
+              onChange={(e) => {
+                setOnlyOpen(e.target.checked);
+                setCurrentPage(1);
+              }}
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            Apenas em aberto
+          </label>
+        </div>
+
+        {/* Mobile Filters (collapsible) */}
+        {showMobileFilters && (
+          <div className="sm:hidden mb-4 animate-in slide-in-from-top-2 duration-200 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-10 h-9"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={onlyOpen}
+                onChange={(e) => {
+                  setOnlyOpen(e.target.checked);
+                  setCurrentPage(1);
+                }}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              Apenas em aberto
+            </label>
           </div>
         )}
       </div>
@@ -200,6 +230,9 @@ export function LoanAdvances() {
                     Parcelas
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Pagas
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Fonte Desconto
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -213,7 +246,7 @@ export function LoanAdvances() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={7} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                       </div>
@@ -221,7 +254,7 @@ export function LoanAdvances() {
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       Nenhum empréstimo e adiantamento encontrado
                     </td>
                   </tr>
@@ -236,6 +269,14 @@ export function LoanAdvances() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {item.installments}x
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={item.isFullyPaid ? 'text-green-600 font-medium' : 'text-gray-900'}>
+                          {Number(item.installmentsPaid).toFixed(item.installmentsPaid % 1 !== 0 ? 1 : 0)}/{item.installments}
+                        </span>
+                        {item.isFullyPaid && (
+                          <span className="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Quitado</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {getDiscountSourceLabel(item.discountSource)}
@@ -328,9 +369,17 @@ export function LoanAdvances() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900">{item.employeeName || `ID: ${item.employeeId}`}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{item.employeeName || `ID: ${item.employeeId}`}</h3>
+                          {item.isFullyPaid && (
+                            <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Quitado</span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {formatCurrency(item.amount)} • {item.installments}x
+                          {formatCurrency(item.amount)} • {item.installments}x • 
+                          <span className={item.isFullyPaid ? 'text-green-600 font-medium' : ''}>
+                            {' '}{Number(item.installmentsPaid).toFixed(item.installmentsPaid % 1 !== 0 ? 1 : 0)} pagas
+                          </span>
                         </p>
                         <div className="mt-2">
                           <span className="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">

@@ -38,6 +38,7 @@ export function LoanAdvanceForm() {
   const { showError, showSuccess, handleBackendError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState<{ installmentsPaid: number; remainingAmount: number; isFullyPaid: boolean } | null>(null);
   
   const [formData, setFormData] = useState<LoanAdvanceFormData>({
     employeeId: '',
@@ -133,6 +134,13 @@ export function LoanAdvanceForm() {
         discountSource: migrateDiscountSourceValue(loanAdvance.discountSource),
         startDate: loanAdvance.startDate.split('T')[0],
         description: loanAdvance.description || '',
+      });
+      
+      // Carregar informações de pagamento
+      setPaymentInfo({
+        installmentsPaid: loanAdvance.installmentsPaid,
+        remainingAmount: loanAdvance.remainingAmount,
+        isFullyPaid: loanAdvance.isFullyPaid
       });
       
       // Carregar cost centers se houver
@@ -400,6 +408,31 @@ export function LoanAdvanceForm() {
               <CardTitle>Dados do Empréstimo/Adiantamento</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
+              {/* Informações de pagamento (apenas em edição) */}
+              {isEditing && paymentInfo && (
+                <div className={`mb-6 p-4 rounded-lg border ${paymentInfo.isFullyPaid ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`font-semibold ${paymentInfo.isFullyPaid ? 'text-green-800' : 'text-blue-800'}`}>
+                        {paymentInfo.isFullyPaid ? '✓ Empréstimo Quitado' : 'Status do Pagamento'}
+                      </h4>
+                      <p className={`text-sm mt-1 ${paymentInfo.isFullyPaid ? 'text-green-700' : 'text-blue-700'}`}>
+                        <span className="font-medium">
+                          {Number(paymentInfo.installmentsPaid).toFixed(paymentInfo.installmentsPaid % 1 !== 0 ? 1 : 0)}
+                        </span> de <span className="font-medium">{formData.installments}</span> parcelas pagas
+                        {!paymentInfo.isFullyPaid && (
+                          <span className="ml-2">• Restante: <span className="font-medium">{formatCurrency(paymentInfo.remainingAmount)}</span></span>
+                        )}
+                      </p>
+                    </div>
+                    {paymentInfo.isFullyPaid && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                        100% Pago
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-4">
                 <div>
                   <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-1">

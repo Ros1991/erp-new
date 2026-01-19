@@ -21,5 +21,7 @@ namespace ERP.Application.Interfaces.Services
         Task<PayrollDetailedOutputDTO> ApplyVacationAsync(long payrollId, VacationInputDTO dto, long currentUserId);
         Task<PayrollDetailedOutputDTO> RemoveVacationAsync(long payrollId, long payrollEmployeeId, long currentUserId);
         Task<PayrollSuggestionDTO> GetPayrollSuggestionAsync(long companyId);
+        Task<PayrollDetailedOutputDTO> ClosePayrollAsync(long payrollId, ClosePayrollInputDTO dto, long currentUserId);
+        Task<PayrollDetailedOutputDTO> ReopenPayrollAsync(long payrollId, long currentUserId);
     }
 }

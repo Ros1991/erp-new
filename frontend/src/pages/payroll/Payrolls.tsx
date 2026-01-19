@@ -21,7 +21,6 @@ import {
   DollarSign,
   Lock,
   Unlock,
-  Trash2,
   ChevronDown,
   ChevronUp,
   ChevronsLeft,
@@ -244,15 +243,12 @@ export function Payrolls() {
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Ações
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={5} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                       </div>
@@ -260,7 +256,7 @@ export function Payrolls() {
                   </tr>
                 ) : payrolls.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                       Nenhuma folha de pagamento encontrada
                     </td>
                   </tr>
@@ -312,23 +308,6 @@ export function Payrolls() {
                             Aberta
                           </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
-                          {payroll.isLastPayroll && !payroll.isClosed && (
-                            <Protected requires="payroll.canDelete">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteClick(payroll)}
-                                title="Excluir folha"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </Protected>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   ))

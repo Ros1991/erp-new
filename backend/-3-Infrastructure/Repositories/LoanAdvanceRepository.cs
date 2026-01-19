@@ -36,7 +36,15 @@ namespace ERP.Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(filters.Search))
             {
                 query = query.Where(x => 
-                    x.DiscountSource.Contains(filters.Search));
+                    x.DiscountSource.Contains(filters.Search) ||
+                    x.Employee.Nickname.Contains(filters.Search) ||
+                    (x.Description != null && x.Description.Contains(filters.Search)));
+            }
+
+            // Filtro de apenas em aberto
+            if (filters.OnlyOpen == true)
+            {
+                query = query.Where(x => !x.IsFullyPaid);
             }
 
             // Contar total antes da paginação

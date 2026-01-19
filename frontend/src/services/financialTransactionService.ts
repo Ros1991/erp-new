@@ -59,11 +59,11 @@ export interface FinancialTransactionInput {
 const financialTransactionService = {
   async getFinancialTransactions(filters: FinancialTransactionFilters): Promise<PagedResult<FinancialTransaction>> {
     const params = new URLSearchParams();
-    if (filters.search) params.append('SearchTerm', filters.search);
+    if (filters.search) params.append('Search', filters.search);
     if (filters.page) params.append('Page', filters.page.toString());
     if (filters.pageSize) params.append('PageSize', filters.pageSize.toString());
     if (filters.orderBy) params.append('OrderBy', filters.orderBy);
-    if (filters.isAscending !== undefined) params.append('IsAscending', filters.isAscending.toString());
+    if (filters.isAscending !== undefined) params.append('OrderDirection', filters.isAscending ? 'asc' : 'desc');
 
     const response = await api.get(`/financial-transaction/getPaged?${params.toString()}`);
     return response.data.data;

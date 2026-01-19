@@ -17,4 +17,9 @@ namespace ERP.Application.DTOs
     {
         public string? Type { get; set; } // Pagar, Receber, Todos
     }
+
+    public class EmployeeAccountReportFilterDTO : ReportFilterDTO
+    {
+        public long EmployeeId { get; set; }
+    }
 }

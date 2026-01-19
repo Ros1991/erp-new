@@ -294,6 +294,16 @@ class PayrollService {
       totalNetPay: newEmployees.reduce((sum, emp) => sum + emp.totalNetPay, 0)
     };
   }
+
+  async closePayroll(payrollId: number, data: { accountId: number; paymentDate: string; inssAmount: number; fgtsAmount: number }): Promise<PayrollDetailed> {
+    const response = await api.post(`/payroll/${payrollId}/close`, data);
+    return response.data.data;
+  }
+
+  async reopenPayroll(payrollId: number): Promise<PayrollDetailed> {
+    const response = await api.post(`/payroll/${payrollId}/reopen`);
+    return response.data.data;
+  }
 }
 
 export default new PayrollService();

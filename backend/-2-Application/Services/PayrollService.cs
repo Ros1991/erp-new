@@ -2112,5 +2112,342 @@ namespace ERP.Application.Services
                     : null
             };
         }
+
+        public async Task<PayrollDetailedOutputDTO> ClosePayrollAsync(long payrollId, ClosePayrollInputDTO dto, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdWithIncludesAsync(payrollId);
+            if (payroll == null)
+                throw new BusinessRuleException("ClosePayroll", "Folha de pagamento não encontrada");
+
+            if (payroll.IsClosed)
+                throw new BusinessRuleException("ClosePayroll", "Folha de pagamento já está fechada");
+
+            var account = await _unitOfWork.AccountRepository.GetOneByIdAsync(dto.AccountId);
+            if (account == null)
+                throw new BusinessRuleException("ClosePayroll", "Conta corrente não encontrada");
+
+            var now = DateTime.UtcNow;
+            var generatedTransactionIds = new List<long>();
+            var generatedLoanAdvanceIds = new List<long>();
+            var paidLoanInstallments = new List<(long LoanAdvanceId, decimal InstallmentsPaidBefore)>();
+
+            // Calcular rateio médio para INSS/FGTS baseado nos centros de custo de todos os funcionários
+            var costCenterTotals = new Dictionary<long, decimal>();
+            decimal totalGrossPayAll = 0;
+
+            foreach (var pe in payroll.PayrollEmployeeList)
+            {
+                if (pe.Contract?.ContractCostCenterList != null)
+                {
+                    foreach (var ccc in pe.Contract.ContractCostCenterList)
+                    {
+                        var amount = pe.TotalGrossPay * (ccc.Percentage / 100m);
+                        if (!costCenterTotals.ContainsKey(ccc.CostCenterId))
+                            costCenterTotals[ccc.CostCenterId] = 0;
+                        costCenterTotals[ccc.CostCenterId] += amount;
+                        totalGrossPayAll += amount;
+                    }
+                }
+                else
+                {
+                    totalGrossPayAll += pe.TotalGrossPay;
+                }
+            }
+
+            // Calcular percentuais médios para rateio de INSS/FGTS
+            var averageCostCenterPercentages = new Dictionary<long, decimal>();
+            if (totalGrossPayAll > 0)
+            {
+                foreach (var kvp in costCenterTotals)
+                {
+                    averageCostCenterPercentages[kvp.Key] = (kvp.Value / totalGrossPayAll) * 100;
+                }
+            }
+
+            // 1. Criar lançamentos financeiros por funcionário
+            foreach (var pe in payroll.PayrollEmployeeList)
+            {
+                var employee = pe.Employee;
+                var netPay = pe.TotalNetPay;
+
+                // Se líquido negativo, criar empréstimo para próximo mês
+                if (netPay < 0)
+                {
+                    var loanAdvance = new LoanAdvance
+                    {
+                        EmployeeId = pe.EmployeeId,
+                        Amount = Math.Abs(netPay),
+                        Installments = 1,
+                        DiscountSource = "Folha",
+                        StartDate = payroll.PeriodEndDate.AddMonths(1),
+                        Description = $"Adiantamento gerado automaticamente - Folha {payroll.PeriodStartDate:MM/yyyy}",
+                        IsApproved = true,
+                        InstallmentsPaid = 0,
+                        RemainingAmount = Math.Abs(netPay),
+                        IsFullyPaid = false,
+                        CriadoPor = currentUserId,
+                        CriadoEm = now
+                    };
+                    await _unitOfWork.LoanAdvanceRepository.CreateAsync(loanAdvance);
+                    await _unitOfWork.SaveChangesAsync();
+                    generatedLoanAdvanceIds.Add(loanAdvance.LoanAdvanceId);
+                    netPay = 0; // Não gerar transação de saída se negativo
+                }
+
+                if (netPay > 0)
+                {
+                    // Criar transação financeira para o funcionário
+                    var transaction = new FinancialTransaction
+                    {
+                        CompanyId = payroll.CompanyId,
+                        AccountId = dto.AccountId,
+                        Description = $"Pagamento Folha {payroll.PeriodStartDate:MM/yyyy} - {employee.Nickname}",
+                        Type = "Saída",
+                        Amount = netPay,
+                        TransactionDate = dto.PaymentDate,
+                        CriadoPor = currentUserId,
+                        CriadoEm = now
+                    };
+                    await _unitOfWork.FinancialTransactionRepository.CreateAsync(transaction);
+                    await _unitOfWork.SaveChangesAsync();
+                    generatedTransactionIds.Add(transaction.FinancialTransactionId);
+
+                    // Adicionar rateio por centro de custo do contrato
+                    if (pe.Contract?.ContractCostCenterList != null && pe.Contract.ContractCostCenterList.Any())
+                    {
+                        foreach (var ccc in pe.Contract.ContractCostCenterList)
+                        {
+                            var tcc = new TransactionCostCenter
+                            {
+                                FinancialTransactionId = transaction.FinancialTransactionId,
+                                CostCenterId = ccc.CostCenterId,
+                                Percentage = ccc.Percentage,
+                                Amount = (long)(netPay * (ccc.Percentage / 100m)),
+                                CriadoPor = currentUserId,
+                                CriadoEm = now
+                            };
+                            await _unitOfWork.TransactionCostCenterRepository.CreateAsync(tcc);
+                        }
+                    }
+                }
+
+                // 2. Abater parcelas de empréstimos do funcionário
+                // SourceTypes de empréstimo: "loan" (normal), "thirteenth_loan" (13º), "vacation_loan" (férias)
+                var loanItems = pe.PayrollItemList
+                    .Where(pi => pi.Type == "Desconto" && 
+                           (pi.SourceType == "loan" || pi.SourceType == "thirteenth_loan" || pi.SourceType == "vacation_loan") && 
+                           pi.ReferenceId.HasValue)
+                    .ToList();
+
+                foreach (var loanItem in loanItems)
+                {
+                    var loan = await _unitOfWork.LoanAdvanceRepository.GetOneByIdAsync(loanItem.ReferenceId!.Value);
+                    if (loan != null && !loan.IsFullyPaid)
+                    {
+                        paidLoanInstallments.Add((loan.LoanAdvanceId, loan.InstallmentsPaid));
+                        
+                        // Calcular valor original da parcela
+                        var originalInstallmentValue = loan.Amount / loan.Installments;
+                        
+                        // Calcular fração da parcela paga (suporta 13º parcial, ex: 50% = 0.5 parcela)
+                        decimal installmentFraction = originalInstallmentValue > 0 
+                            ? (decimal)loanItem.Amount / originalInstallmentValue 
+                            : 1m;
+                        
+                        loan.InstallmentsPaid += installmentFraction;
+                        loan.RemainingAmount -= loanItem.Amount;
+                        if (loan.RemainingAmount < 0) loan.RemainingAmount = 0;
+                        
+                        // Marcar como quitado APENAS se todas as parcelas foram pagas
+                        loan.IsFullyPaid = loan.InstallmentsPaid >= loan.Installments;
+                        loan.AtualizadoPor = currentUserId;
+                        loan.AtualizadoEm = now;
+                        await _unitOfWork.LoanAdvanceRepository.UpdateByIdAsync(loan.LoanAdvanceId, loan);
+                    }
+                }
+            }
+
+            // 3. Criar transação para INSS
+            if (dto.InssAmount > 0)
+            {
+                var inssTransaction = new FinancialTransaction
+                {
+                    CompanyId = payroll.CompanyId,
+                    AccountId = dto.AccountId,
+                    Description = $"INSS Folha {payroll.PeriodStartDate:MM/yyyy}",
+                    Type = "Saída",
+                    Amount = dto.InssAmount,
+                    TransactionDate = dto.PaymentDate,
+                    CriadoPor = currentUserId,
+                    CriadoEm = now
+                };
+                await _unitOfWork.FinancialTransactionRepository.CreateAsync(inssTransaction);
+                await _unitOfWork.SaveChangesAsync();
+                generatedTransactionIds.Add(inssTransaction.FinancialTransactionId);
+
+                // Rateio médio para INSS
+                foreach (var kvp in averageCostCenterPercentages)
+                {
+                    var tcc = new TransactionCostCenter
+                    {
+                        FinancialTransactionId = inssTransaction.FinancialTransactionId,
+                        CostCenterId = kvp.Key,
+                        Percentage = kvp.Value,
+                        Amount = (long)(dto.InssAmount * (kvp.Value / 100m)),
+                        CriadoPor = currentUserId,
+                        CriadoEm = now
+                    };
+                    await _unitOfWork.TransactionCostCenterRepository.CreateAsync(tcc);
+                }
+            }
+
+            // 4. Criar transação para FGTS
+            if (dto.FgtsAmount > 0)
+            {
+                var fgtsTransaction = new FinancialTransaction
+                {
+                    CompanyId = payroll.CompanyId,
+                    AccountId = dto.AccountId,
+                    Description = $"FGTS Folha {payroll.PeriodStartDate:MM/yyyy}",
+                    Type = "Saída",
+                    Amount = dto.FgtsAmount,
+                    TransactionDate = dto.PaymentDate,
+                    CriadoPor = currentUserId,
+                    CriadoEm = now
+                };
+                await _unitOfWork.FinancialTransactionRepository.CreateAsync(fgtsTransaction);
+                await _unitOfWork.SaveChangesAsync();
+                generatedTransactionIds.Add(fgtsTransaction.FinancialTransactionId);
+
+                // Rateio médio para FGTS
+                foreach (var kvp in averageCostCenterPercentages)
+                {
+                    var tcc = new TransactionCostCenter
+                    {
+                        FinancialTransactionId = fgtsTransaction.FinancialTransactionId,
+                        CostCenterId = kvp.Key,
+                        Percentage = kvp.Value,
+                        Amount = (long)(dto.FgtsAmount * (kvp.Value / 100m)),
+                        CriadoPor = currentUserId,
+                        CriadoEm = now
+                    };
+                    await _unitOfWork.TransactionCostCenterRepository.CreateAsync(tcc);
+                }
+            }
+
+            // 5. Atualizar folha como fechada
+            payroll.IsClosed = true;
+            payroll.ClosedAt = now;
+            payroll.ClosedBy = currentUserId;
+            payroll.PaymentDate = dto.PaymentDate;
+            payroll.AccountId = dto.AccountId;
+            payroll.InssAmount = dto.InssAmount;
+            payroll.FgtsAmount = dto.FgtsAmount;
+            payroll.GeneratedTransactionIds = string.Join(",", generatedTransactionIds);
+            payroll.GeneratedLoanAdvanceIds = string.Join(",", generatedLoanAdvanceIds);
+            payroll.AtualizadoPor = currentUserId;
+            payroll.AtualizadoEm = now;
+
+            await _unitOfWork.PayrollRepository.UpdateByIdAsync(payroll.PayrollId, payroll);
+            await _unitOfWork.SaveChangesAsync();
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
+
+        public async Task<PayrollDetailedOutputDTO> ReopenPayrollAsync(long payrollId, long currentUserId)
+        {
+            var payroll = await _unitOfWork.PayrollRepository.GetOneByIdWithIncludesAsync(payrollId);
+            if (payroll == null)
+                throw new BusinessRuleException("ClosePayroll", "Folha de pagamento não encontrada");
+
+            if (!payroll.IsClosed)
+                throw new BusinessRuleException("ReopenPayroll", "Folha de pagamento já está aberta");
+
+            var now = DateTime.UtcNow;
+
+            // 1. Reverter transações financeiras geradas
+            if (!string.IsNullOrEmpty(payroll.GeneratedTransactionIds))
+            {
+                var transactionIds = payroll.GeneratedTransactionIds.Split(',')
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(long.Parse)
+                    .ToList();
+
+                foreach (var transactionId in transactionIds)
+                {
+                    // Remover rateios primeiro
+                    var costCenters = await _unitOfWork.TransactionCostCenterRepository.GetByTransactionIdAsync(transactionId);
+                    foreach (var cc in costCenters)
+                    {
+                        await _unitOfWork.TransactionCostCenterRepository.DeleteAsync(cc.TransactionCostCenterId);
+                    }
+                    // Remover transação
+                    await _unitOfWork.FinancialTransactionRepository.DeleteByIdAsync(transactionId);
+                }
+            }
+
+            // 2. Reverter empréstimos gerados automaticamente
+            if (!string.IsNullOrEmpty(payroll.GeneratedLoanAdvanceIds))
+            {
+                var loanIds = payroll.GeneratedLoanAdvanceIds.Split(',')
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(long.Parse)
+                    .ToList();
+
+                foreach (var loanId in loanIds)
+                {
+                    await _unitOfWork.LoanAdvanceRepository.DeleteByIdAsync(loanId);
+                }
+            }
+
+            // 3. Reverter parcelas de empréstimos abatidas (decrementar InstallmentsPaid)
+            foreach (var pe in payroll.PayrollEmployeeList)
+            {
+                // SourceTypes de empréstimo: "loan" (normal), "thirteenth_loan" (13º), "vacation_loan" (férias)
+                var loanItems = pe.PayrollItemList
+                    .Where(pi => pi.Type == "Desconto" && 
+                           (pi.SourceType == "loan" || pi.SourceType == "thirteenth_loan" || pi.SourceType == "vacation_loan") && 
+                           pi.ReferenceId.HasValue)
+                    .ToList();
+
+                foreach (var loanItem in loanItems)
+                {
+                    var loan = await _unitOfWork.LoanAdvanceRepository.GetOneByIdAsync(loanItem.ReferenceId!.Value);
+                    if (loan != null)
+                    {
+                        // Calcular fração da parcela a reverter (mesma lógica do fechamento)
+                        var originalInstallmentValue = loan.Amount / loan.Installments;
+                        decimal installmentFraction = originalInstallmentValue > 0 
+                            ? (decimal)loanItem.Amount / originalInstallmentValue 
+                            : 1m;
+                        
+                        loan.InstallmentsPaid = Math.Max(0, loan.InstallmentsPaid - installmentFraction);
+                        loan.RemainingAmount += loanItem.Amount;
+                        loan.IsFullyPaid = false;
+                        loan.AtualizadoPor = currentUserId;
+                        loan.AtualizadoEm = now;
+                        await _unitOfWork.LoanAdvanceRepository.UpdateByIdAsync(loan.LoanAdvanceId, loan);
+                    }
+                }
+            }
+
+            // 4. Reabrir a folha
+            payroll.IsClosed = false;
+            payroll.ClosedAt = null;
+            payroll.ClosedBy = null;
+            payroll.PaymentDate = null;
+            payroll.AccountId = null;
+            payroll.InssAmount = null;
+            payroll.FgtsAmount = null;
+            payroll.GeneratedTransactionIds = null;
+            payroll.GeneratedLoanAdvanceIds = null;
+            payroll.AtualizadoPor = currentUserId;
+            payroll.AtualizadoEm = now;
+
+            await _unitOfWork.PayrollRepository.UpdateByIdAsync(payroll.PayrollId, payroll);
+            await _unitOfWork.SaveChangesAsync();
+
+            return await GetDetailedByIdAsync(payrollId);
+        }
     }
 }

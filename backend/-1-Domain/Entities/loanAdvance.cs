@@ -35,7 +35,7 @@ namespace ERP.Domain.Entities
 		public bool IsApproved { get; set; }
 
 		[Column("loan_advance_installments_paid")]
-		public int InstallmentsPaid { get; set; }
+		public decimal InstallmentsPaid { get; set; }
 
 		[Column("loan_advance_remaining_amount")]
 		public decimal RemainingAmount { get; set; }

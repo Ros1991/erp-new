@@ -19,6 +19,9 @@ export interface LoanAdvance {
   startDate: string;
   description?: string;
   isApproved: boolean;
+  installmentsPaid: number;
+  remainingAmount: number;
+  isFullyPaid: boolean;
   costCenterDistributions?: CostCenterDistribution[];
   criadoPor: number;
   atualizadoPor?: number;
@@ -32,6 +35,7 @@ export interface LoanAdvanceFilters {
   pageSize?: number;
   orderBy?: string;
   isAscending?: boolean;
+  onlyOpen?: boolean;
 }
 
 export interface PagedResult<T> {
@@ -52,6 +56,7 @@ class LoanAdvanceService {
     if (filters?.pageSize) params.append('PageSize', filters.pageSize.toString());
     if (filters?.orderBy) params.append('OrderBy', filters.orderBy);
     if (filters?.isAscending !== undefined) params.append('IsAscending', filters.isAscending.toString());
+    if (filters?.onlyOpen !== undefined) params.append('OnlyOpen', filters.onlyOpen.toString());
 
     const response = await api.get(`/loan-advance/getPaged?${params.toString()}`);
     return response.data.data;
