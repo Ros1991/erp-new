@@ -23,12 +23,13 @@ interface Permissions {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  extraPermissions?: Record<string, boolean>;
 }
 
 interface ModulePermissionsProps {
   module: Module;
   permissions: Permissions;
-  onChange: (permission: keyof Permissions, value: boolean) => void;
+  onChange: (permission: string, value: boolean, isExtra?: boolean) => void;
   disabled?: boolean;
 }
 
@@ -38,12 +39,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
   wallet: Wallet
 };
 
-const PERMISSION_LABELS = {
-  canView: 'Visualizar',
-  canCreate: 'Criar',
-  canEdit: 'Editar',
-  canDelete: 'Excluir'
-};
 
 export function ModulePermissions({
   module,
@@ -54,13 +49,24 @@ export function ModulePermissions({
   const [isExpanded, setIsExpanded] = useState(false);
   const checkboxRef = useRef<HTMLInputElement>(null);
 
+  // Permissões base
+  const BASE_PERMISSIONS = ['canView', 'canCreate', 'canEdit', 'canDelete'];
+  
   // Usar apenas as permissões definidas no módulo
-  const modulePermissionKeys = (module.permissionDetails || []).map(p => p.key as keyof Permissions);
+  const modulePermissionKeys = (module.permissionDetails || []).map(p => p.key);
+  
+  // Função para obter valor da permissão (base ou extra)
+  const getPermissionValue = (key: string): boolean => {
+    if (BASE_PERMISSIONS.includes(key)) {
+      return permissions[key as keyof Omit<Permissions, 'extraPermissions'>] || false;
+    }
+    return permissions.extraPermissions?.[key] || false;
+  };
   
   // Checkbox marcado apenas se TODAS as permissões do módulo estiverem marcadas
   const allPermissionsSelected = modulePermissionKeys.length > 0 && 
-    modulePermissionKeys.every(key => permissions[key]);
-  const hasAnyPermission = modulePermissionKeys.some(key => permissions[key]);
+    modulePermissionKeys.every(key => getPermissionValue(key));
+  const hasAnyPermission = modulePermissionKeys.some(key => getPermissionValue(key));
   const isIndeterminate = hasAnyPermission && !allPermissionsSelected;
 
   // Atualizar estado indeterminado do checkbox
@@ -72,7 +78,8 @@ export function ModulePermissions({
 
   const handleSelectAll = (value: boolean) => {
     modulePermissionKeys.forEach(key => {
-      onChange(key, value);
+      const isExtra = !BASE_PERMISSIONS.includes(key);
+      onChange(key, value, isExtra);
     });
   };
 
@@ -80,7 +87,7 @@ export function ModulePermissions({
   const ModuleIcon = module.icon && ICON_MAP[module.icon] ? ICON_MAP[module.icon] : Shield;
 
   // Contar permissões ativas do módulo
-  const activePermissionsCount = modulePermissionKeys.filter(key => permissions[key]).length;
+  const activePermissionsCount = modulePermissionKeys.filter(key => getPermissionValue(key)).length;
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -135,7 +142,8 @@ export function ModulePermissions({
       {isExpanded && (
         <div className="p-4 bg-white space-y-2">
           {(module.permissionDetails || []).map(detail => {
-            const key = detail.key as keyof Permissions;
+            const key = detail.key;
+            const isExtra = !BASE_PERMISSIONS.includes(key);
             return (
               <label
                 key={key}
@@ -143,14 +151,14 @@ export function ModulePermissions({
               >
                 <input
                   type="checkbox"
-                  checked={permissions[key] || false}
-                  onChange={(e) => onChange(key, e.target.checked)}
+                  checked={getPermissionValue(key)}
+                  onChange={(e) => onChange(key, e.target.checked, isExtra)}
                   disabled={disabled}
                   className="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 <div className="flex-1">
                   <div className="font-medium text-sm text-gray-900">
-                    {detail.name || PERMISSION_LABELS[key]}
+                    {detail.name}
                   </div>
                   {detail.description && (
                     <div className="text-xs text-gray-500 mt-0.5">

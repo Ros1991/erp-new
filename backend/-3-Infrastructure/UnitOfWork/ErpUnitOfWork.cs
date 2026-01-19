@@ -36,6 +36,8 @@ namespace ERP.Infrastructure.UnitOfWork
         private IPayrollItemRepository _PayrollItemRepository;
         private IContractBenefitDiscountRepository _ContractBenefitDiscountRepository;
         private ITransactionCostCenterRepository _TransactionCostCenterRepository;
+        private ICompanySettingRepository _CompanySettingRepository;
+        private IDefaultCostCenterDistributionRepository _DefaultCostCenterDistributionRepository;
 
         public UnitOfWork(ErpContext context)
         {
@@ -104,6 +106,12 @@ namespace ERP.Infrastructure.UnitOfWork
 
         public ITransactionCostCenterRepository TransactionCostCenterRepository =>
             _TransactionCostCenterRepository ??= new TransactionCostCenterRepository(_context);
+
+        public ICompanySettingRepository CompanySettingRepository =>
+            _CompanySettingRepository ??= new CompanySettingRepository(_context);
+
+        public IDefaultCostCenterDistributionRepository DefaultCostCenterDistributionRepository =>
+            _DefaultCostCenterDistributionRepository ??= new DefaultCostCenterDistributionRepository(_context);
 
         // Transaction Management
         public bool HasActiveTransaction => _transaction != null;

@@ -4,14 +4,34 @@ export interface PurchaseOrder {
   purchaseOrderId: number;
   companyId: number;
   userIdRequester: number;
+  requesterName?: string;
   userIdApprover?: number;
+  approverName?: string;
   description: string;
   totalAmount: number;
   status: string;
+  processedMessage?: string;
+  processedAt?: string;
+  accountId?: number;
+  accountName?: string;
   criadoPor: number;
   atualizadoPor?: number;
   criadoEm: string;
   atualizadoEm?: string;
+}
+
+export interface CostCenterDistribution {
+  costCenterId: number;
+  percentage: number;
+}
+
+export interface ProcessPurchaseOrderInput {
+  status: 'Aprovado' | 'Rejeitado';
+  processedMessage?: string;
+  processedAt: string;
+  transactionDescription?: string;
+  accountId?: number;
+  costCenterDistributions?: CostCenterDistribution[];
 }
 
 export interface PurchaseOrderFilters {
@@ -56,22 +76,14 @@ class PurchaseOrderService {
   }
 
   async createPurchaseOrder(data: {
-    userIdRequester: number;
-    userIdApprover?: number;
     description: string;
-    totalAmount: number;
-    status: string;
   }): Promise<PurchaseOrder> {
     const response = await api.post('/purchase-order/create', data);
     return response.data.data;
   }
 
   async updatePurchaseOrder(id: number, data: {
-    userIdRequester: number;
-    userIdApprover?: number;
     description: string;
-    totalAmount: number;
-    status: string;
   }): Promise<PurchaseOrder> {
     const response = await api.put(`/purchase-order/${id}`, data);
     return response.data.data;
@@ -79,6 +91,11 @@ class PurchaseOrderService {
 
   async deletePurchaseOrder(id: number): Promise<void> {
     await api.delete(`/purchase-order/${id}`);
+  }
+
+  async processPurchaseOrder(id: number, data: ProcessPurchaseOrderInput): Promise<PurchaseOrder> {
+    const response = await api.post(`/purchase-order/${id}/process`, data);
+    return response.data.data;
   }
 }
 

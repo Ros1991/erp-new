@@ -76,6 +76,14 @@ namespace ERP.WebApi.Controllers.Base
         }
 
         /// <summary>
+        /// Verifica se o usuário tem uma permissão específica
+        /// </summary>
+        protected bool HasPermission(string permission)
+        {
+            return HttpContext.HasPermission(permission);
+        }
+
+        /// <summary>
         /// Validates ModelState and throws ValidationException if invalid
         /// </summary>
         protected void ValidateModelState()

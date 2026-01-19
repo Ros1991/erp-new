@@ -8,7 +8,8 @@ namespace ERP.Application.Interfaces.Services
         Task<PagedResult<PurchaseOrderOutputDTO>> GetPagedAsync(long companyId, PurchaseOrderFilterDTO filters);
         Task<PurchaseOrderOutputDTO> GetOneByIdAsync(long purchaseOrderId);
         Task<PurchaseOrderOutputDTO> CreateAsync(PurchaseOrderInputDTO dto, long companyId, long currentUserId);
-        Task<PurchaseOrderOutputDTO> UpdateByIdAsync(long purchaseOrderId, PurchaseOrderInputDTO dto, long currentUserId);
-        Task<bool> DeleteByIdAsync(long purchaseOrderId);
+        Task<PurchaseOrderOutputDTO> UpdateByIdAsync(long purchaseOrderId, PurchaseOrderInputDTO dto, long currentUserId, bool hasProcessPermission);
+        Task<PurchaseOrderOutputDTO> ProcessAsync(long purchaseOrderId, PurchaseOrderProcessDTO dto, long currentUserId);
+        Task<bool> DeleteByIdAsync(long purchaseOrderId, long currentUserId, bool hasProcessPermission);
     }
 }

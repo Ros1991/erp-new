@@ -13,6 +13,7 @@ import { useAutoSelect } from '../../hooks/useAutoSelect';
 import contractService, { type ContractInput } from '../../services/contractService';
 import employeeService from '../../services/employeeService';
 import costCenterService from '../../services/costCenterService';
+import companySettingService from '../../services/companySettingService';
 import { BenefitDiscountList, type BenefitDiscountItem } from '../../components/ui/BenefitDiscountList';
 import { migrateApplicationTypeValue } from '../../constants/applicationType';
 import { CostCenterDistribution, type CostCenterDistributionItem } from '../../components/ui/CostCenterDistribution';
@@ -92,14 +93,36 @@ export function ContractForm() {
       
       setAvailableCostCenters(costCentersData.items);
       
-      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
-      if (costCentersData.items.length === 1 && !isEditing) {
-        setCostCenters([{
-          costCenterId: costCentersData.items[0].costCenterId.toString(),
-          costCenterName: costCentersData.items[0].name,
-          percentage: 100,
-          amount: 0
-        }]);
+      // Carregar rateio padrão se não estiver editando
+      if (!isEditing) {
+        try {
+          const defaultDist = await companySettingService.getDefaultDistributions();
+          if (defaultDist && defaultDist.length > 0) {
+            setCostCenters(defaultDist.map(d => ({
+              costCenterId: d.costCenterId.toString(),
+              costCenterName: d.costCenterName || '',
+              percentage: d.percentage,
+              amount: 0
+            })));
+          } else if (costCentersData.items.length === 1) {
+            setCostCenters([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar rateio padrão:', err);
+          if (costCentersData.items.length === 1) {
+            setCostCenters([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        }
       }
     } catch (err) {
       console.error('Erro ao carregar centros de custo:', err);

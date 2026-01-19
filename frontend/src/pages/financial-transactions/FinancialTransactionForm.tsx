@@ -14,6 +14,7 @@ import financialTransactionService from '../../services/financialTransactionServ
 import accountService from '../../services/accountService';
 import supplierCustomerService from '../../services/supplierCustomerService';
 import costCenterService from '../../services/costCenterService';
+import companySettingService from '../../services/companySettingService';
 import { ArrowLeft, Save, Info } from 'lucide-react';
 
 interface FinancialTransactionFormData {
@@ -99,14 +100,38 @@ export function FinancialTransactionForm() {
         }));
       }
       
-      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
-      if (costCentersData.items.length === 1 && !isEditing) {
-        setCostCenterDistributions([{
-          costCenterId: costCentersData.items[0].costCenterId.toString(),
-          costCenterName: costCentersData.items[0].name,
-          percentage: 100,
-          amount: 0
-        }]);
+      // Carregar rateio padrão se não estiver editando
+      if (!isEditing) {
+        try {
+          const defaultDist = await companySettingService.getDefaultDistributions();
+          if (defaultDist && defaultDist.length > 0) {
+            setCostCenterDistributions(defaultDist.map(d => ({
+              costCenterId: d.costCenterId.toString(),
+              costCenterName: d.costCenterName || '',
+              percentage: d.percentage,
+              amount: 0
+            })));
+          } else if (costCentersData.items.length === 1) {
+            // Se não houver rateio padrão mas houver apenas 1 centro de custo, usa ele
+            setCostCenterDistributions([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar rateio padrão:', err);
+          // Fallback: se houver apenas 1 centro de custo, usa ele
+          if (costCentersData.items.length === 1) {
+            setCostCenterDistributions([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        }
       }
     } catch (err) {
       console.error('Erro ao carregar opções:', err);

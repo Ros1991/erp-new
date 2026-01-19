@@ -2,18 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../../components/layout';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
 import { useToast } from '../../contexts/ToastContext';
 import purchaseOrderService from '../../services/purchaseOrderService';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ShoppingCart } from 'lucide-react';
 
 interface PurchaseOrderFormData {
-  userIdRequester: string;
-  userIdApprover: string;
   description: string;
-  totalAmount: string;
-  status: string;
 }
 
 export function PurchaseOrderForm() {
@@ -24,14 +19,10 @@ export function PurchaseOrderForm() {
   const [isSaving, setIsSaving] = useState(false);
   
   const [formData, setFormData] = useState<PurchaseOrderFormData>({
-    userIdRequester: '',
-    userIdApprover: '',
     description: '',
-    totalAmount: '0',
-    status: 'Pendente',
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof PurchaseOrderFormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof PurchaseOrderFormData, string>>>({}); 
 
   const isEditing = !!id;
 
@@ -46,11 +37,7 @@ export function PurchaseOrderForm() {
     try {
       const purchaseOrder = await purchaseOrderService.getPurchaseOrderById(Number(id));
       setFormData({
-        userIdRequester: purchaseOrder.userIdRequester.toString(),
-        userIdApprover: purchaseOrder.userIdApprover?.toString() || '',
         description: purchaseOrder.description,
-        totalAmount: purchaseOrder.totalAmount.toString(),
-        status: purchaseOrder.status,
       });
     } catch (err: any) {
       handleBackendError(err);
@@ -62,24 +49,10 @@ export function PurchaseOrderForm() {
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof PurchaseOrderFormData, string>> = {};
 
-    if (!formData.userIdRequester.trim()) {
-      newErrors.userIdRequester = 'ID do solicitante é obrigatório';
-    } else if (isNaN(Number(formData.userIdRequester))) {
-      newErrors.userIdRequester = 'ID do solicitante deve ser um número válido';
-    }
-
     if (!formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
-    }
-
-    if (!formData.totalAmount.trim()) {
-      newErrors.totalAmount = 'Valor total é obrigatório';
-    } else if (isNaN(Number(formData.totalAmount)) || Number(formData.totalAmount) <= 0) {
-      newErrors.totalAmount = 'Valor total deve ser um número positivo';
-    }
-
-    if (!formData.status.trim()) {
-      newErrors.status = 'Status é obrigatório';
+    } else if (formData.description.trim().length > 500) {
+      newErrors.description = 'Descrição deve ter no máximo 500 caracteres';
     }
 
     setErrors(newErrors);
@@ -97,11 +70,7 @@ export function PurchaseOrderForm() {
     setIsSaving(true);
     try {
       const purchaseOrderData = {
-        userIdRequester: Number(formData.userIdRequester),
-        userIdApprover: formData.userIdApprover ? Number(formData.userIdApprover) : undefined,
         description: formData.description.trim(),
-        totalAmount: Number(formData.totalAmount),
-        status: formData.status.trim(),
       };
 
       if (isEditing) {
@@ -160,82 +129,46 @@ export function PurchaseOrderForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                  <ShoppingCart className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {isEditing ? 'Editar Solicitação' : 'Nova Solicitação'}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Descreva o que você precisa comprar. O valor e a aprovação serão definidos posteriormente.
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="userIdRequester" className="block text-sm font-medium text-gray-700 mb-1">
-                    ID do Solicitante <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="userIdRequester"
-                    type="text"
-                    value={formData.userIdRequester}
-                    onChange={(e) => handleChange('userIdRequester', e.target.value)}
-                    placeholder="ID do usuário solicitante"
-                    className={errors.userIdRequester ? 'border-red-500' : ''}
-                  />
-                  {errors.userIdRequester && <p className="text-sm text-red-600 mt-1">{errors.userIdRequester}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="userIdApprover" className="block text-sm font-medium text-gray-700 mb-1">
-                    ID do Aprovador (opcional)
-                  </label>
-                  <Input
-                    id="userIdApprover"
-                    type="text"
-                    value={formData.userIdApprover}
-                    onChange={(e) => handleChange('userIdApprover', e.target.value)}
-                    placeholder="ID do usuário aprovador"
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                    Descrição <span className="text-red-500">*</span>
+                    Descrição da Solicitação <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleChange('description', e.target.value)}
-                    placeholder="Descrição da ordem de compra"
+                    placeholder="Descreva o que precisa ser comprado, incluindo quantidade, especificações, etc."
                     className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
-                    rows={4}
+                    rows={6}
                   />
                   {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="totalAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                    Valor Total (R$) <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="totalAmount"
-                    type="text"
-                    value={formData.totalAmount}
-                    onChange={(e) => handleChange('totalAmount', e.target.value)}
-                    placeholder="0.00"
-                    className={errors.totalAmount ? 'border-red-500' : ''}
-                  />
-                  {errors.totalAmount && <p className="text-sm text-red-600 mt-1">{errors.totalAmount}</p>}
-                  <p className="text-sm text-gray-500 mt-1">Digite o valor em centavos (ex: 150000 = R$ 1.500,00)</p>
-                </div>
-
-                <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                    Status <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="status"
-                    type="text"
-                    value={formData.status}
-                    onChange={(e) => handleChange('status', e.target.value)}
-                    placeholder="Ex: Pendente, Aprovado, Rejeitado"
-                    className={errors.status ? 'border-red-500' : ''}
-                  />
-                  {errors.status && <p className="text-sm text-red-600 mt-1">{errors.status}</p>}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.description.length}/500 caracteres
+                  </p>
                 </div>
               </div>
 
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Como funciona:</strong> Após criar a solicitação, ela ficará com status "Pendente". 
+                  Um aprovador irá revisar, definir o valor e aprovar ou rejeitar.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

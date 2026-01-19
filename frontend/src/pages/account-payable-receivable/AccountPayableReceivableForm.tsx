@@ -13,6 +13,7 @@ import accountPayableReceivableService from '../../services/accountPayableReceiv
 import supplierCustomerService from '../../services/supplierCustomerService';
 import accountService from '../../services/accountService';
 import costCenterService from '../../services/costCenterService';
+import companySettingService from '../../services/companySettingService';
 import { ArrowLeft, Save } from 'lucide-react';
 
 interface AccountPayableReceivableFormData {
@@ -82,14 +83,36 @@ export function AccountPayableReceivableForm() {
         }));
       }
       
-      // Auto-selecionar se houver apenas 1 centro de custo e não estiver editando
-      if (costCentersData.items.length === 1 && !isEditing) {
-        setCostCenters([{
-          costCenterId: costCentersData.items[0].costCenterId.toString(),
-          costCenterName: costCentersData.items[0].name,
-          percentage: 100,
-          amount: 0
-        }]);
+      // Carregar rateio padrão se não estiver editando
+      if (!isEditing) {
+        try {
+          const defaultDist = await companySettingService.getDefaultDistributions();
+          if (defaultDist && defaultDist.length > 0) {
+            setCostCenters(defaultDist.map(d => ({
+              costCenterId: d.costCenterId.toString(),
+              costCenterName: d.costCenterName || '',
+              percentage: d.percentage,
+              amount: 0
+            })));
+          } else if (costCentersData.items.length === 1) {
+            setCostCenters([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar rateio padrão:', err);
+          if (costCentersData.items.length === 1) {
+            setCostCenters([{
+              costCenterId: costCentersData.items[0].costCenterId.toString(),
+              costCenterName: costCentersData.items[0].name,
+              percentage: 100,
+              amount: 0
+            }]);
+          }
+        }
       }
     } catch (err) {
       console.error('Erro ao carregar opções:', err);

@@ -1307,6 +1307,7 @@ namespace ERP.Infrastructure.Data
 		public DbSet<AccountPayableReceivableCostCenter> AccountPayableReceivableCostCenter { get; set; }
 		public DbSet<Company> Company { get; set; }
 		public DbSet<CompanySetting> CompanySetting { get; set; }
+		public DbSet<DefaultCostCenterDistribution> DefaultCostCenterDistribution { get; set; }
 		public DbSet<CompanyUser> CompanyUser { get; set; }
 		public DbSet<Contract> Contract { get; set; }
 		public DbSet<ContractBenefitDiscount> ContractBenefitDiscount { get; set; }

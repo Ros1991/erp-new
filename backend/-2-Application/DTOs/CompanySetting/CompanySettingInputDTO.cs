@@ -32,5 +32,14 @@ namespace ERP.Application.DTOs
 
         [Required(ErrorMessage = "Horas semanais padrão é obrigatório")]
         public long WeeklyHoursDefault { get; set; }
+
+        // Rateio padrão de centros de custo
+        public List<DefaultCostCenterDistributionInputDTO>? DefaultCostCenterDistributions { get; set; }
+    }
+
+    public class DefaultCostCenterDistributionInputDTO
+    {
+        public long CostCenterId { get; set; }
+        public decimal Percentage { get; set; }
     }
 }

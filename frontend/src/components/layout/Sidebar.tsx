@@ -22,7 +22,8 @@ import {
   HandCoins,
   Activity,
   ClipboardList,
-  ShoppingCart
+  ShoppingCart,
+  Settings
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -67,6 +68,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
   
   const menuItems: MenuItem[] = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
+    { icon: Settings, label: 'Configurações', path: '/company-settings', permission: 'companySettings.canView' },
     {
       icon: FolderOpen,
       label: 'Cadastros',

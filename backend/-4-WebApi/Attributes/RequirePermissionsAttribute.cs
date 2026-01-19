@@ -113,6 +113,16 @@ namespace ERP.WebApi.Attributes
                     ["canEdit"] = module.Value.CanEdit,
                     ["canDelete"] = module.Value.CanDelete
                 };
+                
+                // Adicionar permissões extras se existirem
+                if (module.Value.ExtraPermissions != null)
+                {
+                    foreach (var extra in module.Value.ExtraPermissions)
+                    {
+                        modulePerms[extra.Key] = extra.Value;
+                    }
+                }
+                
                 permissionDict[module.Key] = modulePerms;
             }
 

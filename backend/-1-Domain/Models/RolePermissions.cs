@@ -35,6 +35,11 @@ namespace ERP.Domain.Models
         public bool CanCreate { get; set; } = false;
         public bool CanEdit { get; set; } = false;
         public bool CanDelete { get; set; } = false;
+        
+        /// <summary>
+        /// Permissões extras específicas do módulo (ex: canProcess, canClose, canReopen)
+        /// </summary>
+        public Dictionary<string, bool>? ExtraPermissions { get; set; }
     }
 
     /// <summary>

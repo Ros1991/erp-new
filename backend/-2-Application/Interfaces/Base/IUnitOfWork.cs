@@ -26,6 +26,8 @@ namespace ERP.Application.Interfaces
         IPayrollItemRepository PayrollItemRepository { get; }
         IContractBenefitDiscountRepository ContractBenefitDiscountRepository { get; }
         ITransactionCostCenterRepository TransactionCostCenterRepository { get; }
+        ICompanySettingRepository CompanySettingRepository { get; }
+        IDefaultCostCenterDistributionRepository DefaultCostCenterDistributionRepository { get; }
 
         // Transaction Management
         Task BeginTransactionAsync();

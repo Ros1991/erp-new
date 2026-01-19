@@ -22,8 +22,10 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  CheckCircle
 } from 'lucide-react';
+import { ProcessPurchaseOrderDialog } from './ProcessPurchaseOrderDialog';
 
 export function PurchaseOrders() {
   const navigate = useNavigate();
@@ -40,6 +42,8 @@ export function PurchaseOrders() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<PurchaseOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [processDialogOpen, setProcessDialogOpen] = useState(false);
+  const [itemToProcess, setItemToProcess] = useState<PurchaseOrder | null>(null);
   const pageSize = 10;
 
   const loadItems = useCallback(async () => {
@@ -98,6 +102,11 @@ export function PurchaseOrders() {
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
     setItemToDelete(null);
+  };
+
+  const handleProcessClick = (item: PurchaseOrder) => {
+    setItemToProcess(item);
+    setProcessDialogOpen(true);
   };
 
   const formatCurrency = (value: number) => {
@@ -247,6 +256,19 @@ export function PurchaseOrders() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {item.status === 'Pendente' && (
+                            <Protected requires="purchaseOrder.canProcess">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                title="Processar Ordem de Compra"
+                                onClick={() => handleProcessClick(item)}
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            </Protected>
+                          )}
                           <Protected requires="purchaseOrder.canEdit">
                             <Button 
                               variant="ghost" 
@@ -299,7 +321,8 @@ export function PurchaseOrders() {
           items.map((item) => {
             const canEdit = hasPermission('purchaseOrder.canEdit');
             const canDelete = hasPermission('purchaseOrder.canDelete');
-            const isDisabled = !canEdit && !canDelete;
+            const canProcess = hasPermission('purchaseOrder.canProcess');
+            const isDisabled = !canEdit && !canDelete && !canProcess;
             
             return (
               <SwipeToDelete
@@ -326,10 +349,29 @@ export function PurchaseOrders() {
                         {formatCurrency(item.totalAmount) && (
                           <p className="text-sm text-gray-600 truncate mt-1">{formatCurrency(item.totalAmount)}</p>
                         )}
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          <span className="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            item.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
+                            item.status === 'Aprovado' ? 'bg-green-100 text-green-800' :
+                            item.status === 'Rejeitado' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
                             {item.status}
                           </span>
+                          {item.status === 'Pendente' && canProcess && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-xs text-green-600 border-green-300 hover:bg-green-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProcessClick(item);
+                              }}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Processar
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -459,6 +501,14 @@ export function PurchaseOrders() {
         cancelText="Cancelar"
         variant="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Process Purchase Order Dialog */}
+      <ProcessPurchaseOrderDialog
+        open={processDialogOpen}
+        onOpenChange={setProcessDialogOpen}
+        purchaseOrder={itemToProcess}
+        onSuccess={loadItems}
       />
     </MainLayout>
   );

@@ -69,7 +69,17 @@ public class PurchaseOrderController : BaseController
     {
         ValidateId(id, nameof(id));
         var currentUserId = GetCurrentUserId();
-        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId), "Ordem de compra atualizada com sucesso");
+        var hasProcessPermission = HasPermission("purchaseOrder.canProcess");
+        return await ValidateAndExecuteAsync(() => _service.UpdateByIdAsync(id, dto, currentUserId, hasProcessPermission), "Ordem de compra atualizada com sucesso");
+    }
+
+    [HttpPost("{id}/process")]
+    [RequirePermissions("purchaseOrder.canProcess")]
+    public async Task<ActionResult<BaseResponse<PurchaseOrderOutputDTO>>> ProcessAsync(long id, PurchaseOrderProcessDTO dto)
+    {
+        ValidateId(id, nameof(id));
+        var currentUserId = GetCurrentUserId();
+        return await ValidateAndExecuteAsync(() => _service.ProcessAsync(id, dto, currentUserId), "Ordem de compra processada com sucesso");
     }
 
     [HttpDelete("{id}")]
@@ -77,8 +87,10 @@ public class PurchaseOrderController : BaseController
     public async Task<ActionResult<BaseResponse<bool>>> DeleteByIdAsync(long id)
     {
         ValidateId(id, nameof(id));
+        var currentUserId = GetCurrentUserId();
+        var hasProcessPermission = HasPermission("purchaseOrder.canProcess");
         return await ExecuteBooleanAsync(
-            () => _service.DeleteByIdAsync(id),
+            () => _service.DeleteByIdAsync(id, currentUserId, hasProcessPermission),
             "Ordem de compra deletada com sucesso",
             "Ordem de compra não encontrada ou não pôde ser deletada"
         );

@@ -11,6 +11,7 @@ import { ResetPassword } from '../pages/auth/ResetPassword';
 // Company pages
 import { CompanySelect } from '../pages/companies/CompanySelect';
 import { CompanySettings } from '../pages/companies/CompanySettings';
+import { CompanySettings as CompanySettingsPage } from '../pages/company-settings/CompanySettings';
 
 // Dashboard pages
 import { Dashboard } from '../pages/dashboard/Dashboard';
@@ -126,6 +127,20 @@ export function AppRoutes() {
           <ProtectedRoute>
             <CompanyProtectedRoute>
               <Dashboard />
+            </CompanyProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Protected Routes - Company Settings (new) */}
+      <Route
+        path="/company-settings"
+        element={
+          <ProtectedRoute>
+            <CompanyProtectedRoute>
+              <PermissionProtectedRoute requires="companySettings.canView">
+                <CompanySettingsPage />
+              </PermissionProtectedRoute>
             </CompanyProtectedRoute>
           </ProtectedRoute>
         }

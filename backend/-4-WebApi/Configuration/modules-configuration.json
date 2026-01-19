@@ -261,17 +261,22 @@
         {
           "key": "canCreate",
           "name": "Criar",
-          "description": "Criar novas ordens de compra"
+          "description": "Criar novas solicitações de compra"
         },
         {
           "key": "canEdit",
           "name": "Editar",
-          "description": "Editar ordens de compra existentes"
+          "description": "Editar ordens de compra pendentes (próprias ou todas se tiver permissão para processar)"
         },
         {
           "key": "canDelete",
           "name": "Excluir",
-          "description": "Excluir ordens de compra"
+          "description": "Excluir ordens de compra pendentes (próprias ou todas se tiver permissão para processar)"
+        },
+        {
+          "key": "canProcess",
+          "name": "Processar",
+          "description": "Aprovar ou rejeitar ordens de compra e editar ordens já processadas"
         }
       ]
     },
@@ -383,6 +388,25 @@
           "key": "canView",
           "name": "Visualizar",
           "description": "Visualizar relatórios do sistema"
+        }
+      ]
+    },
+    {
+      "key": "companySettings",
+      "name": "Configurações da Empresa",
+      "description": "Gerenciar configurações gerais da empresa",
+      "icon": "settings",
+      "isActive": true,
+      "permissions": [
+        {
+          "key": "canView",
+          "name": "Visualizar",
+          "description": "Visualizar configurações da empresa"
+        },
+        {
+          "key": "canEdit",
+          "name": "Editar",
+          "description": "Editar configurações da empresa"
         }
       ]
     }

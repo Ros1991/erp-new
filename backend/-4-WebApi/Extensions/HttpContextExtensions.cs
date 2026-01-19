@@ -97,5 +97,43 @@ namespace ERP.WebApi.Extensions
         {
             return context.GetCompanyId() > 0;
         }
+
+        /// <summary>
+        /// Verifica se o usuário tem uma permissão específica (usa cache do RequirePermissionsAttribute)
+        /// </summary>
+        public static bool HasPermission(this HttpContext context, string permission)
+        {
+            const string CacheKey = "UserPermissions";
+            
+            if (!context.Items.TryGetValue(CacheKey, out var cached))
+            {
+                return false;
+            }
+
+            var (isAdmin, isSystemRole, modules) = ((bool, bool, Dictionary<string, Dictionary<string, bool>>))cached;
+
+            // Admin/System tem todas as permissões
+            if (isAdmin || isSystemRole)
+            {
+                return true;
+            }
+
+            // Parse: "module.permission"
+            var parts = permission.Split('.', 2);
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            string moduleName = parts[0];
+            string permissionName = parts[1];
+
+            if (!modules.TryGetValue(moduleName, out var modulePermissions))
+            {
+                return false;
+            }
+
+            return modulePermissions.TryGetValue(permissionName, out bool hasPermission) && hasPermission;
+        }
     }
 }

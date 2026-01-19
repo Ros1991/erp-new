@@ -11,16 +11,19 @@ import { parseBackendError } from '../../utils/errorHandler';
 import { ArrowLeft, Save } from 'lucide-react';
 import { ModulePermissions } from '../../components/roles/ModulePermissions';
 
+interface ModulePermission {
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  extraPermissions?: Record<string, boolean>;
+}
+
 interface RoleFormData {
   name: string;
   permissions: {
     isAdmin: boolean;
-    modules: Record<string, {
-      canView: boolean;
-      canCreate: boolean;
-      canEdit: boolean;
-      canDelete: boolean;
-    }>;
+    modules: Record<string, ModulePermission>;
   };
 }
 
@@ -134,26 +137,53 @@ export function RoleForm() {
   const handleModulePermissionChange = (
     moduleKey: string,
     permission: string,
-    value: boolean
+    value: boolean,
+    isExtra: boolean = false
   ) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        modules: {
-          ...prev.permissions.modules,
-          [moduleKey]: {
-            ...(prev.permissions.modules[moduleKey] || {
-              canView: false,
-              canCreate: false,
-              canEdit: false,
-              canDelete: false
-            }),
-            [permission]: value
+    setFormData(prev => {
+      const currentModule = prev.permissions.modules[moduleKey] || {
+        canView: false,
+        canCreate: false,
+        canEdit: false,
+        canDelete: false,
+        extraPermissions: {}
+      };
+
+      if (isExtra) {
+        // Permissão extra (canProcess, canClose, canReopen, etc.)
+        return {
+          ...prev,
+          permissions: {
+            ...prev.permissions,
+            modules: {
+              ...prev.permissions.modules,
+              [moduleKey]: {
+                ...currentModule,
+                extraPermissions: {
+                  ...(currentModule.extraPermissions || {}),
+                  [permission]: value
+                }
+              }
+            }
           }
-        }
+        };
+      } else {
+        // Permissão base (canView, canCreate, canEdit, canDelete)
+        return {
+          ...prev,
+          permissions: {
+            ...prev.permissions,
+            modules: {
+              ...prev.permissions.modules,
+              [moduleKey]: {
+                ...currentModule,
+                [permission]: value
+              }
+            }
+          }
+        };
       }
-    }));
+    });
   };
 
   const handleIsAdminChange = (value: boolean) => {
@@ -280,10 +310,11 @@ export function RoleForm() {
                         canView: false,
                         canCreate: false,
                         canEdit: false,
-                        canDelete: false
+                        canDelete: false,
+                        extraPermissions: {}
                       }}
-                      onChange={(permission, value) =>
-                        handleModulePermissionChange(module.key, permission, value)
+                      onChange={(permission, value, isExtra) =>
+                        handleModulePermissionChange(module.key, permission, value, isExtra)
                       }
                       disabled={isSaving}
                     />

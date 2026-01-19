@@ -14,10 +14,16 @@ namespace ERP.Application.Mappers
                 PurchaseOrderId = entity.PurchaseOrderId,
                 CompanyId = entity.CompanyId,
                 UserIdRequester = entity.UserIdRequester,
+                RequesterName = entity.UserRequester?.Email,
                 UserIdApprover = entity.UserIdApprover,
+                ApproverName = entity.UserAprrover?.Email,
                 Description = entity.Description,
                 TotalAmount = entity.TotalAmount,
                 Status = entity.Status,
+                ProcessedMessage = entity.ProcessedMessage,
+                ProcessedAt = entity.ProcessedAt,
+                AccountId = entity.AccountId,
+                AccountName = entity.Account?.Name,
                 CriadoPor = entity.CriadoPor,
                 AtualizadoPor = entity.AtualizadoPor,
                 CriadoEm = entity.CriadoEm,
@@ -37,32 +43,25 @@ namespace ERP.Application.Mappers
 
             var now = DateTime.UtcNow;
 
-            return new PurchaseOrder(
-                companyId,
-                dto.UserIdRequester,
-                dto.UserIdApprover,
-                dto.Description,
-                dto.TotalAmount,
-                dto.Status,
-                userId,        // CriadoPor
-                null,          // AtualizadoPor
-                now,           // CriadoEm
-                null           // AtualizadoEm
-            );
+            return new PurchaseOrder
+            {
+                CompanyId = companyId,
+                UserIdRequester = userId,
+                Description = dto.Description,
+                TotalAmount = 0,
+                Status = "Pendente",
+                CriadoPor = userId,
+                CriadoEm = now
+            };
         }
 
         public static void UpdateEntity(PurchaseOrder entity, PurchaseOrderInputDTO dto, long userId)
         {
             if (entity == null || dto == null) return;
             
-            entity.UserIdRequester = dto.UserIdRequester;
-            entity.UserIdApprover = dto.UserIdApprover;
             entity.Description = dto.Description;
-            entity.TotalAmount = dto.TotalAmount;
-            entity.Status = dto.Status;
             entity.AtualizadoPor = userId;
             entity.AtualizadoEm = DateTime.UtcNow;
-            // ✅ CriadoPor e CriadoEm NÃO são alterados
         }
     }
 }

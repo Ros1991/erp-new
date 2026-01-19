@@ -31,6 +31,15 @@ namespace ERP.Domain.Entities
 		[Column("purchase_order_status")]
 		public string Status { get; set; }
 
+		[Column("purchase_order_processed_message")]
+		public string? ProcessedMessage { get; set; }
+
+		[Column("purchase_order_processed_at")]
+		public DateTime? ProcessedAt { get; set; }
+
+		[Column("account_id")]
+		public long? AccountId { get; set; }
+
 		[Column("criado_por")]
 		public long CriadoPor { get; set; }
 
@@ -50,6 +59,8 @@ namespace ERP.Domain.Entities
         public virtual User UserRequester { get; set; } = null!;
 		//Criando Relação com a tabelas
         public virtual User UserAprrover { get; set; } = null!;
+		//Criando Relação com a tabelas
+        public virtual Account? Account { get; set; }
 		//Parent Relations
         public virtual ICollection<FinancialTransaction> FinancialTransactionList { get; set; } = new List<FinancialTransaction>();
 		// Construtor padrão para EF
